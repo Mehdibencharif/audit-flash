@@ -4,6 +4,34 @@ from fpdf import FPDF
 import io
 
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
+# Injection CSS pour interface verte
+st.markdown(
+    """
+    <style>
+    /* Fond vert clair pour la page */
+    .stApp {
+        background-color: #e6f4ea;
+    }
+    /* Boutons verts */
+    div.stButton > button {
+        background-color: #2e7d32;
+        color: white;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: bold;
+    }
+    div.stButton > button:hover {
+        background-color: #1b5e20;
+        color: #a5d6a7;
+    }
+    /* Titres verts foncés */
+    h2, h3, h4 {
+        color: #2e7d32;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 st.markdown("## FORMULAIRE DE PRISE DE BESOIN - AUDIT FLASH")
 
 # --- Informations client ---
