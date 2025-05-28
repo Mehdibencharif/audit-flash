@@ -1,0 +1,148 @@
+import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.chart import LineChart, Reference
+import matplotlib.pyplot as plt
+
+# --- Chemins des fichiers ---
+file_path_excel = r"C:\Users\mbencharif\OneDrive - Soteck inc\Bureau\test - courbe hydro vétoqionol test\Résultat de la pré-étude.xlsx"
+file_path_csv = r"C:\Users\mbencharif\OneDrive - Soteck inc\Bureau\test - courbe hydro vétoqionol test\Dataviz MyPortal3E - VETOQUINOL PRINCEVILLE - test -.csv"
+output_path = r"C:\Users\mbencharif\OneDrive - Soteck inc\Bureau\test - courbe hydro vétoqionol test\df_indicateurs_complet_ligne.xlsx"
+
+# --- Chargement des données ---
+df_excel = pd.read_excel(file_path_excel, sheet_name="Données Nettoyées")
+df_csv = pd.read_csv(file_path_csv, sep=';', encoding='latin1', decimal=',')
+
+# --- Conversion datetime ---
+df_excel['Date et heure'] = pd.to_datetime(df_excel['Date et heure'])
+df_csv['Minute'] = pd.to_datetime(df_csv['Minute'])
+df_csv.rename(columns={'Minute': 'Date et heure'}, inplace=True)
+
+# --- Fusion des deux sources ---
+df = pd.merge(df_excel, 
+              df_csv[['Date et heure', 'Usine : T°C extérieure moyenne mensuelle (Saisie)']], 
+              on='Date et heure', how='left')
+
+# --- Calculs ligne par ligne ---
+puissance_max = df['Puissance réelle (kW)'].max()
+df['Facteur_utilisation'] = df['Puissance réelle (kW)'] / puissance_max
+df['Espace_dispo_sous_500kW'] = (500 - df['Puissance réelle (kW)']).clip(lower=0)
+df['Jour'] = df['Date et heure'].dt.date
+
+# --- Résumé journalier ---
+daily = df.groupby('Jour').agg({
+    'Puissance réelle (kW)': ['max', 'mean', 'sum'],
+    'Usine : T°C extérieure moyenne mensuelle (Saisie)': 'mean',
+    'Facteur_utilisation': 'mean',
+    'Espace_dispo_sous_500kW': 'mean'
+})
+
+# Simplification des noms des colonnes (aplatir MultiIndex)
+daily.columns = ['P_max', 'P_moyenne', 'Energie_kWh', 'Temp_moy', 'Fact_util_moy', 'Espace_moy']
+daily = daily.reset_index()
+
+# --- Sauvegarde initiale ---
+with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
+    df.to_excel(writer, sheet_name='Mesures détaillées', index=False)
+    daily.to_excel(writer, sheet_name='Résumé journalier', index=False)
+
+# --- Ajout de graphiques dans Excel ---
+wb = load_workbook(output_path)
+ws = wb['Mesures détaillées']
+
+min_row = 2
+max_row = ws.max_row
+cats = Reference(ws, min_col=1, min_row=min_row, max_row=max_row)  # Date et heure
+
+def create_line_chart(title, y_axis_title, col, position):
+    chart = LineChart()
+    chart.title = title
+    chart.y_axis.title = y_axis_title
+    chart.x_axis.title = "Date et heure"
+    chart.style = 12
+    
+    # On prend les données sans la ligne d'en-tête (start at row 2)
+    values = Reference(ws, min_col=col, min_row=2, max_row=max_row)
+    chart.add_data(values, titles_from_data=False)  # Pas de titre dans les données
+    
+    # Les catégories sur la colonne Date et heure (col 1), lignes 2 à max_row
+    chart.set_categories(Reference(ws, min_col=1, min_row=2, max_row=max_row))
+    
+    ws.add_chart(chart, position)
+
+# Exemples d'indices, adapter selon le fichier final
+col_dict = {
+    "Puissance réelle (kW)": 2,  # Colonne B
+    "Usine : T°C extérieure moyenne mensuelle (Saisie)": 3,  # Colonne C (vérifie !)
+    "Facteur_utilisation": 4,  # Colonne D
+    "Espace_dispo_sous_500kW": 5,  # Colonne E
+}
+
+positions = ["N2", "N20", "N38", "N56"]
+
+for (title, col), pos in zip(col_dict.items(), positions):
+    create_line_chart(title, title, col, pos)
+
+wb.save(output_path)
+
+print(f"✅ Script terminé avec succès !\nFichier Excel créé avec données ligne par ligne, indicateurs et 4 graphiques :\n{output_path}")
+
+# --- Calculs supplémentaires pour matplotlib ---
+
+# Conversion facteur d'utilisation en %
+df['Facteur_utilisation_%'] = df['Facteur_utilisation'] * 100
+
+# Énergie pour chaque ligne (intervalle 15 min = 0.25 h)
+df['Energie_kWh'] = df['Puissance réelle (kW)'] * 0.25
+
+# Extraction mois sous forme périodique pour grouper
+df['Mois'] = df['Date et heure'].dt.to_period('M')
+
+# Regroupement par mois pour volume mensuel
+energie_mensuelle = df.groupby('Mois')['Energie_kWh'].sum().reset_index()
+energie_mensuelle.columns = ['Mois', 'Energie_totale_kWh']
+
+# Conversion de 'Mois' en datetime pour matplotlib
+energie_mensuelle['Mois_dt'] = energie_mensuelle['Mois'].dt.to_timestamp()
+
+print("📅 Volume mensuel sur 24 mois :")
+print(energie_mensuelle[['Mois', 'Energie_totale_kWh']])
+
+# --- Affichage graphique ---
+
+plt.figure(figsize=(14, 12))
+
+# 1️⃣ Puissance réelle
+plt.subplot(4, 1, 1)
+plt.plot(df['Date et heure'], df['Puissance réelle (kW)'], color='blue')
+plt.title('Puissance réelle (kW)')
+plt.xlabel('Date et heure')
+plt.ylabel('kW')
+plt.grid(True)
+
+# 2️⃣ Facteur d'utilisation en %
+plt.subplot(4, 1, 2)
+plt.plot(df['Date et heure'], df['Facteur_utilisation_%'], color='green')
+plt.title('Facteur d\'utilisation (%)')
+plt.xlabel('Date et heure')
+plt.ylabel('%')
+plt.grid(True)
+
+# 3️⃣ Espace disponible sous 500 kW
+plt.subplot(4, 1, 3)
+plt.plot(df['Date et heure'], df['Espace_dispo_sous_500kW'], color='orange')
+plt.title('Espace disponible sous 500 kW')
+plt.xlabel('Date et heure')
+plt.ylabel('kW disponibles')
+plt.grid(True)
+
+# 4️⃣ Énergie totale mensuelle
+plt.subplot(4, 1, 4)
+plt.bar(energie_mensuelle['Mois_dt'], energie_mensuelle['Energie_totale_kWh'], color='steelblue', width=20)
+plt.title("Énergie totale consommée par mois (kWh) sur 24 mois")
+plt.xlabel("Mois")
+plt.ylabel("Énergie (kWh)")
+plt.xticks(rotation=45)
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+plt.tight_layout()
+plt.show()
