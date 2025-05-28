@@ -4,7 +4,7 @@ from fpdf import FPDF
 import io
 
 # Configuration de la page
-st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
+
 
 # Chemin relatif vers le logo (à placer dans un dossier 'images/')
 logo_path = "Image/Logo Soteck.jpg"
