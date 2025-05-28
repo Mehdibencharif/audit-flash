@@ -5,54 +5,37 @@ import io
 
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
 
-# Injection CSS pour interface verte et header logo à droite
+logo_path = r"C:\Users\mbencharif\OneDrive - Soteck inc\Bureau\Résume information\5-Création d'un lien audit Flash\Logo Soteck-clauger sup noir 4.0.jpg"
+
+col1, col2 = st.columns([8, 1])
+with col1:
+    st.markdown("## FORMULAIRE DE PRISE DE BESOIN - AUDIT FLASH")
+with col2:
+    st.image(logo_path, width=100)
+
 st.markdown(
     """
     <style>
-    /* Fond vert clair pour la page */
     .stApp {
-        background-color: #e6f4ea;
+        background-color: #c8e6c9;
     }
-
-    /* Boutons verts */
     div.stButton > button {
         background-color: #2e7d32;
         color: white;
         border-radius: 8px;
         padding: 8px 16px;
         font-weight: bold;
-        transition: background-color 0.3s ease;
     }
     div.stButton > button:hover {
         background-color: #1b5e20;
         color: #a5d6a7;
     }
-
-    /* Titres verts foncés */
     h2, h3, h4 {
         color: #2e7d32;
     }
-
-    /* Header : titre à gauche, logo à droite sur la même ligne */
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-    }
-    .header-title {
-        color: #2e7d32;
-        font-size: 2rem;
-        font-weight: bold;
-        margin: 0;
-    }
-    .header-logo img {
-        width: 120px;
-        height: auto;
-    }
     </style>
     """,
-    unsafe_allow_html=True,
+    unsafe_allow_html=True
 )
 
 # En-tête avec logo à droite — 
