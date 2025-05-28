@@ -15,7 +15,7 @@ with col1:
     st.markdown("## FORMULAIRE DE PRISE DE BESOIN - AUDIT FLASH")
 with col2:
     try:
-        st.image(logo_path, width=100)
+        st.image(logo_path, width=200)
     except:
         st.warning("Logo non trouvé. Vérifie le chemin ou le dépôt GitHub.")
 
