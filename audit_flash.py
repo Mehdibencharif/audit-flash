@@ -15,7 +15,7 @@ with col1:
     st.markdown("## FORMULAIRE DE PRISE DE BESOIN - AUDIT FLASH")
 with col2:
     try:
-        st.image(logo_path, width=350)
+        st.image(logo_path, width=100)
     except:
         st.warning("Logo non trouvé. Vérifie le chemin ou le dépôt GitHub.")
 
@@ -42,19 +42,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# En-tête avec logo à droite — 
-# Remplace "logo.png" par le chemin ou url de ton logo
-st.markdown(
-    """
-    <div class="header">
-        <h2 class="header-title">FORMULAIRE DE PRISE DE BESOIN - AUDIT FLASH</h2>
-        <div class="header-logo">
-            <img src="logo.png" alt="Logo" />
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
 
 
 # --- Informations client ---
