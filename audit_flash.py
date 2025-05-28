@@ -85,42 +85,41 @@ rempli_mail = st.text_input("Courriel", key="rempli_mail")
 rempli_tel = st.text_input("Téléphone", key="rempli_tel")
 rempli_ext = st.text_input("Extension", key="rempli_ext")
 
+from fpdf import FPDF
+import streamlit as st
+from datetime import date
+
+# Ton formulaire ici (déjà présent dans ton script)
+
 # --- Génération du PDF ---
-if st.button("📄 Générer le PDF"):
+if st.button("Générer le PDF"):
+
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
+    pdf.cell(0, 10, "Résumé Audit Flash", ln=True)
 
-    def write_line(label, value):
-        if value:
-            pdf.multi_cell(0, 10, f"{label}: {value}")
+    # Par exemple, on ajoute quelques infos du formulaire
+    pdf.cell(0, 10, f"Client: {st.session_state.get('client_nom', '')}", ln=True)
+    pdf.cell(0, 10, f"Site: {st.session_state.get('site_nom', '')}", ln=True)
+    pdf.cell(0, 10, f"Date du formulaire: {date.today().strftime('%d/%m/%Y')}", ln=True)
+    pdf.ln(10)
 
-    write_line("Client", client_nom)
-    write_line("Site", site_nom)
-    write_line("Adresse", adresse)
-    write_line("Ville", ville)
-    write_line("Province", province)
-    write_line("Code postal", code_postal)
+    pdf.cell(0, 10, "Objectifs du client:", ln=True)
+    pdf.cell(0, 10, f"Réduction GES: {st.session_state.get('ges', '')}%", ln=True)
+    pdf.cell(0, 10, f"Économie énergie: {'Oui' if st.session_state.get('economie_energie') else 'Non'}", ln=True)
+    pdf.cell(0, 10, f"Gagner en productivité: {'Oui' if st.session_state.get('gain_productivite') else 'Non'}", ln=True)
+    pdf.cell(0, 10, f"Retour sur investissement visé: {st.session_state.get('roi', '')}", ln=True)
 
-    write_line("\nContact EE", f"{contact_ee_nom}, {contact_ee_mail}, {contact_ee_tel} ext {contact_ee_ext}")
-    write_line("Contact Maintenance", f"{contact_maint_nom}, {contact_maint_mail}, {contact_maint_tel} ext {contact_maint_ext}")
+    # Convertir en bytes pour Streamlit
+    pdf_bytes = pdf.output(dest='S').encode('latin1')
 
-    write_line("\nTemps de fonctionnement", temps_fonctionnement)
-    write_line("Objectif GES", sauver_ges)
-    write_line("Économie d'énergie", "Oui" if economie_energie else "Non")
-    write_line("Productivité", "Oui" if gain_productivite else "Non")
-    write_line("ROI visé", roi_vise)
-    write_line("Remplacement équipement", "Oui" if remplacement_equipement else "Non")
-    write_line("Investissement prévu", investissement_prevu)
-    write_line("Autres objectifs", autres_objectifs)
-
-    write_line("\nCHAUDIÈRES", f"{nb_chaudieres} - {type_chaudiere}, {taille_chaudiere}, {combustible_chaudiere}, {rendement_chaudiere}, {appoint_eau}")
-    write_line("FRIGORIFIQUES", f"{nb_frigo} - {capacite_frigo}, {fluide_frigo}, {temp_froid}, {condensation}")
-    write_line("AIR COMPRIMÉ", f"{puissance_comp}, {refroidissement_comp}, VSD: {variation_vitesse}")
-    write_line("AUTRES", f"{capacite_autres} - {autres_infos}")
-
-    write_line("\nRempli par", f"{rempli_nom}, {rempli_mail}, {rempli_tel} ext {rempli_ext}")
-    write_line("Date", str(rempli_date))
+    st.download_button(
+        label="Télécharger le PDF",
+        data=pdf_bytes,
+        file_name="audit_flash.pdf",
+        mime="application/pdf"
+    )
 
     # Création du fichier PDF en mémoire
     pdf_buffer = io.BytesIO()
