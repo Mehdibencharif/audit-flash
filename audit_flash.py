@@ -7,7 +7,7 @@ import io
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
 
 # Chemin relatif vers le logo (à placer dans un dossier 'images/')
-logo_path = "Images/Logo Soteck.jpg"
+logo_path = "Image/Logo Soteck.jpg"
 
 # En-tête avec logo à droite
 col1, col2 = st.columns([8, 1])
