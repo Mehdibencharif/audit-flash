@@ -4,6 +4,10 @@ from fpdf import FPDF
 import io
 
 # Configuration de la page
+st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
+
+# Chemin relatif vers le logo (à placer dans un dossier 'images/')
+logo_path = "images/logo_soteck.jpg"
 
 # En-tête avec logo à droite
 col1, col2 = st.columns([8, 1])
@@ -11,7 +15,7 @@ with col1:
     st.markdown("## FORMULAIRE DE PRISE DE BESOIN - AUDIT FLASH")
 with col2:
     try:
-        st.image(logo_path, width=300)
+        st.image(logo_path, width=350)
     except:
         st.warning("Logo non trouvé. Vérifie le chemin ou le dépôt GitHub.")
 
