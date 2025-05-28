@@ -12,7 +12,7 @@ logo_path = "Image/Logo Soteck.jpg"
 # En-tête avec logo à droite
 col1, col2 = st.columns([8, 1])
 with col1:
-    st.markdown("## FORMULAIRE DE PRISE DE BESOIN - AUDIT FLASH")
+    st.markdown("## FORMULAIRE DE COLLECTE DES BESOINS - AUDIT FLASH")
 with col2:
     try:
         st.image(logo_path, width=400)
