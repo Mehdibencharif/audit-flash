@@ -54,14 +54,14 @@ province = st.text_input("Province")
 code_postal = st.text_input("Code postal")
 
 # --- Contact efficacité énergétique ---
-st.markdown("### Personne contact - Efficacité énergétique")
+st.markdown("### Personne contact - Efficacité énergétique Soteck")
 contact_ee_nom = st.text_input("Prénom et Nom (EE)")
 contact_ee_mail = st.text_input("Courriel (EE)")
 contact_ee_tel = st.text_input("Téléphone (EE)")
 contact_ee_ext = st.text_input("Extension (EE)")
 
 # --- Contact maintenance ---
-st.markdown("### Personne contact - Maintenance")
+st.markdown("### Personne contact - Service de Maintenance")
 contact_maint_nom = st.text_input("Prénom et Nom (Maintenance)")
 contact_maint_mail = st.text_input("Courriel (Maintenance)")
 contact_maint_tel = st.text_input("Téléphone (Maintenance)")
@@ -74,8 +74,8 @@ facture_combustibles = st.file_uploader("Factures Gaz / Mazout / Propane / Bois"
 facture_autres = st.file_uploader("Autres consommables (azote, eau, CO2, etc.)", type="pdf", accept_multiple_files=True)
 temps_fonctionnement = st.text_input("Temps de fonctionnement de l’usine")
 
-# --- Objectifs du client ---
-st.markdown("### Objectifs du client")
+# --- Objectifs client ---
+st.markdown("### Objectifs client")
 sauver_ges = st.text_input("Objectif de réduction de GES (%)")
 economie_energie = st.checkbox("Économie d’énergie")
 gain_productivite = st.checkbox("Productivité accrue : coûts, temps")
