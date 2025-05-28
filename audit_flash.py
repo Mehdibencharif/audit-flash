@@ -5,10 +5,6 @@ import io
 
 # Configuration de la page
 
-
-# Chemin relatif vers le logo (à placer dans un dossier 'images/')
-logo_path = "Image/Logo Soteck.jpg"
-
 # En-tête avec logo à droite
 col1, col2 = st.columns([8, 1])
 with col1:
