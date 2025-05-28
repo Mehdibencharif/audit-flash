@@ -85,48 +85,34 @@ rempli_mail = st.text_input("Courriel", key="rempli_mail")
 rempli_tel = st.text_input("Téléphone", key="rempli_tel")
 rempli_ext = st.text_input("Extension", key="rempli_ext")
 
-from fpdf import FPDF
-import streamlit as st
-from datetime import date
-
-# Ton formulaire ici (déjà présent dans ton script)
-
 # --- Génération du PDF ---
 if st.button("Générer le PDF"):
-
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
     pdf.cell(0, 10, "Résumé Audit Flash", ln=True)
+    pdf.ln(10)
 
-    # Par exemple, on ajoute quelques infos du formulaire
-    pdf.cell(0, 10, f"Client: {st.session_state.get('client_nom', '')}", ln=True)
-    pdf.cell(0, 10, f"Site: {st.session_state.get('site_nom', '')}", ln=True)
-    pdf.cell(0, 10, f"Date du formulaire: {date.today().strftime('%d/%m/%Y')}", ln=True)
+    pdf.cell(0, 10, f"Client: {client_nom}", ln=True)
+    pdf.cell(0, 10, f"Site: {site_nom}", ln=True)
+    pdf.cell(0, 10, f"Date du formulaire: {rempli_date.strftime('%d/%m/%Y')}", ln=True)
     pdf.ln(10)
 
     pdf.cell(0, 10, "Objectifs du client:", ln=True)
-    pdf.cell(0, 10, f"Réduction GES: {st.session_state.get('ges', '')}%", ln=True)
-    pdf.cell(0, 10, f"Économie énergie: {'Oui' if st.session_state.get('economie_energie') else 'Non'}", ln=True)
-    pdf.cell(0, 10, f"Gagner en productivité: {'Oui' if st.session_state.get('gain_productivite') else 'Non'}", ln=True)
-    pdf.cell(0, 10, f"Retour sur investissement visé: {st.session_state.get('roi', '')}", ln=True)
+    pdf.cell(0, 10, f"Réduction GES: {sauver_ges}%", ln=True)
+    pdf.cell(0, 10, f"Économie énergie: {'Oui' if economie_energie else 'Non'}", ln=True)
+    pdf.cell(0, 10, f"Gagner en productivité: {'Oui' if gain_productivite else 'Non'}", ln=True)
+    pdf.cell(0, 10, f"Retour sur investissement visé: {roi_vise}", ln=True)
+    pdf.cell(0, 10, f"Investissement prévu: {investissement_prevu}", ln=True)
+    pdf.ln(10)
 
-    # Convertir en bytes pour Streamlit
-    pdf_bytes = pdf.output(dest='S').encode('latin1')
-
-    st.download_button(
-        label="Télécharger le PDF",
-        data=pdf_bytes,
-        file_name="audit_flash.pdf",
-        mime="application/pdf"
-    )
+    pdf.cell(0, 10, "Informations supplémentaires:", ln=True)
+    pdf.multi_cell(0, 10, autres_objectifs)
 
     # Création du fichier PDF en mémoire
     pdf_buffer = io.BytesIO()
     pdf.output(pdf_buffer)
     pdf_buffer.seek(0)
-
-    st.success("✅ PDF généré avec succès !")
 
     st.download_button(
         label="📥 Télécharger le PDF",
@@ -134,3 +120,5 @@ if st.button("Générer le PDF"):
         file_name="audit_flash.pdf",
         mime="application/pdf"
     )
+
+    st.success("✅ PDF généré avec succès !")
