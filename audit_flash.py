@@ -4,7 +4,8 @@ from fpdf import FPDF
 import io
 
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
-# Injection CSS pour interface verte
+
+# Injection CSS pour interface verte et header logo à droite
 st.markdown(
     """
     <style>
@@ -12,6 +13,7 @@ st.markdown(
     .stApp {
         background-color: #e6f4ea;
     }
+
     /* Boutons verts */
     div.stButton > button {
         background-color: #2e7d32;
@@ -19,20 +21,54 @@ st.markdown(
         border-radius: 8px;
         padding: 8px 16px;
         font-weight: bold;
+        transition: background-color 0.3s ease;
     }
     div.stButton > button:hover {
         background-color: #1b5e20;
         color: #a5d6a7;
     }
+
     /* Titres verts foncés */
     h2, h3, h4 {
         color: #2e7d32;
     }
+
+    /* Header : titre à gauche, logo à droite sur la même ligne */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+    .header-title {
+        color: #2e7d32;
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0;
+    }
+    .header-logo img {
+        width: 120px;
+        height: auto;
+    }
     </style>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
-st.markdown("## FORMULAIRE DE PRISE DE BESOIN - AUDIT FLASH")
+
+# En-tête avec logo à droite — 
+# Remplace "logo.png" par le chemin ou url de ton logo
+st.markdown(
+    """
+    <div class="header">
+        <h2 class="header-title">FORMULAIRE DE PRISE DE BESOIN - AUDIT FLASH</h2>
+        <div class="header-logo">
+            <img src="logo.png" alt="Logo" />
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 # --- Informations client ---
 st.markdown("### Informations générales")
