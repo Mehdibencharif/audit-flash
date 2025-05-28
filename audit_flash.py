@@ -3,21 +3,27 @@ from datetime import date
 from fpdf import FPDF
 import io
 
+# Configuration de la page
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
 
-logo_path = r"C:\Users\mbencharif\OneDrive - Soteck inc\Bureau\Résume information\5-Création d'un lien audit Flash\Logo Soteck-clauger sup noir 4.0.jpg"
+# Chemin relatif vers le logo (à placer dans un dossier 'images/')
+logo_path = "images/logo_soteck.jpg"
 
+# En-tête avec logo à droite
 col1, col2 = st.columns([8, 1])
 with col1:
     st.markdown("## FORMULAIRE DE PRISE DE BESOIN - AUDIT FLASH")
 with col2:
-    st.image(logo_path, width=100)
+    try:
+        st.image(logo_path, width=100)
+    except:
+        st.warning("Logo non trouvé. Vérifie le chemin ou le dépôt GitHub.")
 
-st.markdown(
-    """
+# Style personnalisé : interface verte
+st.markdown("""
     <style>
     .stApp {
-        background-color: #c8e6c9;
+        background-color: #e6f4ea;
     }
     div.stButton > button {
         background-color: #2e7d32;
@@ -30,13 +36,11 @@ st.markdown(
         background-color: #1b5e20;
         color: #a5d6a7;
     }
-    h2, h3, h4 {
+    h1, h2, h3, h4 {
         color: #2e7d32;
     }
     </style>
-    """,
-    unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
 
 # En-tête avec logo à droite — 
 # Remplace "logo.png" par le chemin ou url de ton logo
