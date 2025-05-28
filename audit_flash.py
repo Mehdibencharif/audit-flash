@@ -23,7 +23,7 @@ with col2:
 st.markdown("""
     <style>
     .stApp {
-        background-color: #e6f4ea;
+        background-color: #81c784; /* Fond vert clair, saturé */
     }
     div.stButton > button {
         background-color: #2e7d32;
