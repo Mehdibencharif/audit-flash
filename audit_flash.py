@@ -43,6 +43,12 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+🔗 Pour en savoir plus sur nous et nos services :  
+**[Soteck](https://www.soteck.com/fr)**
+---
+""")
+
 # Logo et titre
 logo_path = "Image/Logo Soteck.jpg"
 col1, col2 = st.columns([8, 1])
