@@ -57,7 +57,7 @@ Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash
 Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.
 
 ---
-🔗 Pour en savoir plus sur notre entreprise et nos services :  
+🔗 Pour en savoir plus sur nous et nos services visiter notre site :  
 **[Soteck](https://www.soteck.com/fr)**
 ---
 """)
