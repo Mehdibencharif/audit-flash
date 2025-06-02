@@ -118,11 +118,29 @@ rempli_mail = st.text_input("Courriel")
 rempli_tel = st.text_input("Téléphone")
 rempli_ext = st.text_input("Extension")
 
+# Autres services proposés
+section_header("🛠️ Autres services proposés")
+st.markdown("Souhaitez-vous être contacté pour d'autres services que nous offrons (ex.: contrôle, maintenance, ventilation) ?")
+
+controle = st.checkbox("Contrôle et automatisation")
+maintenance = st.checkbox("Maintenance préventive et corrective")
+ventilation = st.checkbox("Ventilation industrielle et gestion de l’air")
+autres_services = st.text_area("Autres services souhaités (précisez)")
+
 # Bouton de génération du PDF
 if st.button("📥 Générer le PDF"):
     if not client_nom or not site_nom:
         st.error("❌ Veuillez remplir au minimum le nom du client et le site.")
     else:
-        # Code PDF identique ou amélioré
-        st.success("✅ PDF généré avec succès !")
+        pdf = FPDF()
+        pdf.add_page()
+        # ... le code PDF habituel ...
+        pdf.set_font("Arial", 'B', 12)
+        pdf.cell(0, 10, "Services complémentaires souhaités:", ln=True)
+        pdf.set_font("Arial", '', 12)
+        pdf.cell(0, 10, f"- Contrôle et automatisation: {'Oui' if controle else 'Non'}", ln=True)
+        pdf.cell(0, 10, f"- Maintenance: {'Oui' if maintenance else 'Non'}", ln=True)
+        pdf.cell(0, 10, f"- Ventilation: {'Oui' if ventilation else 'Non'}", ln=True)
+        pdf.multi_cell(0, 10, f"Autres services souhaités: {autres_services}")
+        # ... puis le reste ...
 
