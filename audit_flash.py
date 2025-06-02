@@ -12,8 +12,8 @@ st.markdown("""
 ---
 🔗 Pour en savoir plus sur notre entreprise et nos services, visitez notre site :  
 **[Soteck](https://www.soteck.com/fr)**
----
 """)
+
 
 # Étape 1 : Infos générales
 st.header("1. Informations générales")
@@ -22,68 +22,66 @@ entreprise = st.text_input("Nom de l'entreprise")
 secteur = st.selectbox("Secteur d'activité", ["Industrie", "Tertiaire", "Agroalimentaire", "Autre"])
 objectif = st.multiselect("Quels sont vos objectifs prioritaires ?", ["Réduction de consommation", "Réduction des coûts", "Réduction des GES", "Amélioration du confort", "Réduction de maintenance"])
 
-# Étape 2 : Pondération simplifiée pour TOPSIS
-st.header("2. Pondération des critères (TOPSIS simplifié)")
+# Étape 2 : Comparaison AHP
+st.header("2. Priorisation des critères (AHP simplifié)")
+st.markdown("Comparez les critères deux à deux selon leur importance pour vous.")
 criteria = ["Énergie", "Coûts", "Environnement", "Confort", "Maintenance"]
-weights = []
 
-st.markdown("Attribuez un poids (1 à 10) à chaque critère selon son importance pour vous.")
-for crit in criteria:
-    weight = st.slider(f"Poids pour {crit}", 1, 10, 5, format="%d")
-    weights.append(weight)
+pairwise = {}
 
-# Si bouton cliqué
-if st.button("Calculer les priorités avec TOPSIS"):
+for i in range(len(criteria)):
+    for j in range(i + 1, len(criteria)):
+        question = f"Par rapport à **{criteria[i]}** vs **{criteria[j]}**, lequel est plus important ?"
+        choix = st.slider(question, 1, 9, 5, format="%d")
+        pairwise[(criteria[i], criteria[j])] = choix
+
+# Création de la matrice AHP
+if st.button("Calculer les priorités"):
+    size = len(criteria)
+    mat = np.ones((size, size))
+
+    for i in range(size):
+        for j in range(size):
+            if i != j:
+                if (criteria[i], criteria[j]) in pairwise:
+                    mat[i][j] = pairwise[(criteria[i], criteria[j])]
+                    mat[j][i] = 1 / mat[i][j]
+
+    # Normalisation et pondération
+    column_sums = np.sum(mat, axis=0)
+    normalized = mat / column_sums
+    weights = np.mean(normalized, axis=1)
     df_weights = pd.DataFrame({"Critère": criteria, "Poids": weights})
-    df_weights["Poids normalisé"] = df_weights["Poids"] / df_weights["Poids"].sum()
 
-    st.success("Voici la pondération normalisée de vos critères :")
+    st.success("Voici la pondération de vos critères :")
     st.dataframe(df_weights)
 
-    fig = px.pie(df_weights, names="Critère", values="Poids normalisé", title="Priorisation des critères")
+    fig = px.pie(df_weights, names="Critère", values="Poids", title="Priorisation des critères")
     st.plotly_chart(fig)
 
     st.markdown("Un rapport peut être généré selon ces priorités pour vous proposer des actions ciblées dès le premier contact.")
 
-    # Analyse et résumé personnalisé
+    # Analyse et génération de résumé
     st.subheader("Résumé personnalisé des priorités")
-    top_criteria = df_weights.sort_values("Poids normalisé", ascending=False).head(3)
+
+    top_criteria = df_weights.sort_values("Poids", ascending=False).head(3)
 
     resume = f"""
-Bonjour {nom if nom else "utilisateur"}, voici un aperçu de vos priorités (méthode TOPSIS simplifiée) :
+Bonjour {nom if nom else "utilisateur"}, voici un aperçu de vos priorités :
 
-1. **{top_criteria.iloc[0]['Critère']}** : Ce critère est prioritaire. Nous vous proposerons des actions ciblées pour l'optimiser en priorité.
+1. **{top_criteria.iloc[0]['Critère']}** : Ce critère a été identifié comme le plus important. Nous vous proposerons des actions ciblées pour l'optimiser en priorité.
 2. **{top_criteria.iloc[1]['Critère']}** : Ce critère arrive en deuxième position, et sera intégré dans les recommandations secondaires.
 3. **{top_criteria.iloc[2]['Critère']}** : Ce critère complète votre trio de tête et pourra être intégré dans les solutions complémentaires.
 
 Grâce à cette hiérarchisation, un audit ciblé pourra être planifié avec un maximum d'efficacité et de pertinence.
 """
+
     st.markdown(resume)
 
-    # Section récapitulative dynamique
-    st.subheader("📝 Récapitulatif du formulaire")
-    st.write(f"**Nom** : {nom}")
-    st.write(f"**Entreprise** : {entreprise}")
-    st.write(f"**Secteur** : {secteur}")
-    st.write(f"**Objectifs sélectionnés** : {', '.join(objectif)}")
-
-    # Export des données
-    st.subheader("📊 Télécharger vos priorités et informations")
-    data_export = {
-        "Nom": [nom],
-        "Entreprise": [entreprise],
-        "Secteur": [secteur],
-        "Objectifs": [', '.join(objectif)]
-    }
-    for crit, wgt, norm in zip(df_weights["Critère"], df_weights["Poids"], df_weights["Poids normalisé"]):
-        data_export[f"{crit} (poids)"] = [wgt]
-        data_export[f"{crit} (normalisé)"] = [norm]
-
-    df_export = pd.DataFrame(data_export)
-    csv = df_export.to_csv(index=False, sep=';').encode('utf-8-sig')
+    # Bouton pour télécharger le résumé
     st.download_button(
-        label="📥 Télécharger le résumé (.csv)",
-        data=csv,
-        file_name=f"resume_audit_flash_{nom.replace(' ', '_') if nom else 'utilisateur'}.csv",
-        mime="text/csv"
+        label="📄 Télécharger le résumé personnalisé",
+        data=resume,
+        file_name=f"resume_audit_flash_{nom.replace(' ', '_') if nom else 'utilisateur'}.txt",
+        mime="text/plain"
     )
