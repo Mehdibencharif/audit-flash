@@ -1,80 +1,162 @@
 import streamlit as st
-import pandas as pd
+from datetime import date
 from fpdf import FPDF
 import io
 
-st.set_page_config(page_title="Audit Flash - Formulaire de prise de besoin", layout="centered")
-st.title("📋 Formulaire de prise de besoin - Audit Flash")
+# Configuration de la page
+st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
 
+# Chemin relatif vers le logo (à placer dans un dossier 'images/')
+logo_path = "Image/Logo Soteck.jpg"
+
+# En-tête avec logo à droite
+col1, col2 = st.columns([8, 1])
+with col1:
+    st.markdown("## FORMULAIRE DE PRISE DE BESOIN - AUDIT FLASH")
+with col2:
+    try:
+        st.image(logo_path, width=100)
+    except:
+        st.warning("Logo non trouvé. Vérifie le chemin ou le dépôt GitHub.")
+
+# Style personnalisé : interface verte
 st.markdown("""
-Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.  
-Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.
----
-🔗 Pour en savoir plus sur notre entreprise et nos services :  
-**[Soteck](https://www.soteck.com/fr)**
----
-""")
+    <style>
+    .stApp {
+        background-color: #81c784; /* Fond vert clair, saturé */
+    }
+    div.stButton > button {
+        background-color: #2e7d32;
+        color: white;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: bold;
+    }
+    div.stButton > button:hover {
+        background-color: #1b5e20;
+        color: #a5d6a7;
+    }
+    h1, h2, h3, h4 {
+        color: #2e7d32;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# --- Formulaire comme avant (je simplifie ici pour la place) ---
-client_portail = st.text_input("Nom du client portail (exemple : Soteck Clauger)")
-site_client = st.text_input("Nom du site du client (exemple : Soteck Clauger entrepôt)")
+
+
+# --- Informations client ---
+st.markdown("### Informations générales")
+client_nom = st.text_input("Nom du client portail (exemple : Soteck Clauger)")
+site_nom = st.text_input("Nom du site du client")
 adresse = st.text_input("Adresse")
 ville = st.text_input("Ville")
 province = st.text_input("Province")
 code_postal = st.text_input("Code postal")
-# (et tous les autres champs... à recopier)
 
-# --- Validation et résumé PDF ---
-remplisseur_nom = st.text_input("Prénom et Nom de la personne qui a rempli ce formulaire")
-remplisseur_date = st.date_input("Date")
-remplisseur_email = st.text_input("Courriel")
-remplisseur_tel = st.text_input("Téléphone")
-remplisseur_poste = st.text_input("Extension")
+# --- Contact efficacité énergétique ---
+st.markdown("### Personne contact - Efficacité énergétique")
+contact_ee_nom = st.text_input("Prénom et Nom (EE)")
+contact_ee_mail = st.text_input("Courriel (EE)")
+contact_ee_tel = st.text_input("Téléphone (EE)")
+contact_ee_ext = st.text_input("Extension (EE)")
 
-if st.button("📄 Générer le résumé au format PDF"):
-    resume = f"""
-Formulaire de prise de besoin - Audit Flash
+# --- Contact maintenance ---
+st.markdown("### Personne contact - Maintenance")
+contact_maint_nom = st.text_input("Prénom et Nom (Maintenance)")
+contact_maint_mail = st.text_input("Courriel (Maintenance)")
+contact_maint_tel = st.text_input("Téléphone (Maintenance)")
+contact_maint_ext = st.text_input("Extension (Maintenance)")
 
-Informations générales
-- Client portail : {client_portail}
-- Site client : {site_client}
-- Adresse : {adresse}, {ville}, {province}, {code_postal}
+# --- Documents indispensables ---
+st.markdown("### Documents à fournir avant la visite")
+facture_elec = st.file_uploader("Factures électricité (1 à 3 ans)", type="pdf", accept_multiple_files=True)
+facture_combustibles = st.file_uploader("Factures Gaz / Mazout / Propane / Bois", type="pdf", accept_multiple_files=True)
+facture_autres = st.file_uploader("Autres consommables (azote, eau, CO2, etc.)", type="pdf", accept_multiple_files=True)
+temps_fonctionnement = st.text_input("Temps de fonctionnement de l’usine")
 
-Contact Efficacité énergétique
-(à compléter)
+# --- Objectifs du client ---
+st.markdown("### Objectifs du client")
+sauver_ges = st.text_input("Objectif de réduction de GES (%)")
+economie_energie = st.checkbox("Économie d’énergie")
+gain_productivite = st.checkbox("Productivité accrue : coûts, temps")
+roi_vise = st.text_input("Retour sur investissement visé")
+remplacement_equipement = st.checkbox("Remplacement d’équipement prévu")
+investissement_prevu = st.text_input("Investissement prévu (montant et date)")
+autres_objectifs = st.text_area("Autres objectifs (description)")
 
-Contact Maintenance
-(à compléter)
+# --- Liste des équipements ---
+st.markdown("### Équipements en place")
 
-Objectifs du client
-(à compléter)
+st.markdown("#### Chaudières")
+nb_chaudieres = st.number_input("Nombre de chaudières", min_value=0, step=1)
+type_chaudiere = st.text_input("Type de chaudière")
+taille_chaudiere = st.text_input("Taille")
+combustible_chaudiere = st.text_input("Combustible utilisé")
+rendement_chaudiere = st.text_input("Rendement (%)")
+appoint_eau = st.text_input("Appoint d’eau")
 
-Équipements en place
-(à compléter)
+st.markdown("#### Équipements frigorifiques")
+nb_frigo = st.number_input("Nombre de systèmes frigorifiques", min_value=0, step=1)
+capacite_frigo = st.text_input("Capacité frigorifique")
+fluide_frigo = st.text_input("Fluide frigorigène")
+temp_froid = st.text_input("Température d’usage")
+condensation = st.text_input("Type de condensation")
 
-Résumé rempli par :
-- Nom : {remplisseur_nom}
-- Date : {remplisseur_date}
-- Courriel : {remplisseur_email}
-- Téléphone : {remplisseur_tel} poste {remplisseur_poste}
-    """
+st.markdown("#### Compresseur d’air")
+puissance_comp = st.text_input("Puissance (HP)")
+refroidissement_comp = st.text_input("Refroidissement")
+variation_vitesse = st.radio("Variation de vitesse", ["Oui", "Non"])
 
-    # Créer le PDF avec FPDF
+st.markdown("#### Autres équipements aux combustibles")
+capacite_autres = st.text_input("Capacité")
+autres_infos = st.text_area("Autres informations")
+
+# --- Remplisseur du formulaire ---
+st.markdown("### Personne ayant rempli ce formulaire")
+rempli_nom = st.text_input("Nom du remplisseur")
+rempli_date = st.date_input("Date", value=date.today())
+rempli_mail = st.text_input("Courriel")
+rempli_tel = st.text_input("Téléphone")
+rempli_ext = st.text_input("Extension")
+
+# --- Génération du PDF ---
+if st.button("Générer le PDF"):
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    for line in resume.split('\n'):
-        pdf.multi_cell(0, 10, line)
+    pdf.set_font("Arial", 'B', 14)
+    pdf.cell(0, 10, "Résumé - Audit Flash", ln=True, align="C")
+    pdf.ln(10)
 
-    # Sauvegarder le PDF dans un buffer mémoire
+    pdf.set_font("Arial", '', 12)
+    pdf.cell(0, 10, f"Client: {client_nom}", ln=True)
+    pdf.cell(0, 10, f"Site: {site_nom}", ln=True)
+    pdf.cell(0, 10, f"Date du formulaire: {rempli_date.strftime('%d/%m/%Y')}", ln=True)
+    pdf.ln(5)
+
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(0, 10, "Objectifs du client:", ln=True)
+    pdf.set_font("Arial", '', 12)
+    pdf.cell(0, 10, f"Réduction GES: {sauver_ges}%", ln=True)
+    pdf.cell(0, 10, f"Économie énergie: {'Oui' if economie_energie else 'Non'}", ln=True)
+    pdf.cell(0, 10, f"Productivité accrue: {'Oui' if gain_productivite else 'Non'}", ln=True)
+    pdf.cell(0, 10, f"ROI visé: {roi_vise}", ln=True)
+    pdf.cell(0, 10, f"Investissement prévu: {investissement_prevu}", ln=True)
+    pdf.ln(5)
+
+    pdf.cell(0, 10, "Autres objectifs:", ln=True)
+    pdf.multi_cell(0, 10, autres_objectifs)
+
+    # Création du fichier PDF en mémoire
     pdf_buffer = io.BytesIO()
-    pdf.output(pdf_buffer)
+    pdf_bytes = pdf.output(dest='S').encode('latin1')  # Génère le PDF sous forme de chaîne
+    pdf_buffer.write(pdf_bytes)
     pdf_buffer.seek(0)
 
-    st.success("✅ Résumé généré au format PDF.")
     st.download_button(
-        label="📥 Télécharger le résumé PDF",
+        label="📥 Télécharger le PDF",
         data=pdf_buffer,
-        file_name=f"resume_audit_flash_{remplisseur_nom.replace(' ', '_') if remplisseur_nom else 'utilisateur'}.pdf",
+        file_name="audit_flash.pdf",
         mime="application/pdf"
     )
+
+    st.success("✅ PDF généré avec succès !")
