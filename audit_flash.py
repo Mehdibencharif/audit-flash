@@ -1,162 +1,89 @@
 import streamlit as st
-from datetime import date
-from fpdf import FPDF
-import io
+import numpy as np
+import pandas as pd
+import plotly.express as px
 
-# Configuration de la page
-st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
-
-# Chemin relatif vers le logo (à placer dans un dossier 'images/')
-logo_path = "Image/Logo Soteck.jpg"
-
-# En-tête avec logo à droite
-col1, col2 = st.columns([8, 1])
-with col1:
-    st.markdown("## FORMULAIRE DE COLLECTE DES BESOINS - AUDIT FLASH")
-with col2:
-    try:
-        st.image(logo_path, width=400)
-    except:
-        st.warning("Logo non trouvé. Vérifie le chemin ou le dépôt GitHub.")
-
-# Style personnalisé : interface verte
+st.set_page_config(page_title="Audit Flash Interactif", layout="centered")
+st.title("\U0001F4A1 Audit Flash Énergétique")
 st.markdown("""
-    <style>
-    .stApp {
-        background-color: #81c784; /* Fond vert clair, saturé */
+Bienvenue dans l'outil interactif d'audit flash énergétique. Ce formulaire vous permettra de prioriser vos critères à l'aide de la méthode **TOPSIS**, afin de recevoir un résumé personnalisé.
+""")
+st.markdown("""
+---
+🔗 Pour en savoir plus sur notre entreprise et nos services, visitez notre site :  
+**[Soteck](https://www.soteck.com/fr)**
+---
+""")
+
+# Étape 1 : Infos générales
+st.header("1. Informations générales")
+nom = st.text_input("Nom complet")
+entreprise = st.text_input("Nom de l'entreprise")
+secteur = st.selectbox("Secteur d'activité", ["Industrie", "Tertiaire", "Agroalimentaire", "Autre"])
+objectif = st.multiselect("Quels sont vos objectifs prioritaires ?", ["Réduction de consommation", "Réduction des coûts", "Réduction des GES", "Amélioration du confort", "Réduction de maintenance"])
+
+# Étape 2 : Pondération simplifiée pour TOPSIS
+st.header("2. Pondération des critères (TOPSIS simplifié)")
+criteria = ["Énergie", "Coûts", "Environnement", "Confort", "Maintenance"]
+weights = []
+
+st.markdown("Attribuez un poids (1 à 10) à chaque critère selon son importance pour vous.")
+for crit in criteria:
+    weight = st.slider(f"Poids pour {crit}", 1, 10, 5, format="%d")
+    weights.append(weight)
+
+# Si bouton cliqué
+if st.button("Calculer les priorités avec TOPSIS"):
+    df_weights = pd.DataFrame({"Critère": criteria, "Poids": weights})
+    df_weights["Poids normalisé"] = df_weights["Poids"] / df_weights["Poids"].sum()
+
+    st.success("Voici la pondération normalisée de vos critères :")
+    st.dataframe(df_weights)
+
+    fig = px.pie(df_weights, names="Critère", values="Poids normalisé", title="Priorisation des critères")
+    st.plotly_chart(fig)
+
+    st.markdown("Un rapport peut être généré selon ces priorités pour vous proposer des actions ciblées dès le premier contact.")
+
+    # Analyse et résumé personnalisé
+    st.subheader("Résumé personnalisé des priorités")
+    top_criteria = df_weights.sort_values("Poids normalisé", ascending=False).head(3)
+
+    resume = f"""
+Bonjour {nom if nom else "utilisateur"}, voici un aperçu de vos priorités (méthode TOPSIS simplifiée) :
+
+1. **{top_criteria.iloc[0]['Critère']}** : Ce critère est prioritaire. Nous vous proposerons des actions ciblées pour l'optimiser en priorité.
+2. **{top_criteria.iloc[1]['Critère']}** : Ce critère arrive en deuxième position, et sera intégré dans les recommandations secondaires.
+3. **{top_criteria.iloc[2]['Critère']}** : Ce critère complète votre trio de tête et pourra être intégré dans les solutions complémentaires.
+
+Grâce à cette hiérarchisation, un audit ciblé pourra être planifié avec un maximum d'efficacité et de pertinence.
+"""
+    st.markdown(resume)
+
+    # Section récapitulative dynamique
+    st.subheader("📝 Récapitulatif du formulaire")
+    st.write(f"**Nom** : {nom}")
+    st.write(f"**Entreprise** : {entreprise}")
+    st.write(f"**Secteur** : {secteur}")
+    st.write(f"**Objectifs sélectionnés** : {', '.join(objectif)}")
+
+    # Export des données
+    st.subheader("📊 Télécharger vos priorités et informations")
+    data_export = {
+        "Nom": [nom],
+        "Entreprise": [entreprise],
+        "Secteur": [secteur],
+        "Objectifs": [', '.join(objectif)]
     }
-    div.stButton > button {
-        background-color: #2e7d32;
-        color: white;
-        border-radius: 8px;
-        padding: 8px 16px;
-        font-weight: bold;
-    }
-    div.stButton > button:hover {
-        background-color: #1b5e20;
-        color: #a5d6a7;
-    }
-    h1, h2, h3, h4 {
-        color: #2e7d32;
-    }
-    </style>
-""", unsafe_allow_html=True)
+    for crit, wgt, norm in zip(df_weights["Critère"], df_weights["Poids"], df_weights["Poids normalisé"]):
+        data_export[f"{crit} (poids)"] = [wgt]
+        data_export[f"{crit} (normalisé)"] = [norm]
 
-
-
-# --- Informations client ---
-st.markdown("### Informations générales")
-client_nom = st.text_input("Nom du client portail (exemple : Soteck Clauger)")
-site_nom = st.text_input("Nom du site du client")
-adresse = st.text_input("Adresse")
-ville = st.text_input("Ville")
-province = st.text_input("Province")
-code_postal = st.text_input("Code postal")
-
-# --- Contact efficacité énergétique ---
-st.markdown("### Personne contact - Efficacité énergétique Soteck")
-contact_ee_nom = st.text_input("Prénom et Nom (EE)")
-contact_ee_mail = st.text_input("Courriel (EE)")
-contact_ee_tel = st.text_input("Téléphone (EE)")
-contact_ee_ext = st.text_input("Extension (EE)")
-
-# --- Contact maintenance ---
-st.markdown("### Personne contact - Service de Maintenance")
-contact_maint_nom = st.text_input("Prénom et Nom (Maintenance)")
-contact_maint_mail = st.text_input("Courriel (Maintenance)")
-contact_maint_tel = st.text_input("Téléphone (Maintenance)")
-contact_maint_ext = st.text_input("Extension (Maintenance)")
-
-# --- Documents indispensables ---
-st.markdown("### Documents à fournir avant la visite")
-facture_elec = st.file_uploader("Factures électricité (1 à 3 ans)", type="pdf", accept_multiple_files=True)
-facture_combustibles = st.file_uploader("Factures Gaz / Mazout / Propane / Bois", type="pdf", accept_multiple_files=True)
-facture_autres = st.file_uploader("Autres consommables (azote, eau, CO2, etc.)", type="pdf", accept_multiple_files=True)
-temps_fonctionnement = st.text_input("Temps de fonctionnement de l’usine")
-
-# --- Objectifs client ---
-st.markdown("### Objectifs client")
-sauver_ges = st.text_input("Objectif de réduction de GES (%)")
-economie_energie = st.checkbox("Économie d’énergie")
-gain_productivite = st.checkbox("Productivité accrue : coûts, temps")
-roi_vise = st.text_input("Retour sur investissement visé")
-remplacement_equipement = st.checkbox("Remplacement d’équipement prévu")
-investissement_prevu = st.text_input("Investissement prévu (montant et date)")
-autres_objectifs = st.text_area("Autres objectifs (description)")
-
-# --- Liste des équipements ---
-st.markdown("### Équipements en place")
-
-st.markdown("#### Chaudières")
-nb_chaudieres = st.number_input("Nombre de chaudières", min_value=0, step=1)
-type_chaudiere = st.text_input("Type de chaudière")
-taille_chaudiere = st.text_input("Taille")
-combustible_chaudiere = st.text_input("Combustible utilisé")
-rendement_chaudiere = st.text_input("Rendement (%)")
-appoint_eau = st.text_input("Appoint d’eau")
-
-st.markdown("#### Équipements frigorifiques")
-nb_frigo = st.number_input("Nombre de systèmes frigorifiques", min_value=0, step=1)
-capacite_frigo = st.text_input("Capacité frigorifique")
-fluide_frigo = st.text_input("Fluide frigorigène")
-temp_froid = st.text_input("Température d’usage")
-condensation = st.text_input("Type de condensation")
-
-st.markdown("#### Compresseur d’air")
-puissance_comp = st.text_input("Puissance (HP)")
-refroidissement_comp = st.text_input("Refroidissement")
-variation_vitesse = st.radio("Variation de vitesse", ["Oui", "Non"])
-
-st.markdown("#### Autres équipements aux combustibles")
-capacite_autres = st.text_input("Capacité")
-autres_infos = st.text_area("Autres informations")
-
-# --- Remplisseur du formulaire ---
-st.markdown("### Personne ayant rempli ce formulaire")
-rempli_nom = st.text_input("Nom du remplisseur")
-rempli_date = st.date_input("Date", value=date.today())
-rempli_mail = st.text_input("Courriel")
-rempli_tel = st.text_input("Téléphone")
-rempli_ext = st.text_input("Extension")
-
-# --- Génération du PDF ---
-if st.button("Générer le PDF"):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", 'B', 14)
-    pdf.cell(0, 10, "Résumé - Audit Flash", ln=True, align="C")
-    pdf.ln(10)
-
-    pdf.set_font("Arial", '', 12)
-    pdf.cell(0, 10, f"Client: {client_nom}", ln=True)
-    pdf.cell(0, 10, f"Site: {site_nom}", ln=True)
-    pdf.cell(0, 10, f"Date du formulaire: {rempli_date.strftime('%d/%m/%Y')}", ln=True)
-    pdf.ln(5)
-
-    pdf.set_font("Arial", 'B', 12)
-    pdf.cell(0, 10, "Objectifs du client:", ln=True)
-    pdf.set_font("Arial", '', 12)
-    pdf.cell(0, 10, f"Réduction GES: {sauver_ges}%", ln=True)
-    pdf.cell(0, 10, f"Économie énergie: {'Oui' if economie_energie else 'Non'}", ln=True)
-    pdf.cell(0, 10, f"Productivité accrue: {'Oui' if gain_productivite else 'Non'}", ln=True)
-    pdf.cell(0, 10, f"ROI visé: {roi_vise}", ln=True)
-    pdf.cell(0, 10, f"Investissement prévu: {investissement_prevu}", ln=True)
-    pdf.ln(5)
-
-    pdf.cell(0, 10, "Autres objectifs:", ln=True)
-    pdf.multi_cell(0, 10, autres_objectifs)
-
-    # Création du fichier PDF en mémoire
-    pdf_buffer = io.BytesIO()
-    pdf_bytes = pdf.output(dest='S').encode('latin1')  # Génère le PDF sous forme de chaîne
-    pdf_buffer.write(pdf_bytes)
-    pdf_buffer.seek(0)
-
+    df_export = pd.DataFrame(data_export)
+    csv = df_export.to_csv(index=False, sep=';').encode('utf-8-sig')
     st.download_button(
-        label="📥 Télécharger le PDF",
-        data=pdf_buffer,
-        file_name="audit_flash.pdf",
-        mime="application/pdf"
+        label="📥 Télécharger le résumé (.csv)",
+        data=csv,
+        file_name=f"resume_audit_flash_{nom.replace(' ', '_') if nom else 'utilisateur'}.csv",
+        mime="text/csv"
     )
-
-    st.success("✅ PDF généré avec succès !")
