@@ -44,7 +44,7 @@ logo_path = "Image/Logo Soteck.jpg"
 col1, col2 = st.columns([8, 1])
 with col2:
     try:
-        st.image(logo_path, width=300)
+        st.image(logo_path, width=400)
     except:
         st.warning("⚠️ Logo non trouvé.")
 
