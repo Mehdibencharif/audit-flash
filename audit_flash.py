@@ -15,28 +15,29 @@ couleur_titre = "#37474f"  # Gris anthracite
 st.markdown(f"""
     <style>
     .stApp {{
-        background-color: {couleur_fond_section};
-    }}
-    h1, h2, h3, h4 {{
-        color: {couleur_primaire};
-        font-weight: bold;
+        background-color: #f9fbe7; /* Vert pâle agréable */
     }}
     .section-title {{
-        background-color: {couleur_primaire};
-        color: white;
+        background-color: #cddc39;
+        color: #37474f;
         padding: 10px;
         border-radius: 8px;
+        font-weight: bold;
         font-size: 20px;
     }}
     div.stButton > button {{
-        background-color: {couleur_primaire};
+        background-color: #cddc39;
         color: white;
         border-radius: 8px;
         padding: 8px 16px;
         font-weight: bold;
     }}
     div.stButton > button:hover {{
-        background-color: #c0ca33;
+        background-color: #afb42b;
+        color: #37474f;
+    }}
+    .stTextInput > div > div > input {{
+        background-color: white;
         color: #37474f;
     }}
     </style>
