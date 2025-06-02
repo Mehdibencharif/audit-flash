@@ -6,6 +6,15 @@ import io
 # Configuration de la page
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
 
+st.markdown("""
+Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.  
+Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.
+---
+🔗 Pour en savoir plus sur notre entreprise et nos services :  
+**[Soteck](https://www.soteck.com/fr)**
+---
+""")
+
 # Chemin relatif vers le logo (à placer dans un dossier 'images/')
 logo_path = "Image/Logo Soteck.jpg"
 
