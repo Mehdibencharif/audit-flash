@@ -1,87 +1,80 @@
 import streamlit as st
-import numpy as np
 import pandas as pd
-import plotly.express as px
+from fpdf import FPDF
+import io
 
-st.set_page_config(page_title="Audit Flash Interactif", layout="centered")
-st.title("\U0001F4A1 Audit Flash Énergétique")
+st.set_page_config(page_title="Audit Flash - Formulaire de prise de besoin", layout="centered")
+st.title("📋 Formulaire de prise de besoin - Audit Flash")
+
 st.markdown("""
-Bienvenue dans l'outil interactif d'audit flash énergétique. Ce formulaire vous permettra de prioriser vos critères à l'aide de la méthode **TOPSIS**, afin de recevoir un résumé personnalisé.
-""")
-st.markdown("""
+Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.  
+Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.
 ---
-🔗 Pour en savoir plus sur notre entreprise et nos services, visitez notre site :  
+🔗 Pour en savoir plus sur notre entreprise et nos services :  
 **[Soteck](https://www.soteck.com/fr)**
+---
 """)
 
+# --- Formulaire comme avant (je simplifie ici pour la place) ---
+client_portail = st.text_input("Nom du client portail (exemple : Soteck Clauger)")
+site_client = st.text_input("Nom du site du client (exemple : Soteck Clauger entrepôt)")
+adresse = st.text_input("Adresse")
+ville = st.text_input("Ville")
+province = st.text_input("Province")
+code_postal = st.text_input("Code postal")
+# (et tous les autres champs... à recopier)
 
-# Étape 1 : Infos générales
-st.header("1. Informations générales")
-nom = st.text_input("Nom complet")
-entreprise = st.text_input("Nom de l'entreprise")
-secteur = st.selectbox("Secteur d'activité", ["Industrie", "Tertiaire", "Agroalimentaire", "Autre"])
-objectif = st.multiselect("Quels sont vos objectifs prioritaires ?", ["Réduction de consommation", "Réduction des coûts", "Réduction des GES", "Amélioration du confort", "Réduction de maintenance"])
+# --- Validation et résumé PDF ---
+remplisseur_nom = st.text_input("Prénom et Nom de la personne qui a rempli ce formulaire")
+remplisseur_date = st.date_input("Date")
+remplisseur_email = st.text_input("Courriel")
+remplisseur_tel = st.text_input("Téléphone")
+remplisseur_poste = st.text_input("Extension")
 
-# Étape 2 : Comparaison AHP
-st.header("2. Priorisation des critères (AHP simplifié)")
-st.markdown("Comparez les critères deux à deux selon leur importance pour vous.")
-criteria = ["Énergie", "Coûts", "Environnement", "Confort", "Maintenance"]
-
-pairwise = {}
-
-for i in range(len(criteria)):
-    for j in range(i + 1, len(criteria)):
-        question = f"Par rapport à **{criteria[i]}** vs **{criteria[j]}**, lequel est plus important ?"
-        choix = st.slider(question, 1, 9, 5, format="%d")
-        pairwise[(criteria[i], criteria[j])] = choix
-
-# Création de la matrice AHP
-if st.button("Calculer les priorités"):
-    size = len(criteria)
-    mat = np.ones((size, size))
-
-    for i in range(size):
-        for j in range(size):
-            if i != j:
-                if (criteria[i], criteria[j]) in pairwise:
-                    mat[i][j] = pairwise[(criteria[i], criteria[j])]
-                    mat[j][i] = 1 / mat[i][j]
-
-    # Normalisation et pondération
-    column_sums = np.sum(mat, axis=0)
-    normalized = mat / column_sums
-    weights = np.mean(normalized, axis=1)
-    df_weights = pd.DataFrame({"Critère": criteria, "Poids": weights})
-
-    st.success("Voici la pondération de vos critères :")
-    st.dataframe(df_weights)
-
-    fig = px.pie(df_weights, names="Critère", values="Poids", title="Priorisation des critères")
-    st.plotly_chart(fig)
-
-    st.markdown("Un rapport peut être généré selon ces priorités pour vous proposer des actions ciblées dès le premier contact.")
-
-    # Analyse et génération de résumé
-    st.subheader("Résumé personnalisé des priorités")
-
-    top_criteria = df_weights.sort_values("Poids", ascending=False).head(3)
-
+if st.button("📄 Générer le résumé au format PDF"):
     resume = f"""
-Bonjour {nom if nom else "utilisateur"}, voici un aperçu de vos priorités :
+Formulaire de prise de besoin - Audit Flash
 
-1. **{top_criteria.iloc[0]['Critère']}** : Ce critère a été identifié comme le plus important. Nous vous proposerons des actions ciblées pour l'optimiser en priorité.
-2. **{top_criteria.iloc[1]['Critère']}** : Ce critère arrive en deuxième position, et sera intégré dans les recommandations secondaires.
-3. **{top_criteria.iloc[2]['Critère']}** : Ce critère complète votre trio de tête et pourra être intégré dans les solutions complémentaires.
+Informations générales
+- Client portail : {client_portail}
+- Site client : {site_client}
+- Adresse : {adresse}, {ville}, {province}, {code_postal}
 
-Grâce à cette hiérarchisation, un audit ciblé pourra être planifié avec un maximum d'efficacité et de pertinence.
-"""
+Contact Efficacité énergétique
+(à compléter)
 
-    st.markdown(resume)
+Contact Maintenance
+(à compléter)
 
-    # Bouton pour télécharger le résumé
+Objectifs du client
+(à compléter)
+
+Équipements en place
+(à compléter)
+
+Résumé rempli par :
+- Nom : {remplisseur_nom}
+- Date : {remplisseur_date}
+- Courriel : {remplisseur_email}
+- Téléphone : {remplisseur_tel} poste {remplisseur_poste}
+    """
+
+    # Créer le PDF avec FPDF
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    for line in resume.split('\n'):
+        pdf.multi_cell(0, 10, line)
+
+    # Sauvegarder le PDF dans un buffer mémoire
+    pdf_buffer = io.BytesIO()
+    pdf.output(pdf_buffer)
+    pdf_buffer.seek(0)
+
+    st.success("✅ Résumé généré au format PDF.")
     st.download_button(
-        label="📄 Télécharger le résumé personnalisé",
-        data=resume,
-        file_name=f"resume_audit_flash_{nom.replace(' ', '_') if nom else 'utilisateur'}.txt",
-        mime="text/plain"
+        label="📥 Télécharger le résumé PDF",
+        data=pdf_buffer,
+        file_name=f"resume_audit_flash_{remplisseur_nom.replace(' ', '_') if remplisseur_nom else 'utilisateur'}.pdf",
+        mime="application/pdf"
     )
