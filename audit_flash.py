@@ -130,6 +130,7 @@ with st.expander("Cliquez ici pour remplir cette section"):
 # ==========================
 # 3. DOCUMENTS À FOURNIR
 # ==========================
+st.markdown("<div id='docs'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
     📑 3. Documents à fournir avant la visite
@@ -141,7 +142,6 @@ with st.expander("Cliquez ici pour remplir cette section"):
     facture_combustibles = st.file_uploader("Factures Gaz / Mazout / Propane / Bois", type="pdf", accept_multiple_files=True)
     facture_autres = st.file_uploader("Autres consommables (azote, eau, CO2, etc.)", type="pdf", accept_multiple_files=True)
     temps_fonctionnement = st.text_input("Temps de fonctionnement de l’usine (heures/an)")
-
 
 # ==========================
 # 4. OBJECTIF CLIENT
