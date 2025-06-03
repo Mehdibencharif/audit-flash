@@ -166,6 +166,7 @@ with st.expander("Cliquez ici pour remplir cette section"):
 # ==========================
 # 5. LISTE DES ÉQUIPEMENTS
 # ==========================
+st.markdown("<div id='equipements'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
     ⚙️ 5. Liste des équipements
