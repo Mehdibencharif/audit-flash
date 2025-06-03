@@ -146,6 +146,7 @@ with st.expander("Cliquez ici pour remplir cette section"):
 # ==========================
 # 4. OBJECTIF CLIENT
 # ==========================
+st.markdown("<div id='objectifs'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
     🎯 4. Objectif client
