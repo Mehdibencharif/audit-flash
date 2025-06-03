@@ -39,19 +39,13 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# En-tête avec logo
-col1, col2 = st.columns([6, 1])
-with col1:
-    st.markdown(f"""
-    <div style='font-size:22px; font-weight:bold; color:#37474f;'>
-    📋 Formulaire de prise de besoin - Audit Flash
-    </div>
-    """, unsafe_allow_html=True)
-with col2:
-    try:
-        st.image(logo_path, width=100)
-    except:
-        st.warning("⚠️ Logo non trouvé.")
+# LOGO
+logo_path = "Image/Logo Soteck.jpg"
+try:
+    st.image(logo_path, width=100)
+except:
+    st.warning("⚠️ Logo non trouvé.")
+    
 
 # MESSAGE DE BIENVENUE
 st.markdown("""
