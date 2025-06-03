@@ -50,17 +50,16 @@ with col2:
         st.warning("⚠️ Logo non trouvé.")
         
 # Bloc de bienvenue + site webe 
-st.markdown(f"""
-Bienvenue dans notre formulaire interactif d’audit flash énergétique.
-
-👉 Grâce à vos réponses, nous allons établir un diagnostic personnalisé et vous proposer un plan d’actions priorisé selon vos besoins stratégiques.  
-Cela nous permettra d’optimiser votre rentabilité, vos économies d’énergie et votre productivité tout en répondant à vos priorités.
-
+st.markdown("""
+<div style='font-size:18px; font-weight:bold; color:#37474f;'>
+Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.  
+Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.
+</div>
 ---
 🔗 Pour en savoir plus sur notre entreprise et nos services :  
 **[Soteck](https://www.soteck.com/fr)**
 ---
-""")
+""", unsafe_allow_html=True)
 
 # SOMMAIRE INTERACTIF (avec ancres)
 st.markdown("""
