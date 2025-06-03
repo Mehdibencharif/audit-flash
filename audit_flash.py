@@ -89,6 +89,7 @@ st.markdown("""
 # ==========================
 # 1. INFORMATIONS GÉNÉRALES
 # ==========================
+st.markdown("<div id='infos'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
     📄 1. Informations générales
