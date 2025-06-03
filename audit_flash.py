@@ -40,20 +40,22 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 
-# LOGO
-logo_path = "Image/Logo Soteck.jpg"
-col1, col2 = st.columns([8, 1])
+# Section message de bienvenue + logo
+col1, col2 = st.columns([6, 1])
+with col1:
+    st.markdown("""
+    <div style='font-size:22px; font-weight:bold; color:#37474f;'>
+    Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.<br>
+    Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.
+    </div>
+    """, unsafe_allow_html=True)
 with col2:
     try:
-        st.image(logo_path, width=700)
+        st.image(logo_path, width=100)
     except:
         st.warning("⚠️ Logo non trouvé.")
-        
-# Bloc de bienvenue + site webe 
-st.markdown("""
-**Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.  
-Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.**
 
+st.markdown("""
 ---
 🔗 Pour en savoir plus sur notre entreprise et nos services :  
 **[Soteck](https://www.soteck.com/fr)**
