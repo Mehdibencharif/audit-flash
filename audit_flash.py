@@ -207,12 +207,18 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 with st.expander("Cliquez ici pour remplir cette section"):
-    st.markdown("Indiquez vos priorités parmi les critères suivants (0 = pas important, 10 = très important) :")
-    priorite_energie = st.slider("Priorité : Réduction de la consommation énergétique", 0, 10, 5)
-    priorite_roi = st.slider("Priorité : Retour sur investissement", 0, 10, 5)
-    priorite_ges = st.slider("Priorité : Réduction des émissions de GES", 0, 10, 5)
-    priorite_prod = st.slider("Priorité : Productivité et fiabilité", 0, 10, 5)
-    priorite_maintenance = st.slider("Priorité : Maintenance et fiabilité", 0, 10, 5)
+    st.markdown("Indiquez vos priorités stratégiques en attribuant une note de 0 (pas important) à 10 (très important).")
+
+    priorite_energie = st.slider("Réduction de la consommation énergétique", 0, 10, 5,
+                                 help="Économies d’énergie globales pour votre site.")
+    priorite_roi = st.slider("Retour sur investissement", 0, 10, 5,
+                             help="Amortissement du projet et gains financiers.")
+    priorite_ges = st.slider("Réduction des émissions de GES", 0, 10, 5,
+                             help="Conformité réglementaire et impact environnemental.")
+    priorite_prod = st.slider("Productivité et fiabilité", 0, 10, 5,
+                              help="Optimisation des performances et disponibilité des équipements.")
+    priorite_maintenance = st.slider("Maintenance et fiabilité", 0, 10, 5,
+                                     help="Facilité d’entretien et durabilité des équipements.")
 
     total_priorites = (priorite_energie + priorite_roi + priorite_ges + priorite_prod + priorite_maintenance)
     if total_priorites > 0:
@@ -230,8 +236,6 @@ with st.expander("Cliquez ici pour remplir cette section"):
         st.markdown(f"- Maintenance et fiabilité : **{poids_maintenance:.0%}**")
     else:
         st.warning("⚠️ Veuillez indiquer vos priorités pour générer l'analyse.")
-
-
 
 # ==========================
 # 7. SERVICES COMPLÉMENTAIRES
