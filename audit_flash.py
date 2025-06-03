@@ -130,17 +130,23 @@ with st.expander("Cliquez ici pour remplir cette section"):
 
 
 # ==========================
-# 4. OBJECTIFS DU CLIENT
+# 4. OBJECTIF CLIENT
 # ==========================
-st.markdown("<div id='objectifs'></div>", unsafe_allow_html=True)
-st.markdown("<div class='section-title'>🎯 4. Objectifs du client</div>", unsafe_allow_html=True)
-sauver_ges = st.text_input("Objectif de réduction de GES (%)", help="Exemple : 20")
-economie_energie = st.checkbox("Économie d’énergie")
-gain_productivite = st.checkbox("Productivité accrue : coûts, temps")
-roi_vise = st.text_input("Retour sur investissement visé")
-remplacement_equipement = st.checkbox("Remplacement d’équipement prévu")
-investissement_prevu = st.text_input("Investissement prévu (montant et date)")
-autres_objectifs = st.text_area("Autres objectifs (description)")
+st.markdown(f"""
+<div class='section-title'>
+    🎯 4. Objectif client
+</div>
+""", unsafe_allow_html=True)
+
+with st.expander("Cliquez ici pour remplir cette section"):
+    sauver_ges = st.text_input("Objectif de réduction de GES (%)", help="Exemple : 20")
+    economie_energie = st.checkbox("Économie d’énergie")
+    gain_productivite = st.checkbox("Productivité accrue : coûts, temps")
+    roi_vise = st.text_input("Retour sur investissement visé")
+    remplacement_equipement = st.checkbox("Remplacement d’équipement prévu")
+    investissement_prevu = st.text_input("Investissement prévu (montant et date)")
+    autres_objectifs = st.text_area("Autres objectifs (description)")
+
 
 # ==========================
 # 5. LISTE DES ÉQUIPEMENTS
