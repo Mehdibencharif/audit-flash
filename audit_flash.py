@@ -50,14 +50,10 @@ with col2:
         st.warning("⚠️ Logo non trouvé.")
         
 # Bloc de bienvenue + site webe 
-st.markdown(f"""
-<div style='font-size:18px; font-weight:bold; color:#37474f;'>
-Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.
-Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.
-</div>
-""", unsafe_allow_html=True)
-
 st.markdown("""
+**Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.  
+Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.**
+
 ---
 🔗 Pour en savoir plus sur notre entreprise et nos services :  
 **[Soteck](https://www.soteck.com/fr)**
