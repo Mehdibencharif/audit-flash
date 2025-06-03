@@ -253,17 +253,17 @@ with st.expander("Cliquez ici pour remplir cette section"):
             poids_maintenance * 100
         ]
 
+       # Graphique avec taille ajustée
         col1, col2 = st.columns([1, 3])
-with col1:
-    fig, ax = plt.subplots(figsize=(3, 2))
-    ax.barh(labels, values, color=couleur_primaire)
-    ax.set_xlabel("Poids (%)", fontsize=8)
-    ax.set_xlim(0, 100)
-    ax.set_title("Priorités stratégiques", fontsize=9)
-    ax.tick_params(axis='both', labelsize=7)
-    plt.tight_layout()
-    st.pyplot(fig)
-    else:
+        with col1:
+            fig, ax = plt.subplots(figsize=(3, 2))
+            ax.barh(labels, values, color=couleur_primaire)
+            ax.set_xlabel("Poids (%)", fontsize=8)
+            ax.set_xlim(0, 100)
+            ax.set_title("Priorités stratégiques", fontsize=9)
+            ax.tick_params(axis='both', labelsize=7)
+            plt.tight_layout()
+            st.pyplot(fig)
         st.warning("⚠️ Veuillez indiquer vos priorités pour générer l'analyse.")
 
 # ==========================
