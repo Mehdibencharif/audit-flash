@@ -44,20 +44,19 @@ logo_path = "Image/Logo Soteck.jpg"
 col1, col2 = st.columns([8, 1])
 with col2:
     try:
-        st.image(logo_path, width=500)
+        st.image(logo_path, width=100)
     except:
         st.warning("⚠️ Logo non trouvé.")
+        
+# Bloc de bienvenue + site webe 
+st.markdown(f"""
+Bienvenue dans notre formulaire interactif d’audit flash énergétique.
 
-# TITRE PRINCIPAL
-st.markdown(f"<div class='section-title'>📋 Formulaire de prise de besoin - Audit Flash</div>", unsafe_allow_html=True)
-
-# MESSAGE DE BIENVENUE
-st.markdown("""
-Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.  
-Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.
+👉 Grâce à vos réponses, nous allons établir un diagnostic personnalisé et vous proposer un plan d’actions priorisé selon vos besoins stratégiques.  
+Cela nous permettra d’optimiser votre rentabilité, vos économies d’énergie et votre productivité tout en répondant à vos priorités.
 
 ---
-🔗 Pour en savoir plus sur nous et nos services visiter notre site :  
+🔗 Pour en savoir plus sur notre entreprise et nos services :  
 **[Soteck](https://www.soteck.com/fr)**
 ---
 """)
@@ -145,7 +144,38 @@ puissance_comp = st.text_input("Puissance (HP)")
 variation_vitesse = st.radio("Variation de vitesse", ["Oui", "Non"])
 
 # ==========================
-# 6. SERVICES COMPLÉMENTAIRES
+# 6. VOS PRIORITÉS STRATÉGIQUES
+# ==========================
+st.markdown("<div id='priorites'></div>", unsafe_allow_html=True)
+st.markdown("<div class='section-title'>🎯 6. Vos priorités stratégiques</div>", unsafe_allow_html=True)
+
+st.markdown("Indiquez vos priorités parmi les critères suivants (0 = pas important, 10 = très important) :")
+priorite_energie = st.slider("Priorité : Réduction de la consommation énergétique", 0, 10, 5)
+priorite_roi = st.slider("Priorité : Retour sur investissement", 0, 10, 5)
+priorite_ges = st.slider("Priorité : Réduction des émissions de GES", 0, 10, 5)
+priorite_prod = st.slider("Priorité : Productivité et fiabilité", 0, 10, 5)
+priorite_maintenance = st.slider("Priorité : Maintenance et fiabilité", 0, 10, 5)
+
+total_priorites = (priorite_energie + priorite_roi + priorite_ges + priorite_prod + priorite_maintenance)
+if total_priorites > 0:
+    poids_energie = priorite_energie / total_priorites
+    poids_roi = priorite_roi / total_priorites
+    poids_ges = priorite_ges / total_priorites
+    poids_prod = priorite_prod / total_priorites
+    poids_maintenance = priorite_maintenance / total_priorites
+
+    st.markdown("### 📊 Analyse de vos priorités stratégiques")
+    st.markdown(f"- Réduction de la consommation énergétique : **{poids_energie:.0%}**")
+    st.markdown(f"- Retour sur investissement : **{poids_roi:.0%}**")
+    st.markdown(f"- Réduction des émissions de GES : **{poids_ges:.0%}**")
+    st.markdown(f"- Productivité et fiabilité : **{poids_prod:.0%}**")
+    st.markdown(f"- Maintenance et fiabilité : **{poids_maintenance:.0%}**")
+else:
+    st.warning("⚠️ Veuillez indiquer vos priorités pour générer l'analyse.")
+
+
+# ==========================
+# 7. SERVICES COMPLÉMENTAIRES
 # ==========================
 st.markdown("<div id='services'></div>", unsafe_allow_html=True)
 st.markdown("<div class='section-title'>🛠️ 6. Services complémentaires</div>", unsafe_allow_html=True)
@@ -155,7 +185,7 @@ ventilation = st.checkbox("Ventilation industrielle et gestion de l’air")
 autres_services = st.text_area("Autres services souhaités (précisez)")
 
 # ==========================
-# 7. RÉCAPITULATIF ET GÉNÉRATION PDF
+# 8. RÉCAPITULATIF ET GÉNÉRATION PDF
 # ==========================
 st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
 st.markdown("<div class='section-title'>📝 7. Récapitulatif et génération PDF</div>", unsafe_allow_html=True)
@@ -208,6 +238,22 @@ if st.button("📥 Générer le PDF"):
         pdf.cell(0, 10, f"- Maintenance: {'Oui' if maintenance else 'Non'}", ln=True)
         pdf.cell(0, 10, f"- Ventilation: {'Oui' if ventilation else 'Non'}", ln=True)
         pdf.multi_cell(0, 10, f"Autres services: {autres_services}")
+
+        pdf.ln(5)
+        pdf.set_font("Arial", 'B', 12)
+        pdf.cell(0, 10, "Priorités stratégiques du client:", ln=True)
+        pdf.set_font("Arial", '', 12)
+        if total_priorites > 0:
+            pdf.cell(0, 10, f"Réduction de la consommation énergétique : {poids_energie:.0%}", ln=True)
+            pdf.cell(0, 10, f"Retour sur investissement : {poids_roi:.0%}", ln=True)
+            pdf.cell(0, 10, f"Réduction des émissions de GES : {poids_ges:.0%}", ln=True)
+            pdf.cell(0, 10, f"Productivité et fiabilité : {poids_prod:.0%}", ln=True)
+            pdf.cell(0, 10, f"Maintenance et fiabilité : {poids_maintenance:.0%}", ln=True)
+        else:
+            pdf.cell(0, 10, "Les priorités stratégiques n'ont pas été renseignées.", ln=True)
+
+        pdf_buffer = io.BytesIO()
+
 
         pdf_buffer = io.BytesIO()
         pdf_bytes = pdf.output(dest='S').encode('latin1')
