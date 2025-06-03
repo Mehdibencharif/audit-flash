@@ -236,25 +236,34 @@ with st.expander("Cliquez ici pour remplir cette section"):
 # ==========================
 # 7. SERVICES COMPLÉMENTAIRES
 # ==========================
-st.markdown("<div id='services'></div>", unsafe_allow_html=True)
-st.markdown("<div class='section-title'>🛠️ 6. Services complémentaires</div>", unsafe_allow_html=True)
-controle = st.checkbox("Contrôle et automatisation")
-maintenance = st.checkbox("Maintenance préventive et corrective")
-ventilation = st.checkbox("Ventilation industrielle et gestion de l’air")
-autres_services = st.text_area("Autres services souhaités (précisez)")
+st.markdown(f"""
+<div class='section-title'>
+    🛠️ 7. Services complémentaires
+</div>
+""", unsafe_allow_html=True)
+
+with st.expander("Cliquez ici pour remplir cette section"):
+    controle = st.checkbox("Contrôle et automatisation")
+    maintenance = st.checkbox("Maintenance préventive et corrective")
+    ventilation = st.checkbox("Ventilation industrielle et gestion de l’air")
+    autres_services = st.text_area("Autres services souhaités (précisez)")
 
 # ==========================
 # 8. PERSONNE AYANT REMPLI LE FORMULAIRE
 # ==========================
-st.markdown("<div id='remplisseur'></div>", unsafe_allow_html=True)
-st.markdown("<div class='section-title'>👤 7. Personne ayant rempli ce formulaire</div>", unsafe_allow_html=True)
+st.markdown(f"""
+<div class='section-title'>
+    👤 8. Personne ayant rempli ce formulaire
+</div>
+""", unsafe_allow_html=True)
 
-rempli_nom = st.text_input("Nom du remplisseur")
-rempli_date = st.date_input("Date de remplissage", value=date.today())
-rempli_mail = st.text_input("Courriel du remplisseur")
-rempli_tel = st.text_input("Téléphone du remplisseur")
-rempli_ext = st.text_input("Extension du remplisseur")
-
+with st.expander("Cliquez ici pour remplir cette section"):
+    rempli_nom = st.text_input("Nom du remplisseur")
+    rempli_date = st.date_input("Date de remplissage", value=date.today())
+    rempli_mail = st.text_input("Courriel du remplisseur")
+    rempli_tel = st.text_input("Téléphone du remplisseur")
+    rempli_ext = st.text_input("Extension du remplisseur")
+    
 # ==========================
 # 9. RÉCAPITULATIF ET GÉNÉRATION PDF
 # ==========================
