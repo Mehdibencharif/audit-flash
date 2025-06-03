@@ -200,32 +200,37 @@ with st.expander("Cliquez ici pour remplir cette section"):
 # ==========================
 # 6. VOS PRIORITÉS STRATÉGIQUES
 # ==========================
-st.markdown("<div id='priorites'></div>", unsafe_allow_html=True)
-st.markdown("<div class='section-title'>🎯 6. Vos priorités stratégiques</div>", unsafe_allow_html=True)
+st.markdown(f"""
+<div class='section-title'>
+    🎯 6. Vos priorités stratégiques
+</div>
+""", unsafe_allow_html=True)
 
-st.markdown("Indiquez vos priorités parmi les critères suivants (0 = pas important, 10 = très important) :")
-priorite_energie = st.slider("Priorité : Réduction de la consommation énergétique", 0, 10, 5)
-priorite_roi = st.slider("Priorité : Retour sur investissement", 0, 10, 5)
-priorite_ges = st.slider("Priorité : Réduction des émissions de GES", 0, 10, 5)
-priorite_prod = st.slider("Priorité : Productivité et fiabilité", 0, 10, 5)
-priorite_maintenance = st.slider("Priorité : Maintenance et fiabilité", 0, 10, 5)
+with st.expander("Cliquez ici pour remplir cette section"):
+    st.markdown("Indiquez vos priorités parmi les critères suivants (0 = pas important, 10 = très important) :")
+    priorite_energie = st.slider("Priorité : Réduction de la consommation énergétique", 0, 10, 5)
+    priorite_roi = st.slider("Priorité : Retour sur investissement", 0, 10, 5)
+    priorite_ges = st.slider("Priorité : Réduction des émissions de GES", 0, 10, 5)
+    priorite_prod = st.slider("Priorité : Productivité et fiabilité", 0, 10, 5)
+    priorite_maintenance = st.slider("Priorité : Maintenance et fiabilité", 0, 10, 5)
 
-total_priorites = (priorite_energie + priorite_roi + priorite_ges + priorite_prod + priorite_maintenance)
-if total_priorites > 0:
-    poids_energie = priorite_energie / total_priorites
-    poids_roi = priorite_roi / total_priorites
-    poids_ges = priorite_ges / total_priorites
-    poids_prod = priorite_prod / total_priorites
-    poids_maintenance = priorite_maintenance / total_priorites
+    total_priorites = (priorite_energie + priorite_roi + priorite_ges + priorite_prod + priorite_maintenance)
+    if total_priorites > 0:
+        poids_energie = priorite_energie / total_priorites
+        poids_roi = priorite_roi / total_priorites
+        poids_ges = priorite_ges / total_priorites
+        poids_prod = priorite_prod / total_priorites
+        poids_maintenance = priorite_maintenance / total_priorites
 
-    st.markdown("### 📊 Analyse de vos priorités stratégiques")
-    st.markdown(f"- Réduction de la consommation énergétique : **{poids_energie:.0%}**")
-    st.markdown(f"- Retour sur investissement : **{poids_roi:.0%}**")
-    st.markdown(f"- Réduction des émissions de GES : **{poids_ges:.0%}**")
-    st.markdown(f"- Productivité et fiabilité : **{poids_prod:.0%}**")
-    st.markdown(f"- Maintenance et fiabilité : **{poids_maintenance:.0%}**")
-else:
-    st.warning("⚠️ Veuillez indiquer vos priorités pour générer l'analyse.")
+        st.markdown("### 📊 Analyse de vos priorités stratégiques")
+        st.markdown(f"- Réduction de la consommation énergétique : **{poids_energie:.0%}**")
+        st.markdown(f"- Retour sur investissement : **{poids_roi:.0%}**")
+        st.markdown(f"- Réduction des émissions de GES : **{poids_ges:.0%}**")
+        st.markdown(f"- Productivité et fiabilité : **{poids_prod:.0%}**")
+        st.markdown(f"- Maintenance et fiabilité : **{poids_maintenance:.0%}**")
+    else:
+        st.warning("⚠️ Veuillez indiquer vos priorités pour générer l'analyse.")
+
 
 
 # ==========================
