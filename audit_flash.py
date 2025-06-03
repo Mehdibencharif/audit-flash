@@ -253,16 +253,16 @@ with st.expander("Cliquez ici pour remplir cette section"):
             poids_maintenance * 100
         ]
 
-        fig, ax = plt.subplots(figsize=(4, 2.5))  # taille plus compacte
-        ax.barh(labels, values, color=couleur_primaire)
-        ax.set_xlabel("Poids relatif (%)")
-        ax.set_xlim(0, 100)  # toujours utile pour garder l'échelle lisible
-        ax.set_title("Répartition des priorités stratégiques", fontsize=10)
-        ax.tick_params(axis='y', labelsize=8)
-        ax.tick_params(axis='x', labelsize=8)
-        plt.tight_layout()
-
-        st.pyplot(fig)
+        col1, col2 = st.columns([1, 3])
+with col1:
+    fig, ax = plt.subplots(figsize=(3, 2))
+    ax.barh(labels, values, color=couleur_primaire)
+    ax.set_xlabel("Poids (%)", fontsize=8)
+    ax.set_xlim(0, 100)
+    ax.set_title("Priorités stratégiques", fontsize=9)
+    ax.tick_params(axis='both', labelsize=7)
+    plt.tight_layout()
+    st.pyplot(fig)
     else:
         st.warning("⚠️ Veuillez indiquer vos priorités pour générer l'analyse.")
 
