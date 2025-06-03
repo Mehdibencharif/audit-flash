@@ -209,14 +209,17 @@ st.markdown(f"""
 with st.expander("Cliquez ici pour remplir cette section"):
     st.markdown("Indiquez vos priorités stratégiques en attribuant une note de 0 (pas important) à 10 (très important).")
 
-    # Sliders pour les priorités
-    priorite_energie = st.slider("Réduction de la consommation énergétique", 0, 10, 5)
-    priorite_roi = st.slider("Retour sur investissement", 0, 10, 5)
-    priorite_ges = st.slider("Réduction des émissions de GES", 0, 10, 5)
-    priorite_prod = st.slider("Productivité et fiabilité", 0, 10, 5)
-    priorite_maintenance = st.slider("Maintenance et fiabilité", 0, 10, 5)
+    priorite_energie = st.slider("Réduction de la consommation énergétique", 0, 10, 5,
+                                 help="Économies d’énergie globales pour votre site.")
+    priorite_roi = st.slider("Retour sur investissement", 0, 10, 5,
+                             help="Amortissement du projet et gains financiers.")
+    priorite_ges = st.slider("Réduction des émissions de GES", 0, 10, 5,
+                             help="Conformité réglementaire et impact environnemental.")
+    priorite_prod = st.slider("Productivité et fiabilité", 0, 10, 5,
+                              help="Optimisation des performances et disponibilité des équipements.")
+    priorite_maintenance = st.slider("Maintenance et fiabilité", 0, 10, 5,
+                                     help="Facilité d’entretien et durabilité des équipements.")
 
-    # Calcul des totaux
     total_priorites = (priorite_energie + priorite_roi + priorite_ges + priorite_prod + priorite_maintenance)
     if total_priorites > 0:
         poids_energie = priorite_energie / total_priorites
@@ -232,7 +235,7 @@ with st.expander("Cliquez ici pour remplir cette section"):
         st.markdown(f"- Productivité et fiabilité : **{poids_prod:.0%}**")
         st.markdown(f"- Maintenance et fiabilité : **{poids_maintenance:.0%}**")
 
-        # 🔥 C'est ici que tu AJOUTES le graphique
+        # Graphique avec taille ajustée
         import matplotlib.pyplot as plt
 
         labels = [
@@ -250,13 +253,19 @@ with st.expander("Cliquez ici pour remplir cette section"):
             poids_maintenance * 100
         ]
 
-        fig, ax = plt.subplots(figsize=(3, 2))
+        fig, ax = plt.subplots(figsize=(4, 2.5))  # taille plus compacte
         ax.barh(labels, values, color=couleur_primaire)
         ax.set_xlabel("Poids relatif (%)")
-        ax.set_title("Répartition des priorités stratégiques du client")
+        ax.set_xlim(0, 100)  # toujours utile pour garder l'échelle lisible
+        ax.set_title("Répartition des priorités stratégiques", fontsize=10)
+        ax.tick_params(axis='y', labelsize=8)
+        ax.tick_params(axis='x', labelsize=8)
+        plt.tight_layout()
         st.pyplot(fig)
+
     else:
         st.warning("⚠️ Veuillez indiquer vos priorités pour générer l'analyse.")
+
 
 # ==========================
 # 7. SERVICES COMPLÉMENTAIRES
