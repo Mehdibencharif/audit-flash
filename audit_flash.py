@@ -39,14 +39,20 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# LOGO
-logo_path = "Image/Logo Soteck.jpg"
-try:
-    st.image(logo_path, width=100)
-except:
-    st.warning("⚠️ Logo non trouvé.")
-    
-
+# LOGO + TITRE alignés
+col1, col2 = st.columns([6, 1])  # 6 parts de texte, 1 part pour le logo
+with col1:
+    st.markdown(f"""
+    <div style='font-size:24px; font-weight:bold; color:#37474f;'>
+    📋 Formulaire de prise de besoin - Audit Flash
+    </div>
+    """, unsafe_allow_html=True)
+with col2:
+    try:
+        st.image(logo_path, width=150)  # plus grand (150px)
+    except:
+        st.warning("⚠️ Logo non trouvé.")
+        
 # MESSAGE DE BIENVENUE
 st.markdown("""
 **Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.  
