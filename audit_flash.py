@@ -270,7 +270,7 @@ with st.expander("Cliquez ici pour remplir cette section"):
 st.info("ℹ️ Note : Cette version d’essai ne conserve pas vos données après fermeture de la page. Une version finale permettra d’enregistrer et de reprendre vos réponses ultérieurement.")
 
 st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
-st.markdown("<div class='section-title'>📝 7. Récapitulatif et génération PDF</div>", unsafe_allow_html=True)
+st.markdown("<div class='section-title'>📝 9. Récapitulatif et génération PDF</div>", unsafe_allow_html=True)
 
 if st.button("📥 Générer le PDF"):
     erreurs = []
