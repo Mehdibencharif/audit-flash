@@ -288,6 +288,7 @@ with st.expander("Cliquez ici pour remplir cette section"):
 # ==========================
 # 7. SERVICES COMPLÉMENTAIRES
 # ==========================
+st.markdown("<div id='services'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
     🛠️ 7. Services complémentaires
@@ -300,9 +301,11 @@ with st.expander("Cliquez ici pour remplir cette section"):
     ventilation = st.checkbox("Ventilation industrielle et gestion de l’air")
     autres_services = st.text_area("Autres services souhaités (précisez)")
 
+
 # ==========================
 # 8. PERSONNE AYANT REMPLI LE FORMULAIRE
 # ==========================
+st.markdown("<div id='remplisseur'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
     👤 8. Personne ayant rempli ce formulaire
@@ -315,7 +318,7 @@ with st.expander("Cliquez ici pour remplir cette section"):
     rempli_mail = st.text_input("Courriel du remplisseur")
     rempli_tel = st.text_input("Téléphone du remplisseur")
     rempli_ext = st.text_input("Extension du remplisseur")
-    
+
 # ==========================
 # 9. RÉCAPITULATIF ET GÉNÉRATION PDF
 # ==========================
