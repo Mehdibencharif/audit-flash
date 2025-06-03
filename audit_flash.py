@@ -151,22 +151,51 @@ with st.expander("Cliquez ici pour remplir cette section"):
 # ==========================
 # 5. LISTE DES ÉQUIPEMENTS
 # ==========================
-st.markdown("<div id='equipements'></div>", unsafe_allow_html=True)
-st.markdown("<div class='section-title'>⚙️ 5. Liste des équipements</div>", unsafe_allow_html=True)
-st.markdown("#### Chaudières")
-nb_chaudieres = st.number_input("Nombre de chaudières", min_value=0, step=1)
-type_chaudiere = st.text_input("Type de chaudière")
-rendement_chaudiere = st.text_input("Rendement (%)")
-taille_chaudiere = st.text_input("Taille de la chaudière (BHP ou BTU)")
-appoint_eau = st.text_input("Appoint d’eau (volume)")
+st.markdown(f"""
+<div class='section-title'>
+    ⚙️ 5. Liste des équipements
+</div>
+""", unsafe_allow_html=True)
 
-st.markdown("#### Équipements frigorifiques")
-nb_frigo = st.number_input("Nombre de systèmes frigorifiques", min_value=0, step=1)
-capacite_frigo = st.text_input("Capacité frigorifique")
+with st.expander("Cliquez ici pour remplir cette section"):
+    st.markdown("#### Chaudières")
+    nb_chaudieres = st.number_input("Nombre de chaudières", min_value=0, step=1)
+    type_chaudiere = st.text_input("Type de chaudière")
+    rendement_chaudiere = st.text_input("Rendement (%)")
+    taille_chaudiere = st.text_input("Taille de la chaudière (BHP ou BTU)")
+    appoint_eau = st.text_input("Appoint d’eau (volume)")
 
-st.markdown("#### Compresseur d’air")
-puissance_comp = st.text_input("Puissance (HP)")
-variation_vitesse = st.radio("Variation de vitesse", ["Oui", "Non"])
+    st.markdown("#### Équipements frigorifiques")
+    nb_frigo = st.number_input("Nombre de systèmes frigorifiques", min_value=0, step=1)
+    capacite_frigo = st.text_input("Capacité frigorifique")
+
+    st.markdown("#### Compresseur d’air")
+    puissance_comp = st.text_input("Puissance (HP)")
+    variation_vitesse = st.radio("Variation de vitesse", ["Oui", "Non"])
+
+    st.markdown("#### Pompes industrielles")
+    nb_pompes = st.number_input("Nombre de pompes", min_value=0, step=1)
+    type_pompe = st.text_input("Type de pompe (centrifuge, volumétrique, etc.)")
+    puissance_pompe = st.text_input("Puissance (kW ou HP)")
+    rendement_pompe = st.text_input("Rendement (%)")
+    vitesse_variable_pompe = st.radio("Variateur de vitesse", ["Oui", "Non"])
+
+    st.markdown("#### Systèmes d’éclairage")
+    type_eclairage = st.text_input("Type d’éclairage (LED, fluorescent, etc.)")
+    puissance_totale_eclairage = st.text_input("Puissance totale installée (kW)")
+    heures_utilisation = st.text_input("Nombre d’heures d’utilisation par jour")
+
+    st.markdown("#### Systèmes de ventilation / HVAC")
+    nb_ventilation = st.number_input("Nombre d’unités de ventilation", min_value=0, step=1)
+    type_ventilation = st.text_input("Type de ventilation (naturelle, mécanique, etc.)")
+    puissance_ventilation = st.text_input("Puissance électrique ou consommation annuelle (kWh)")
+
+    st.markdown("#### Autres machines de production")
+    nom_machine = st.text_input("Nom de la machine")
+    puissance_machine = st.text_input("Puissance électrique (kW)")
+    taux_utilisation = st.text_input("Taux d’utilisation (%)")
+    rendement_machine = st.text_input("Rendement énergétique estimé (%)")
+
 
 # ==========================
 # 6. VOS PRIORITÉS STRATÉGIQUES
