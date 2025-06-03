@@ -58,7 +58,7 @@ with col1:
     """, unsafe_allow_html=True)
 with col2:
     if logo_image:
-        st.image(logo_image, width=150)
+        st.image(logo_image, width=350)
     else:
         st.warning("⚠️ Logo non trouvé.")
 
