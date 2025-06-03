@@ -39,8 +39,17 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
+# LOGO
+logo_path = "Image/Logo Soteck.jpg"
+logo_image = None
+
+try:
+    logo_image = logo_path  # on prépare le chemin
+except:
+    logo_image = None
+
 # LOGO + TITRE alignés
-col1, col2 = st.columns([6, 1])  # 6 parts de texte, 1 part pour le logo
+col1, col2 = st.columns([6, 1])
 with col1:
     st.markdown(f"""
     <div style='font-size:24px; font-weight:bold; color:#37474f;'>
@@ -48,10 +57,11 @@ with col1:
     </div>
     """, unsafe_allow_html=True)
 with col2:
-    try:
-        st.image(logo_path, width=150)  # plus grand (150px)
-    except:
+    if logo_image:
+        st.image(logo_image, width=150)
+    else:
         st.warning("⚠️ Logo non trouvé.")
+
         
 # MESSAGE DE BIENVENUE
 st.markdown("""
