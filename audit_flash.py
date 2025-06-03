@@ -83,17 +83,32 @@ Veuillez remplir toutes les sections ci-dessous pour que nous puissions prépare
 """)
 
 # SOMMAIRE INTERACTIF (avec ancres)
-st.markdown("""
-### 📑 Sommaire :
-- [1. Informations générales](#infos)
-- [2. Personnes contacts](#contacts)
-- [3. Documents à fournir](#docs)
-- [4. Objectifs du client](#objectifs)
-- [5. Liste des équipements](#equipements)
-- [6. Services complémentaires](#services)
-- [7. Récapitulatif et génération PDF](#pdf)
-""", unsafe_allow_html=True)
-
+if langue == "Français":
+    st.markdown("""
+    ### 📑 Sommaire :
+    - [1. Informations générales](#infos)
+    - [2. Personnes contacts](#contacts)
+    - [3. Documents à fournir](#docs)
+    - [4. Objectifs du client](#objectifs)
+    - [5. Liste des équipements](#equipements)
+    - [6. Vos priorités stratégiques](#priorites)
+    - [7. Services complémentaires](#services)
+    - [8. Personne ayant rempli le formulaire](#remplisseur)
+    - [9. Récapitulatif et génération PDF](#pdf)
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+    ### 📑 Summary :
+    - [1. General Information](#infos)
+    - [2. Contact Persons](#contacts)
+    - [3. Documents to Provide](#docs)
+    - [4. Client Objectives](#objectifs)
+    - [5. List of Equipment](#equipements)
+    - [6. Strategic Priorities](#priorites)
+    - [7. Additional Services](#services)
+    - [8. Person Completing the Form](#remplisseur)
+    - [9. Summary and PDF Generation](#pdf)
+    """, unsafe_allow_html=True)
 # ==========================
 # 1. INFORMATIONS GÉNÉRALES
 # ==========================
