@@ -107,6 +107,7 @@ with st.expander("Cliquez ici pour remplir cette section"):
 # ==========================
 # 2. PERSONNE CONTACT
 # ==========================
+st.markdown("<div id='contacts'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
     👤 2. Personne contact
@@ -125,7 +126,6 @@ with st.expander("Cliquez ici pour remplir cette section"):
     contact_maint_mail = st.text_input("Courriel (Maintenance)")
     contact_maint_tel = st.text_input("Téléphone (Maintenance)")
     contact_maint_ext = st.text_input("Extension (Maintenance)")
-
 
 # ==========================
 # 3. DOCUMENTS À FOURNIR
