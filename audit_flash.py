@@ -134,6 +134,8 @@ st.markdown("#### Chaudières")
 nb_chaudieres = st.number_input("Nombre de chaudières", min_value=0, step=1)
 type_chaudiere = st.text_input("Type de chaudière")
 rendement_chaudiere = st.text_input("Rendement (%)")
+taille_chaudiere = st.text_input("Taille de la chaudière (BHP ou BTU)")
+appoint_eau = st.text_input("Appoint d’eau (volume)")
 
 st.markdown("#### Équipements frigorifiques")
 nb_frigo = st.number_input("Nombre de systèmes frigorifiques", min_value=0, step=1)
@@ -185,8 +187,22 @@ ventilation = st.checkbox("Ventilation industrielle et gestion de l’air")
 autres_services = st.text_area("Autres services souhaités (précisez)")
 
 # ==========================
-# 8. RÉCAPITULATIF ET GÉNÉRATION PDF
+# 8. PERSONNE AYANT REMPLI LE FORMULAIRE
 # ==========================
+st.markdown("<div id='remplisseur'></div>", unsafe_allow_html=True)
+st.markdown("<div class='section-title'>👤 7. Personne ayant rempli ce formulaire</div>", unsafe_allow_html=True)
+
+rempli_nom = st.text_input("Nom du remplisseur")
+rempli_date = st.date_input("Date de remplissage", value=date.today())
+rempli_mail = st.text_input("Courriel du remplisseur")
+rempli_tel = st.text_input("Téléphone du remplisseur")
+rempli_ext = st.text_input("Extension du remplisseur")
+
+# ==========================
+# 9. RÉCAPITULATIF ET GÉNÉRATION PDF
+# ==========================
+st.info("ℹ️ Note : Cette version d’essai ne conserve pas vos données après fermeture de la page. Une version finale permettra d’enregistrer et de reprendre vos réponses ultérieurement.")
+
 st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
 st.markdown("<div class='section-title'>📝 7. Récapitulatif et génération PDF</div>", unsafe_allow_html=True)
 
