@@ -10,7 +10,7 @@ st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
 
 # COULEURS ET STYLE PERSONNALISÉ
 couleur_primaire = "#cddc39"  # Lime doux inspiré de ton branding
-couleur_fond = "#f9fbe7"      # Vert très pâle et agréable
+couleur_fond = "#f5f5f5"      # Gris clair plus doux et agréable
 
 st.markdown(f"""
     <style>
@@ -23,7 +23,7 @@ st.markdown(f"""
         padding: 10px;
         border-radius: 8px;
         font-weight: bold;
-        font-size: 20px;
+        font-size: 24px;  /* Augmente la taille du titre principal */
     }}
     div.stButton > button {{
         background-color: {couleur_primaire};
@@ -38,6 +38,7 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
+
 
 # LOGO
 logo_path = "Image/Logo Soteck.jpg"
