@@ -250,7 +250,7 @@ with st.expander("Cliquez ici pour remplir cette section"):
             poids_maintenance * 100
         ]
 
-        fig, ax = plt.subplots(figsize=(4, 3))
+        fig, ax = plt.subplots(figsize=(3, 2))
         ax.barh(labels, values, color=couleur_primaire)
         ax.set_xlabel("Poids relatif (%)")
         ax.set_title("Répartition des priorités stratégiques du client")
