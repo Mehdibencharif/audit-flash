@@ -91,21 +91,27 @@ with st.expander("Cliquez ici pour remplir cette section"):
     code_postal = st.text_input("Code postal")
 
 # ==========================
-# 2. PERSONNES CONTACTS
+# 2. PERSONNE CONTACT
 # ==========================
-st.markdown("<div id='contacts'></div>", unsafe_allow_html=True)
-st.markdown("<div class='section-title'>👤 2. Personnes contacts</div>", unsafe_allow_html=True)
-st.markdown("#### 🔌 Efficacité énergétique")
-contact_ee_nom = st.text_input("Prénom et Nom (EE)")
-contact_ee_mail = st.text_input("Courriel (EE)", help="Format : exemple@domaine.com")
-contact_ee_tel = st.text_input("Téléphone (EE)", help="10 chiffres recommandés")
-contact_ee_ext = st.text_input("Extension (EE)")
+st.markdown(f"""
+<div class='section-title'>
+    👤 2. Personne contact
+</div>
+""", unsafe_allow_html=True)
 
-st.markdown("#### 🛠️ Maintenance")
-contact_maint_nom = st.text_input("Prénom et Nom (Maintenance)")
-contact_maint_mail = st.text_input("Courriel (Maintenance)")
-contact_maint_tel = st.text_input("Téléphone (Maintenance)")
-contact_maint_ext = st.text_input("Extension (Maintenance)")
+with st.expander("Cliquez ici pour remplir cette section"):
+    st.markdown("#### 🔌 Efficacité énergétique (Soteck)")
+    contact_ee_nom = st.text_input("Prénom et Nom (EE)")
+    contact_ee_mail = st.text_input("Courriel (EE)", help="Format : exemple@domaine.com")
+    contact_ee_tel = st.text_input("Téléphone (EE)", help="10 chiffres recommandés")
+    contact_ee_ext = st.text_input("Extension (EE)")
+
+    st.markdown("#### 🛠️ Maintenance (Externe)")
+    contact_maint_nom = st.text_input("Prénom et Nom (Maintenance)")
+    contact_maint_mail = st.text_input("Courriel (Maintenance)")
+    contact_maint_tel = st.text_input("Téléphone (Maintenance)")
+    contact_maint_ext = st.text_input("Extension (Maintenance)")
+
 
 # ==========================
 # 3. DOCUMENTS À FOURNIR
