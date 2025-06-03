@@ -8,6 +8,14 @@ import pandas as pd
 # CONFIGURATION GLOBALE
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
 
+# ==========================
+# Choix de la langue
+# ==========================
+langue = st.radio(
+    "Choisissez votre langue / Choose your language",
+    ("Français", "English")
+)
+
 # COULEURS ET STYLE PERSONNALISÉ
 couleur_primaire = "#cddc39"  # Lime doux inspiré de ton branding
 couleur_fond = "#f5f5f5"      # Gris clair plus doux et agréable
