@@ -39,14 +39,12 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-
-# Section message de bienvenue + logo
+# En-tête avec logo
 col1, col2 = st.columns([6, 1])
 with col1:
-    st.markdown("""
+    st.markdown(f"""
     <div style='font-size:22px; font-weight:bold; color:#37474f;'>
-    Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.<br>
-    Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.
+    📋 Formulaire de prise de besoin - Audit Flash
     </div>
     """, unsafe_allow_html=True)
 with col2:
@@ -55,7 +53,11 @@ with col2:
     except:
         st.warning("⚠️ Logo non trouvé.")
 
+# MESSAGE DE BIENVENUE
 st.markdown("""
+**Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.  
+Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.**
+
 ---
 🔗 Pour en savoir plus sur notre entreprise et nos services :  
 **[Soteck](https://www.soteck.com/fr)**
