@@ -324,8 +324,12 @@ with st.expander("Cliquez ici pour remplir cette section"):
 # ==========================
 st.info("ℹ️ Note : Cette version d’essai ne conserve pas vos données après fermeture de la page. Une version finale permettra d’enregistrer et de reprendre vos réponses ultérieurement.")
 
-st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
-st.markdown("<div class='section-title'>📝 9. Récapitulatif et génération PDF</div>", unsafe_allow_html=True)
+st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)  # ancre cliquable
+st.markdown(f"""
+<div class='section-title'>
+    📝 9. Récapitulatif et génération PDF
+</div>
+""", unsafe_allow_html=True)
 
 if st.button("📥 Générer le PDF"):
     erreurs = []
@@ -388,9 +392,6 @@ if st.button("📥 Générer le PDF"):
             pdf.cell(0, 10, f"Maintenance et fiabilité : {poids_maintenance:.0%}", ln=True)
         else:
             pdf.cell(0, 10, "Les priorités stratégiques n'ont pas été renseignées.", ln=True)
-
-        pdf_buffer = io.BytesIO()
-
 
         pdf_buffer = io.BytesIO()
         pdf_bytes = pdf.output(dest='S').encode('latin1')
