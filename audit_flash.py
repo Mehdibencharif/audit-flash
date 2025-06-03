@@ -76,14 +76,13 @@ st.markdown("""
 # ==========================
 # 1. INFORMATIONS GÉNÉRALES
 # ==========================
-st.markdown("<div id='infos'></div>", unsafe_allow_html=True)
-st.markdown("<div class='section-title'>📄 1. Informations générales</div>", unsafe_allow_html=True)
-client_nom = st.text_input("Nom du client portail *", help="Ex: Soteck Clauger")
-site_nom = st.text_input("Nom du site du client *")
-adresse = st.text_input("Adresse")
-ville = st.text_input("Ville")
-province = st.text_input("Province")
-code_postal = st.text_input("Code postal")
+with st.expander("📄 1. Informations générales"):
+    client_nom = st.text_input("Nom du client portail *", help="Ex: Soteck Clauger")
+    site_nom = st.text_input("Nom du site du client *")
+    adresse = st.text_input("Adresse")
+    ville = st.text_input("Ville")
+    province = st.text_input("Province")
+    code_postal = st.text_input("Code postal")
 
 # ==========================
 # 2. PERSONNES CONTACTS
