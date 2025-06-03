@@ -76,7 +76,13 @@ st.markdown("""
 # ==========================
 # 1. INFORMATIONS GÉNÉRALES
 # ==========================
-with st.expander("📄 1. Informations générales"):
+st.markdown(f"""
+<div class='section-title'>
+    📄 1. Informations générales
+</div>
+""", unsafe_allow_html=True)
+
+with st.expander("Cliquez ici pour remplir cette section"):
     client_nom = st.text_input("Nom du client portail *", help="Ex: Soteck Clauger")
     site_nom = st.text_input("Nom du site du client *")
     adresse = st.text_input("Adresse")
