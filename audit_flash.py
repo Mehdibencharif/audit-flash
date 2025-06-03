@@ -116,12 +116,18 @@ with st.expander("Cliquez ici pour remplir cette section"):
 # ==========================
 # 3. DOCUMENTS À FOURNIR
 # ==========================
-st.markdown("<div id='docs'></div>", unsafe_allow_html=True)
-st.markdown("<div class='section-title'>📑 3. Documents à fournir avant la visite</div>", unsafe_allow_html=True)
-facture_elec = st.file_uploader("Factures électricité (1 à 3 ans)", type="pdf", accept_multiple_files=True)
-facture_combustibles = st.file_uploader("Factures Gaz / Mazout / Propane / Bois", type="pdf", accept_multiple_files=True)
-facture_autres = st.file_uploader("Autres consommables (azote, eau, CO2, etc.)", type="pdf", accept_multiple_files=True)
-temps_fonctionnement = st.text_input("Temps de fonctionnement de l’usine (heures/an)")
+st.markdown(f"""
+<div class='section-title'>
+    📑 3. Documents à fournir avant la visite
+</div>
+""", unsafe_allow_html=True)
+
+with st.expander("Cliquez ici pour remplir cette section"):
+    facture_elec = st.file_uploader("Factures électricité (1 à 3 ans)", type="pdf", accept_multiple_files=True)
+    facture_combustibles = st.file_uploader("Factures Gaz / Mazout / Propane / Bois", type="pdf", accept_multiple_files=True)
+    facture_autres = st.file_uploader("Autres consommables (azote, eau, CO2, etc.)", type="pdf", accept_multiple_files=True)
+    temps_fonctionnement = st.text_input("Temps de fonctionnement de l’usine (heures/an)")
+
 
 # ==========================
 # 4. OBJECTIFS DU CLIENT
