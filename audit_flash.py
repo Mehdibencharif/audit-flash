@@ -216,6 +216,7 @@ with st.expander("Cliquez ici pour remplir cette section"):
 # ==========================
 # 6. VOS PRIORITÉS STRATÉGIQUES
 # ==========================
+st.markdown("<div id='priorites'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
     🎯 6. Vos priorités stratégiques
@@ -269,7 +270,7 @@ with st.expander("Cliquez ici pour remplir cette section"):
             poids_maintenance * 100
         ]
 
-       # Graphique avec taille ajustée
+        # Graphique avec taille ajustée
         col1, col2 = st.columns([1, 3])
         with col1:
             fig, ax = plt.subplots(figsize=(3, 2))
@@ -280,6 +281,8 @@ with st.expander("Cliquez ici pour remplir cette section"):
             ax.tick_params(axis='both', labelsize=7)
             plt.tight_layout()
             st.pyplot(fig)
+            
+    else:
         st.warning("⚠️ Veuillez indiquer vos priorités pour générer l'analyse.")
 
 # ==========================
