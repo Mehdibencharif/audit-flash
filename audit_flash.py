@@ -224,6 +224,7 @@ with st.expander("Cliquez ici pour remplir cette section"):
     rendement_chaudiere = st.text_input("Rendement chaudière (%)")
     taille_chaudiere = st.text_input("Taille de la chaudière (BHP ou BTU)")
     appoint_eau = st.text_input("Appoint d’eau (volume)")
+    micro_modulation = st.radio("Chaudière équipée de micro modulation ?", ["Oui", "Non"])
 
     st.markdown("#### Équipements frigorifiques")
     nb_frigo = st.number_input("Nombre de systèmes frigorifiques", min_value=0, step=1)
