@@ -134,17 +134,20 @@ else:
 st.markdown("<div id='infos'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
-    📄 1. Informations générales
+    {translations[lang]['titre_infos']}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander("Cliquez ici pour remplir cette section"):
-    client_nom = st.text_input("Nom du client portail *", help="Ex: Soteck Clauger")
-    site_nom = st.text_input("Nom du site du client *")
-    adresse = st.text_input("Adresse")
-    ville = st.text_input("Ville")
-    province = st.text_input("Province")
-    code_postal = st.text_input("Code postal")
+with st.expander(translations[lang]['texte_expander_infos']):
+    client_nom = st.text_input(
+        translations[lang]['label_client_nom'], 
+        help=translations[lang]['aide_client_nom']
+    )
+    site_nom = st.text_input(translations[lang]['label_site_nom'])
+    adresse = st.text_input(translations[lang]['label_adresse'])
+    ville = st.text_input(translations[lang]['label_ville'])
+    province = st.text_input(translations[lang]['label_province'])
+    code_postal = st.text_input(translations[lang]['label_code_postal'])
 
 # ==========================
 # 2. PERSONNE CONTACT
