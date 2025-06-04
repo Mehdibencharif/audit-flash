@@ -186,7 +186,7 @@ translations = {
         # ... (tes clés du bloc 1)
         "titre_contacts": "👤 2. Personne contact",
         "texte_expander_contacts": "Cliquez ici pour remplir cette section",
-        "sous_titre_ee": "🔌 Efficacité énergétique (Soteck)",
+        "sous_titre_ee": "🔌 Efficacité énergétique ",
         "label_contact_ee_nom": "Prénom et Nom (EE)",
         "label_contact_ee_mail": "Courriel (EE)",
         "help_contact_ee_mail": "Format : exemple@domaine.com",
@@ -205,7 +205,7 @@ translations = {
         # ... (tes clés du bloc 1)
         "titre_contacts": "👤 2. Contact Person",
         "texte_expander_contacts": "Click here to fill out this section",
-        "sous_titre_ee": "🔌 Energy Efficiency (Soteck)",
+        "sous_titre_ee": "🔌 Energy Efficiency ",
         "label_contact_ee_nom": "First and Last Name (EE)",
         "label_contact_ee_mail": "Email (EE)",
         "help_contact_ee_mail": "Format: example@domain.com",
