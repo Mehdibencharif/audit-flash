@@ -153,7 +153,6 @@ with st.expander("Cliquez ici pour remplir cette section"):
 # ==========================
 # 3. DOCUMENTS À FOURNIR
 # ==========================
-st.markdown("<div id='docs'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
     📑 3. Documents à fournir avant la visite
@@ -164,7 +163,29 @@ with st.expander("Cliquez ici pour remplir cette section"):
     facture_elec = st.file_uploader("Factures électricité (1 à 3 ans)", type="pdf", accept_multiple_files=True)
     facture_combustibles = st.file_uploader("Factures Gaz / Mazout / Propane / Bois", type="pdf", accept_multiple_files=True)
     facture_autres = st.file_uploader("Autres consommables (azote, eau, CO2, etc.)", type="pdf", accept_multiple_files=True)
+    plans_pid = st.file_uploader("Plans d’aménagement du site et P&ID (schémas de tuyauterie et d’instrumentation)", type="pdf", accept_multiple_files=True)
     temps_fonctionnement = st.text_input("Temps de fonctionnement de l’usine (heures/an)")
+
+    st.markdown("### 📂 Fichiers téléversés")
+    if facture_elec:
+        st.markdown("**Factures électricité :**")
+        for fichier in facture_elec:
+            st.write(f"➡️ {fichier.name}")
+
+    if facture_combustibles:
+        st.markdown("**Factures Gaz/Mazout/Propane/Bois :**")
+        for fichier in facture_combustibles:
+            st.write(f"➡️ {fichier.name}")
+
+    if facture_autres:
+        st.markdown("**Autres consommables :**")
+        for fichier in facture_autres:
+            st.write(f"➡️ {fichier.name}")
+
+    if plans_pid:
+        st.markdown("**Plans d’aménagement du site et P&ID :**")
+        for fichier in plans_pid:
+            st.write(f"➡️ {fichier.name}")
 
 # ==========================
 # 4. OBJECTIF CLIENT
