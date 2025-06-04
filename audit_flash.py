@@ -539,7 +539,7 @@ with st.expander(translations[lang]['texte_expander_priorites']):
 
         col1, col2 = st.columns([1, 3])
         with col1:
-            fig, ax = plt.subplots(figsize=(3, 2))
+            fig, ax = plt.subplots(figsize=(6, 4))
             ax.barh(labels, values, color=couleur_primaire)
             ax.set_xlabel("Poids (%)", fontsize=8)
             ax.set_xlim(0, 100)
