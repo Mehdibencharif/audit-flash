@@ -12,14 +12,33 @@ st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
 # Choix de la langue
 # ==========================
 langue = st.radio(
-    "Choisissez votre langue / Choose your language",
-    ("Français", "English")
+    "Langue / Language",
+    ("Français", "English"),
+    horizontal=True
 )
+
+# Dictionnaire de traduction global
+translations = {
+    "fr": {
+        "titre_infos": "📄 1. Informations générales",
+        "texte_expander": "Cliquez ici pour remplir cette section",
+        # Ajoute les autres clés ici au fur et à mesure
+    },
+    "en": {
+        "titre_infos": "📄 1. General Information",
+        "texte_expander": "Click here to fill out this section",
+        # Ajoute les autres clés ici au fur et à mesure
+    }
+}
+
+# Sélection de la langue
+lang = "fr" if langue == "Français" else "en"
 
 # COULEURS ET STYLE PERSONNALISÉ
 couleur_primaire = "#cddc39"  # Lime doux inspiré de ton branding
 couleur_fond = "#f5f5f5"      # Gris clair plus doux et agréable
 
+# Injection CSS
 st.markdown(f"""
     <style>
     .stApp {{
@@ -31,7 +50,7 @@ st.markdown(f"""
         padding: 10px;
         border-radius: 8px;
         font-weight: bold;
-        font-size: 24px;  /* Augmente la taille du titre principal */
+        font-size: 24px;
     }}
     div.stButton > button {{
         background-color: {couleur_primaire};
