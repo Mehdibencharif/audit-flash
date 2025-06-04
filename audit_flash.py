@@ -744,14 +744,18 @@ if st.button(translations[lang]['bouton_generer_pdf']):
 # BONUS : EXPORT EXCEL
 translations = {
     "fr": {
-        # ... autres clés
+        # ... tes autres clés ...
+        "label_client_nom": "Nom du client",
+        "msg_checkbox_excel": "Exporter les données au format Excel",
         "bouton_export_excel": "📥 Télécharger Excel",
-        "msg_checkbox_excel": "Exporter les données au format Excel"
+        # ... tes autres clés ...
     },
     "en": {
-        # ... autres clés
+        # ... tes autres clés ...
+        "label_client_nom": "Client Name",
+        "msg_checkbox_excel": "Export data to Excel",
         "bouton_export_excel": "📥 Download Excel",
-        "msg_checkbox_excel": "Export data to Excel format"
+        # ... tes autres clés ...
     }
 }
 
