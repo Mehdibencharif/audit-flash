@@ -130,7 +130,7 @@ else:
     """, unsafe_allow_html=True)
     
 # ==========================
-# Dictionnaire de traduction 1
+# 1. INFORMATIONS GÉNÉRALES
 # ==========================
 translations = {
     "fr": {
@@ -157,9 +157,7 @@ translations = {
     }
 }
 
-# ==========================
-# 1. INFORMATIONS GÉNÉRALES
-# ==========================
+
 st.markdown("<div id='infos'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
