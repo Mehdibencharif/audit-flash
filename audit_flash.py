@@ -635,24 +635,31 @@ with st.expander(translations[lang]['texte_expander_remplisseur']):
 # ==========================
 translations = {
     "fr": {
-        # ... autres clés
+        # ... autres clés ...
         "titre_pdf": "📝 9. Récapitulatif et génération PDF",
         "texte_info_pdf": "ℹ️ Note : Cette version d’essai ne conserve pas vos données après fermeture de la page. Une version finale permettra d’enregistrer et de reprendre vos réponses ultérieurement.",
         "bouton_generer_pdf": "📥 Générer le PDF",
         "msg_erreur_champs": "Veuillez remplir ou corriger les champs suivants :",
         "msg_succes_pdf": "✅ PDF généré avec succès !",
-        "bouton_telecharger_pdf": "📥 Télécharger le PDF"
+        "bouton_telecharger_pdf": "📥 Télécharger le PDF",
+        "label_client_nom": "Nom du client",
+        "label_site_nom": "Nom du site",
+        "label_contact_ee_mail": "Courriel de contact EE"
     },
     "en": {
-        # ... autres clés
+        # ... autres clés ...
         "titre_pdf": "📝 9. Summary and PDF Generation",
         "texte_info_pdf": "ℹ️ Note: This trial version does not retain your data after closing the page. A final version will allow you to save and resume your answers later.",
         "bouton_generer_pdf": "📥 Generate PDF",
         "msg_erreur_champs": "Please fill or correct the following fields:",
         "msg_succes_pdf": "✅ PDF successfully generated!",
-        "bouton_telecharger_pdf": "📥 Download PDF"
+        "bouton_telecharger_pdf": "📥 Download PDF",
+        "label_client_nom": "Client Name",
+        "label_site_nom": "Site Name",
+        "label_contact_ee_mail": "EE Contact Email"
     }
 }
+
 
 st.info(translations[lang]['texte_info_pdf'])
 
