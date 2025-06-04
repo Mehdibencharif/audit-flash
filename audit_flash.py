@@ -112,20 +112,46 @@ else:
 # ==========================
 # 1. INFORMATIONS GÉNÉRALES
 # ==========================
-st.markdown("<div id='infos'></div>", unsafe_allow_html=True)  # ancre cliquable
+
+# Sélecteur de langue
+langue = st.radio("Langue :", ["Français", "English"])
+
+# Titre de la section
+if langue == "Français":
+    titre_infos = "📄 1. Informations générales"
+    texte_expander = "Cliquez ici pour remplir cette section"
+    label_client_nom = "Nom du client portail *"
+    label_site_nom = "Nom du site du client *"
+    label_adresse = "Adresse"
+    label_ville = "Ville"
+    label_province = "Province"
+    label_code_postal = "Code postal"
+    aide_client_nom = "Ex: Soteck Clauger"
+else:
+    titre_infos = "📄 1. General Information"
+    texte_expander = "Click here to fill out this section"
+    label_client_nom = "Client portal name *"
+    label_site_nom = "Client site name *"
+    label_adresse = "Address"
+    label_ville = "City"
+    label_province = "Province"
+    label_code_postal = "Postal code"
+    aide_client_nom = "E.g., Soteck Clauger"
+
+st.markdown("<div id='infos'></div>", unsafe_allow_html=True)
 st.markdown(f"""
 <div class='section-title'>
-    📄 1. Informations générales
+    {titre_infos}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander("Cliquez ici pour remplir cette section"):
-    client_nom = st.text_input("Nom du client portail *", help="Ex: Soteck Clauger")
-    site_nom = st.text_input("Nom du site du client *")
-    adresse = st.text_input("Adresse")
-    ville = st.text_input("Ville")
-    province = st.text_input("Province")
-    code_postal = st.text_input("Code postal")
+with st.expander(texte_expander):
+    client_nom = st.text_input(label_client_nom, help=aide_client_nom)
+    site_nom = st.text_input(label_site_nom)
+    adresse = st.text_input(label_adresse)
+    ville = st.text_input(label_ville)
+    province = st.text_input(label_province)
+    code_postal = st.text_input(label_code_postal)
 
 # ==========================
 # 2. PERSONNE CONTACT
