@@ -742,7 +742,20 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         st.success(translations[lang]['msg_succes_pdf'])
 
 # BONUS : EXPORT EXCEL
-if st.checkbox("Exporter les données au format Excel"):
+translations = {
+    "fr": {
+        # ... autres clés
+        "bouton_export_excel": "📥 Télécharger Excel",
+        "msg_checkbox_excel": "Exporter les données au format Excel"
+    },
+    "en": {
+        # ... autres clés
+        "bouton_export_excel": "📥 Download Excel",
+        "msg_checkbox_excel": "Export data to Excel format"
+    }
+}
+
+if st.checkbox(translations[lang]['msg_checkbox_excel']):
     data = {
         "Client": [client_nom],
         "Site": [site_nom],
@@ -752,13 +765,13 @@ if st.checkbox("Exporter les données au format Excel"):
         "Maintenance": ['Oui' if maintenance else 'Non'],
         "Ventilation": ['Oui' if ventilation else 'Non'],
     }
-    df = pd.DataFrame(data)
+    df_export = pd.DataFrame(data)
     excel_buffer = io.BytesIO()
     with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
-        df.to_excel(writer, index=False)
+        df_export.to_excel(writer, index=False)
     excel_buffer.seek(0)
     st.download_button(
-        label="📥 Télécharger Excel",
+        label=translations[lang]['bouton_export_excel'],
         data=excel_buffer,
         file_name="audit_flash.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
