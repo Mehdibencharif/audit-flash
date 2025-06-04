@@ -756,11 +756,12 @@ translations = {
     }
 }
 
-# Vérifie que la langue est bien définie et existe dans translations
-if lang not in translations:
-    lang = "en"  # Valeur par défaut si la langue n'est pas supportée
+# Vérifie que la langue est définie et existe
+if 'lang' not in locals() or lang not in translations:
+    lang = "fr"  # Valeur par défaut
 
-erreurs = []  # Initialisation de la liste erreurs
+# Initialisation de la liste erreurs
+erreurs = []
 
 if st.checkbox(translations[lang]['msg_checkbox_excel']):
     data = {
@@ -784,11 +785,8 @@ if st.checkbox(translations[lang]['msg_checkbox_excel']):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-# Vérification sécurisée pour erreurs
-try:
-    label_client = translations[lang].get('label_client_nom', 'Client Name')
-    erreurs.append(label_client)
-except Exception:
-    erreurs.append("Client Name")  # fallback en cas d'erreur
+# Ajout d'erreur simulée (juste pour tester la ligne incriminée)
+label_client = translations[lang].get('label_client_nom', 'Nom du client')
+erreurs.append(label_client)
 
 
