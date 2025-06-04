@@ -322,21 +322,53 @@ with st.expander(translations[lang]['texte_expander_documents']):
 # ==========================
 # 4. OBJECTIF CLIENT
 # ==========================
+translations = {
+    "fr": {
+        # ... (tes autres clés)
+        "titre_objectifs": "🎯 4. Objectif client",
+        "texte_expander_objectifs": "Cliquez ici pour remplir cette section",
+        "label_sauver_ges": "Objectif de réduction de GES (%)",
+        "help_sauver_ges": "Exemple : 20",
+        "label_economie_energie": "Économie d’énergie",
+        "label_gain_productivite": "Productivité accrue : coûts, temps",
+        "label_roi_vise": "Retour sur investissement visé",
+        "label_remplacement_equipement": "Remplacement d’équipement prévu",
+        "label_investissement_prevu": "Investissement prévu (montant et date)",
+        "label_autres_objectifs": "Autres objectifs (description)"
+    },
+    "en": {
+        # ... (tes autres clés)
+        "titre_objectifs": "🎯 4. Client Objectives",
+        "texte_expander_objectifs": "Click here to fill out this section",
+        "label_sauver_ges": "GHG reduction target (%)",
+        "help_sauver_ges": "Example: 20",
+        "label_economie_energie": "Energy savings",
+        "label_gain_productivite": "Increased productivity: costs, time",
+        "label_roi_vise": "Target return on investment",
+        "label_remplacement_equipement": "Planned equipment replacement",
+        "label_investissement_prevu": "Planned investment (amount and date)",
+        "label_autres_objectifs": "Other objectives (description)"
+    }
+}
+
 st.markdown("<div id='objectifs'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
-    🎯 4. Objectif client
+    {translations[lang]['titre_objectifs']}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander("Cliquez ici pour remplir cette section"):
-    sauver_ges = st.text_input("Objectif de réduction de GES (%)", help="Exemple : 20")
-    economie_energie = st.checkbox("Économie d’énergie")
-    gain_productivite = st.checkbox("Productivité accrue : coûts, temps")
-    roi_vise = st.text_input("Retour sur investissement visé")
-    remplacement_equipement = st.checkbox("Remplacement d’équipement prévu")
-    investissement_prevu = st.text_input("Investissement prévu (montant et date)")
-    autres_objectifs = st.text_area("Autres objectifs (description)")
+with st.expander(translations[lang]['texte_expander_objectifs']):
+    sauver_ges = st.text_input(
+        translations[lang]['label_sauver_ges'], 
+        help=translations[lang]['help_sauver_ges']
+    )
+    economie_energie = st.checkbox(translations[lang]['label_economie_energie'])
+    gain_productivite = st.checkbox(translations[lang]['label_gain_productivite'])
+    roi_vise = st.text_input(translations[lang]['label_roi_vise'])
+    remplacement_equipement = st.checkbox(translations[lang]['label_remplacement_equipement'])
+    investissement_prevu = st.text_input(translations[lang]['label_investissement_prevu'])
+    autres_objectifs = st.text_area(translations[lang]['label_autres_objectifs'])
 
 
 # ==========================
