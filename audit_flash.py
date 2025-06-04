@@ -251,39 +251,73 @@ with st.expander(translations[lang]['texte_expander_contacts']):
 # ==========================
 # 3. DOCUMENTS À FOURNIR
 # ==========================
+translations = {
+    "fr": {
+        # ... (tes clés des autres blocs)
+        "titre_documents": "📑 3. Documents à fournir avant la visite",
+        "texte_expander_documents": "Cliquez ici pour remplir cette section",
+        "label_facture_elec": "Factures électricité (1 à 3 ans)",
+        "label_facture_combustibles": "Factures Gaz / Mazout / Propane / Bois",
+        "label_facture_autres": "Autres consommables (azote, eau, CO2, etc.)",
+        "label_plans_pid": "Plans d’aménagement du site et P&ID (schémas de tuyauterie et d’instrumentation)",
+        "label_temps_fonctionnement": "Temps de fonctionnement de l’usine (heures/an)",
+        "sous_titre_fichiers_televerses": "📂 Fichiers téléversés",
+        "label_facture_elec_uploaded": "**Factures électricité :**",
+        "label_facture_combustibles_uploaded": "**Factures Gaz/Mazout/Propane/Bois :**",
+        "label_facture_autres_uploaded": "**Autres consommables :**",
+        "label_plans_pid_uploaded": "**Plans d’aménagement du site et P&ID :**"
+    },
+    "en": {
+        # ... (tes clés des autres blocs)
+        "titre_documents": "📑 3. Documents to Provide Before the Visit",
+        "texte_expander_documents": "Click here to fill out this section",
+        "label_facture_elec": "Electricity bills (1 to 3 years)",
+        "label_facture_combustibles": "Gas / Fuel Oil / Propane / Wood bills",
+        "label_facture_autres": "Other consumables (nitrogen, water, CO2, etc.)",
+        "label_plans_pid": "Site layout plans and P&ID (piping and instrumentation diagrams)",
+        "label_temps_fonctionnement": "Plant operating time (hours/year)",
+        "sous_titre_fichiers_televerses": "📂 Uploaded Files",
+        "label_facture_elec_uploaded": "**Electricity bills:**",
+        "label_facture_combustibles_uploaded": "**Gas/Fuel Oil/Propane/Wood bills:**",
+        "label_facture_autres_uploaded": "**Other consumables:**",
+        "label_plans_pid_uploaded": "**Site layout plans and P&ID:**"
+    }
+}
+
 st.markdown(f"""
 <div class='section-title'>
-    📑 3. Documents à fournir avant la visite
+    {translations[lang]['titre_documents']}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander("Cliquez ici pour remplir cette section"):
-    facture_elec = st.file_uploader("Factures électricité (1 à 3 ans)", type="pdf", accept_multiple_files=True)
-    facture_combustibles = st.file_uploader("Factures Gaz / Mazout / Propane / Bois", type="pdf", accept_multiple_files=True)
-    facture_autres = st.file_uploader("Autres consommables (azote, eau, CO2, etc.)", type="pdf", accept_multiple_files=True)
-    plans_pid = st.file_uploader("Plans d’aménagement du site et P&ID (schémas de tuyauterie et d’instrumentation)", type="pdf", accept_multiple_files=True)
-    temps_fonctionnement = st.text_input("Temps de fonctionnement de l’usine (heures/an)")
+with st.expander(translations[lang]['texte_expander_documents']):
+    facture_elec = st.file_uploader(translations[lang]['label_facture_elec'], type="pdf", accept_multiple_files=True)
+    facture_combustibles = st.file_uploader(translations[lang]['label_facture_combustibles'], type="pdf", accept_multiple_files=True)
+    facture_autres = st.file_uploader(translations[lang]['label_facture_autres'], type="pdf", accept_multiple_files=True)
+    plans_pid = st.file_uploader(translations[lang]['label_plans_pid'], type="pdf", accept_multiple_files=True)
+    temps_fonctionnement = st.text_input(translations[lang]['label_temps_fonctionnement'])
 
-    st.markdown("### 📂 Fichiers téléversés")
+    st.markdown(f"### {translations[lang]['sous_titre_fichiers_televerses']}")
     if facture_elec:
-        st.markdown("**Factures électricité :**")
+        st.markdown(translations[lang]['label_facture_elec_uploaded'])
         for fichier in facture_elec:
             st.write(f"➡️ {fichier.name}")
 
     if facture_combustibles:
-        st.markdown("**Factures Gaz/Mazout/Propane/Bois :**")
+        st.markdown(translations[lang]['label_facture_combustibles_uploaded'])
         for fichier in facture_combustibles:
             st.write(f"➡️ {fichier.name}")
 
     if facture_autres:
-        st.markdown("**Autres consommables :**")
+        st.markdown(translations[lang]['label_facture_autres_uploaded'])
         for fichier in facture_autres:
             st.write(f"➡️ {fichier.name}")
 
     if plans_pid:
-        st.markdown("**Plans d’aménagement du site et P&ID :**")
+        st.markdown(translations[lang]['label_plans_pid_uploaded'])
         for fichier in plans_pid:
             st.write(f"➡️ {fichier.name}")
+
 
 # ==========================
 # 4. OBJECTIF CLIENT
