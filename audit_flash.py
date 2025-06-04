@@ -555,19 +555,39 @@ with st.expander(translations[lang]['texte_expander_priorites']):
 # ==========================
 # 7. SERVICES COMPLÉMENTAIRES
 # ==========================
-st.markdown("<div id='services'></div>", unsafe_allow_html=True)  # ancre cliquable
+translations = {
+    "fr": {
+        # ... (tes autres clés)
+        "titre_services": "🛠️ 7. Services complémentaires",
+        "texte_expander_services": "Cliquez ici pour remplir cette section",
+        "label_controle": "Contrôle et automatisation",
+        "label_maintenance": "Maintenance préventive et corrective",
+        "label_ventilation": "Ventilation industrielle et gestion de l’air",
+        "label_autres_services": "Autres services souhaités (précisez)"
+    },
+    "en": {
+        # ... (tes autres clés)
+        "titre_services": "🛠️ 7. Additional Services",
+        "texte_expander_services": "Click here to fill out this section",
+        "label_controle": "Control and automation",
+        "label_maintenance": "Preventive and corrective maintenance",
+        "label_ventilation": "Industrial ventilation and air management",
+        "label_autres_services": "Other desired services (please specify)"
+    }
+}
+
+st.markdown("<div id='services'></div>", unsafe_allow_html=True)
 st.markdown(f"""
 <div class='section-title'>
-    🛠️ 7. Services complémentaires
+    {translations[lang]['titre_services']}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander("Cliquez ici pour remplir cette section"):
-    controle = st.checkbox("Contrôle et automatisation")
-    maintenance = st.checkbox("Maintenance préventive et corrective")
-    ventilation = st.checkbox("Ventilation industrielle et gestion de l’air")
-    autres_services = st.text_area("Autres services souhaités (précisez)")
-
+with st.expander(translations[lang]['texte_expander_services']):
+    controle = st.checkbox(translations[lang]['label_controle'])
+    maintenance = st.checkbox(translations[lang]['label_maintenance'])
+    ventilation = st.checkbox(translations[lang]['label_ventilation'])
+    autres_services = st.text_area(translations[lang]['label_autres_services'])
 
 # ==========================
 # 8. PERSONNE AYANT REMPLI LE FORMULAIRE
