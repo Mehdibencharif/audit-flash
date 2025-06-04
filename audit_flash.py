@@ -592,19 +592,43 @@ with st.expander(translations[lang]['texte_expander_services']):
 # ==========================
 # 8. PERSONNE AYANT REMPLI LE FORMULAIRE
 # ==========================
-st.markdown("<div id='remplisseur'></div>", unsafe_allow_html=True)  # ancre cliquable
+translations = {
+    "fr": {
+        # ... autres clés
+        "titre_remplisseur": "👤 8. Personne ayant rempli ce formulaire",
+        "texte_expander_remplisseur": "Cliquez ici pour remplir cette section",
+        "label_rempli_nom": "Nom du remplisseur",
+        "label_rempli_date": "Date de remplissage",
+        "label_rempli_mail": "Courriel du remplisseur",
+        "label_rempli_tel": "Téléphone du remplisseur",
+        "label_rempli_ext": "Extension du remplisseur"
+    },
+    "en": {
+        # ... autres clés
+        "titre_remplisseur": "👤 8. Form filled by",
+        "texte_expander_remplisseur": "Click here to fill out this section",
+        "label_rempli_nom": "Name of the person who filled out the form",
+        "label_rempli_date": "Date of completion",
+        "label_rempli_mail": "Email of the person who filled out the form",
+        "label_rempli_tel": "Phone number of the person who filled out the form",
+        "label_rempli_ext": "Extension of the person who filled out the form"
+    }
+}
+
+
+st.markdown("<div id='remplisseur'></div>", unsafe_allow_html=True)
 st.markdown(f"""
 <div class='section-title'>
-    👤 8. Personne ayant rempli ce formulaire
+    {translations[lang]['titre_remplisseur']}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander("Cliquez ici pour remplir cette section"):
-    rempli_nom = st.text_input("Nom du remplisseur")
-    rempli_date = st.date_input("Date de remplissage", value=date.today())
-    rempli_mail = st.text_input("Courriel du remplisseur")
-    rempli_tel = st.text_input("Téléphone du remplisseur")
-    rempli_ext = st.text_input("Extension du remplisseur")
+with st.expander(translations[lang]['texte_expander_remplisseur']):
+    rempli_nom = st.text_input(translations[lang]['label_rempli_nom'])
+    rempli_date = st.date_input(translations[lang]['label_rempli_date'], value=date.today())
+    rempli_mail = st.text_input(translations[lang]['label_rempli_mail'])
+    rempli_tel = st.text_input(translations[lang]['label_rempli_tel'])
+    rempli_ext = st.text_input(translations[lang]['label_rempli_ext'])
 
 # ==========================
 # 9. RÉCAPITULATIF ET GÉNÉRATION PDF
