@@ -537,7 +537,7 @@ with st.expander(translations[lang]['texte_expander_priorites']):
             poids_maintenance * 100
         ]
 
-        col1, col2 = st.columns([1, 3])
+        col1, col2 = st.columns([2, 5])
         with col1:
             fig, ax = plt.subplots(figsize=(6, 4))
             ax.barh(labels, values, color=couleur_primaire)
