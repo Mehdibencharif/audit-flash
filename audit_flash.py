@@ -741,30 +741,40 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         )
         st.success(translations[lang]['msg_succes_pdf'])
 
+# ==========================
 # BONUS : EXPORT EXCEL
+# ==========================
 translations = {
     "fr": {
         # ... autres clés ...
         "label_client_nom": "Nom du client",
+        "msg_checkbox_excel": "Exporter les données au format Excel",
+        "bouton_export_excel": "📥 Télécharger Excel",
         # ... autres clés ...
     },
     "en": {
         # ... autres clés ...
         "label_client_nom": "Client Name",
+        "msg_checkbox_excel": "Export data to Excel",
+        "bouton_export_excel": "📥 Download Excel",
         # ... autres clés ...
     }
     # Ajoute ici d'autres langues si besoin, par exemple :
     # "es": {
     #     "label_client_nom": "Nombre del cliente",
+    #     "msg_checkbox_excel": "Exportar datos a Excel",
+    #     "bouton_export_excel": "📥 Descargar Excel",
     # },
     # "de": {
     #     "label_client_nom": "Kundenname",
+    #     "msg_checkbox_excel": "Daten nach Excel exportieren",
+    #     "bouton_export_excel": "📥 Excel herunterladen",
     # }
 }
 
 if st.checkbox(translations[lang]['msg_checkbox_excel']):
     data = {
-        "Client": [client_nom],
+        translations[lang]['label_client_nom']: [client_nom],
         "Site": [site_nom],
         "GES": [sauver_ges],
         "ROI": [roi_vise],
@@ -783,3 +793,9 @@ if st.checkbox(translations[lang]['msg_checkbox_excel']):
         file_name="audit_flash.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+    try:
+        erreurs.append(translations[lang]['label_client_nom'])
+    except KeyError:
+        erreurs.append("Client Name")  # Valeur par défaut en anglais si la clé est manquante
+
