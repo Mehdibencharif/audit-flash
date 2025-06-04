@@ -741,36 +741,26 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         )
         st.success(translations[lang]['msg_succes_pdf'])
 
-# ==========================
 # BONUS : EXPORT EXCEL
 # ==========================
 translations = {
     "fr": {
-        # ... autres clés ...
         "label_client_nom": "Nom du client",
         "msg_checkbox_excel": "Exporter les données au format Excel",
         "bouton_export_excel": "📥 Télécharger Excel",
-        # ... autres clés ...
     },
     "en": {
-        # ... autres clés ...
         "label_client_nom": "Client Name",
         "msg_checkbox_excel": "Export data to Excel",
         "bouton_export_excel": "📥 Download Excel",
-        # ... autres clés ...
     }
-    # Ajoute ici d'autres langues si besoin, par exemple :
-    # "es": {
-    #     "label_client_nom": "Nombre del cliente",
-    #     "msg_checkbox_excel": "Exportar datos a Excel",
-    #     "bouton_export_excel": "📥 Descargar Excel",
-    # },
-    # "de": {
-    #     "label_client_nom": "Kundenname",
-    #     "msg_checkbox_excel": "Daten nach Excel exportieren",
-    #     "bouton_export_excel": "📥 Excel herunterladen",
-    # }
 }
+
+# Vérifie que la langue est bien définie et existe dans translations
+if lang not in translations:
+    lang = "en"  # Valeur par défaut si la langue n'est pas supportée
+
+erreurs = []  # Initialisation de la liste erreurs
 
 if st.checkbox(translations[lang]['msg_checkbox_excel']):
     data = {
@@ -794,8 +784,11 @@ if st.checkbox(translations[lang]['msg_checkbox_excel']):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    try:
-        erreurs.append(translations[lang]['label_client_nom'])
-    except KeyError:
-        erreurs.append("Client Name")  # Valeur par défaut en anglais si la clé est manquante
+# Vérification sécurisée pour erreurs
+try:
+    label_client = translations[lang].get('label_client_nom', 'Client Name')
+    erreurs.append(label_client)
+except Exception:
+    erreurs.append("Client Name")  # fallback en cas d'erreur
+
 
