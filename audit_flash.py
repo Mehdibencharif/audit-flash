@@ -128,6 +128,35 @@ else:
     - [8. Person Completing the Form](#remplisseur)
     - [9. Summary and PDF Generation](#pdf)
     """, unsafe_allow_html=True)
+    
+# ==========================
+# Dictionnaire de traduction 1
+# ==========================
+translations = {
+    "fr": {
+        "titre_infos": "📄 1. Informations générales",
+        "texte_expander_infos": "Cliquez ici pour remplir cette section",
+        "label_client_nom": "Nom du client portail *",
+        "aide_client_nom": "Ex: Soteck Clauger",
+        "label_site_nom": "Nom du site du client *",
+        "label_adresse": "Adresse",
+        "label_ville": "Ville",
+        "label_province": "Province",
+        "label_code_postal": "Code postal"
+    },
+    "en": {
+        "titre_infos": "📄 1. General Information",
+        "texte_expander_infos": "Click here to fill out this section",
+        "label_client_nom": "Client portal name *",
+        "aide_client_nom": "E.g., Soteck Clauger",
+        "label_site_nom": "Client site name *",
+        "label_adresse": "Address",
+        "label_ville": "City",
+        "label_province": "Province",
+        "label_code_postal": "Postal code"
+    }
+}
+
 # ==========================
 # 1. INFORMATIONS GÉNÉRALES
 # ==========================
