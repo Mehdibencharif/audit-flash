@@ -633,27 +633,48 @@ with st.expander(translations[lang]['texte_expander_remplisseur']):
 # ==========================
 # 9. RÉCAPITULATIF ET GÉNÉRATION PDF
 # ==========================
-st.info("ℹ️ Note : Cette version d’essai ne conserve pas vos données après fermeture de la page. Une version finale permettra d’enregistrer et de reprendre vos réponses ultérieurement.")
+translations = {
+    "fr": {
+        # ... autres clés
+        "titre_pdf": "📝 9. Récapitulatif et génération PDF",
+        "texte_info_pdf": "ℹ️ Note : Cette version d’essai ne conserve pas vos données après fermeture de la page. Une version finale permettra d’enregistrer et de reprendre vos réponses ultérieurement.",
+        "bouton_generer_pdf": "📥 Générer le PDF",
+        "msg_erreur_champs": "Veuillez remplir ou corriger les champs suivants :",
+        "msg_succes_pdf": "✅ PDF généré avec succès !",
+        "bouton_telecharger_pdf": "📥 Télécharger le PDF"
+    },
+    "en": {
+        # ... autres clés
+        "titre_pdf": "📝 9. Summary and PDF Generation",
+        "texte_info_pdf": "ℹ️ Note: This trial version does not retain your data after closing the page. A final version will allow you to save and resume your answers later.",
+        "bouton_generer_pdf": "📥 Generate PDF",
+        "msg_erreur_champs": "Please fill or correct the following fields:",
+        "msg_succes_pdf": "✅ PDF successfully generated!",
+        "bouton_telecharger_pdf": "📥 Download PDF"
+    }
+}
 
-st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)  # ancre cliquable
+st.info(translations[lang]['texte_info_pdf'])
+
+st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
 st.markdown(f"""
 <div class='section-title'>
-    📝 9. Récapitulatif et génération PDF
+    {translations[lang]['titre_pdf']}
 </div>
 """, unsafe_allow_html=True)
 
-if st.button("📥 Générer le PDF"):
+if st.button(translations[lang]['bouton_generer_pdf']):
     erreurs = []
     if not client_nom:
-        erreurs.append("Nom du client portail")
+        erreurs.append(translations[lang]['label_client_nom'])
     if not site_nom:
-        erreurs.append("Nom du site du client")
+        erreurs.append(translations[lang]['label_site_nom'])
     email_regex = r"[^@]+@[^@]+\.[^@]+"
     if contact_ee_mail and not re.match(email_regex, contact_ee_mail):
-        erreurs.append("Courriel (EE) invalide")
+        erreurs.append(translations[lang]['label_contact_ee_mail'])
 
     if erreurs:
-        st.error(f"Veuillez remplir ou corriger les champs suivants : {', '.join(erreurs)}")
+        st.error(f"{translations[lang]['msg_erreur_champs']} {', '.join(erreurs)}")
     else:
         pdf = FPDF()
         pdf.add_page()
@@ -672,6 +693,7 @@ if st.button("📥 Générer le PDF"):
         pdf.cell(0, 10, f"Date: {date.today().strftime('%d/%m/%Y')}", ln=True)
         pdf.ln(5)
 
+        # Objectifs du client
         pdf.set_font("Arial", 'B', 12)
         pdf.cell(0, 10, "Objectifs du client:", ln=True)
         pdf.set_font("Arial", '', 12)
@@ -682,6 +704,7 @@ if st.button("📥 Générer le PDF"):
         pdf.cell(0, 10, f"Investissement prévu: {investissement_prevu}", ln=True)
         pdf.multi_cell(0, 10, f"Autres objectifs: {autres_objectifs}")
 
+        # Services complémentaires
         pdf.ln(5)
         pdf.set_font("Arial", 'B', 12)
         pdf.cell(0, 10, "Services complémentaires souhaités:", ln=True)
@@ -691,14 +714,15 @@ if st.button("📥 Générer le PDF"):
         pdf.cell(0, 10, f"- Ventilation: {'Oui' if ventilation else 'Non'}", ln=True)
         pdf.multi_cell(0, 10, f"Autres services: {autres_services}")
 
+        # Priorités stratégiques
         pdf.ln(5)
         pdf.set_font("Arial", 'B', 12)
         pdf.cell(0, 10, "Priorités stratégiques du client:", ln=True)
         pdf.set_font("Arial", '', 12)
         if total_priorites > 0:
-            pdf.cell(0, 10, f"Réduction de la consommation énergétique : {poids_energie:.0%}", ln=True)
+            pdf.cell(0, 10, f"Réduction consommation énergétique : {poids_energie:.0%}", ln=True)
             pdf.cell(0, 10, f"Retour sur investissement : {poids_roi:.0%}", ln=True)
-            pdf.cell(0, 10, f"Réduction des émissions de GES : {poids_ges:.0%}", ln=True)
+            pdf.cell(0, 10, f"Réduction émissions GES : {poids_ges:.0%}", ln=True)
             pdf.cell(0, 10, f"Productivité et fiabilité : {poids_prod:.0%}", ln=True)
             pdf.cell(0, 10, f"Maintenance et fiabilité : {poids_maintenance:.0%}", ln=True)
         else:
@@ -710,12 +734,12 @@ if st.button("📥 Générer le PDF"):
         pdf_buffer.seek(0)
 
         st.download_button(
-            label="📥 Télécharger le PDF",
+            label=translations[lang]['bouton_telecharger_pdf'],
             data=pdf_buffer,
             file_name="audit_flash.pdf",
             mime="application/pdf"
         )
-        st.success("✅ PDF généré avec succès !")
+        st.success(translations[lang]['msg_succes_pdf'])
 
 # BONUS : EXPORT EXCEL
 if st.checkbox("Exporter les données au format Excel"):
