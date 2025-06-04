@@ -181,25 +181,74 @@ with st.expander(translations[lang]['texte_expander_infos']):
 # ==========================
 # 2. PERSONNE CONTACT
 # ==========================
+translations = {
+    "fr": {
+        "titre_infos": "📄 1. Informations générales",
+        "texte_expander_infos": "Cliquez ici pour remplir cette section",
+        # ... (tes clés du bloc 1)
+        "titre_contacts": "👤 2. Personne contact",
+        "texte_expander_contacts": "Cliquez ici pour remplir cette section",
+        "sous_titre_ee": "🔌 Efficacité énergétique (Soteck)",
+        "label_contact_ee_nom": "Prénom et Nom (EE)",
+        "label_contact_ee_mail": "Courriel (EE)",
+        "help_contact_ee_mail": "Format : exemple@domaine.com",
+        "label_contact_ee_tel": "Téléphone (EE)",
+        "help_contact_ee_tel": "10 chiffres recommandés",
+        "label_contact_ee_ext": "Extension (EE)",
+        "sous_titre_maint": "🛠️ Maintenance (Externe)",
+        "label_contact_maint_nom": "Prénom et Nom (Maintenance)",
+        "label_contact_maint_mail": "Courriel (Maintenance)",
+        "label_contact_maint_tel": "Téléphone (Maintenance)",
+        "label_contact_maint_ext": "Extension (Maintenance)"
+    },
+    "en": {
+        "titre_infos": "📄 1. General Information",
+        "texte_expander_infos": "Click here to fill out this section",
+        # ... (tes clés du bloc 1)
+        "titre_contacts": "👤 2. Contact Person",
+        "texte_expander_contacts": "Click here to fill out this section",
+        "sous_titre_ee": "🔌 Energy Efficiency (Soteck)",
+        "label_contact_ee_nom": "First and Last Name (EE)",
+        "label_contact_ee_mail": "Email (EE)",
+        "help_contact_ee_mail": "Format: example@domain.com",
+        "label_contact_ee_tel": "Phone (EE)",
+        "help_contact_ee_tel": "10 digits recommended",
+        "label_contact_ee_ext": "Extension (EE)",
+        "sous_titre_maint": "🛠️ Maintenance (External)",
+        "label_contact_maint_nom": "First and Last Name (Maintenance)",
+        "label_contact_maint_mail": "Email (Maintenance)",
+        "label_contact_maint_tel": "Phone (Maintenance)",
+        "label_contact_maint_ext": "Extension (Maintenance)"
+    }
+}
+
+
 st.markdown("<div id='contacts'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
-    👤 2. Personne contact
+    {translations[lang]['titre_contacts']}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander("Cliquez ici pour remplir cette section"):
-    st.markdown("#### 🔌 Efficacité énergétique (Soteck)")
-    contact_ee_nom = st.text_input("Prénom et Nom (EE)")
-    contact_ee_mail = st.text_input("Courriel (EE)", help="Format : exemple@domaine.com")
-    contact_ee_tel = st.text_input("Téléphone (EE)", help="10 chiffres recommandés")
-    contact_ee_ext = st.text_input("Extension (EE)")
+with st.expander(translations[lang]['texte_expander_contacts']):
+    st.markdown(f"#### {translations[lang]['sous_titre_ee']}")
+    contact_ee_nom = st.text_input(translations[lang]['label_contact_ee_nom'])
+    contact_ee_mail = st.text_input(
+        translations[lang]['label_contact_ee_mail'],
+        help=translations[lang]['help_contact_ee_mail']
+    )
+    contact_ee_tel = st.text_input(
+        translations[lang]['label_contact_ee_tel'],
+        help=translations[lang]['help_contact_ee_tel']
+    )
+    contact_ee_ext = st.text_input(translations[lang]['label_contact_ee_ext'])
 
-    st.markdown("#### 🛠️ Maintenance (Externe)")
-    contact_maint_nom = st.text_input("Prénom et Nom (Maintenance)")
-    contact_maint_mail = st.text_input("Courriel (Maintenance)")
-    contact_maint_tel = st.text_input("Téléphone (Maintenance)")
-    contact_maint_ext = st.text_input("Extension (Maintenance)")
+    st.markdown(f"#### {translations[lang]['sous_titre_maint']}")
+    contact_maint_nom = st.text_input(translations[lang]['label_contact_maint_nom'])
+    contact_maint_mail = st.text_input(translations[lang]['label_contact_maint_mail'])
+    contact_maint_tel = st.text_input(translations[lang]['label_contact_maint_tel'])
+    contact_maint_ext = st.text_input(translations[lang]['label_contact_maint_ext'])
+
 
 # ==========================
 # 3. DOCUMENTS À FOURNIR
