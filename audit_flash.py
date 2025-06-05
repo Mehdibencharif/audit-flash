@@ -409,10 +409,6 @@ translations = {
         "label_puissance_pompe": "Puissance pompe (kW ou HP)",
         "label_rendement_pompe": "Rendement pompe (%)",
         "label_vitesse_variable_pompe": "Variateur de vitesse pompe",
-        "sous_titre_eclairage": "Systèmes d’éclairage",
-        "label_type_eclairage": "Type d’éclairage (LED, fluorescent, etc.)",
-        "label_puissance_totale_eclairage": "Puissance totale installée (kW)",
-        "label_heures_utilisation": "Nombre d’heures d’utilisation par jour",
         "sous_titre_ventilation": "Systèmes de ventilation / HVAC",
         "label_nb_ventilation": "Nombre d’unités de ventilation",
         "label_type_ventilation": "Type de ventilation (naturelle, mécanique, etc.)",
@@ -421,7 +417,12 @@ translations = {
         "label_nom_machine": "Nom de la machine",
         "label_puissance_machine": "Puissance machine (kW)",
         "label_taux_utilisation": "Taux d’utilisation machine (%)",
-        "label_rendement_machine": "Rendement machine (%)"
+        "label_rendement_machine": "Rendement machine (%)",
+        "label_source_energie_machine": "Source d’énergie (fossile, électricité, etc.)",
+        "sous_titre_eclairage": "Systèmes d’éclairage",
+        "label_type_eclairage": "Type d’éclairage (LED, fluorescent, etc.)",
+        "label_puissance_totale_eclairage": "Puissance totale installée (kW)",
+        "label_heures_utilisation": "Nombre d’heures d’utilisation par jour"
     },
     "en": {
         # ... autres clés ...
@@ -446,10 +447,6 @@ translations = {
         "label_puissance_pompe": "Pump power (kW or HP)",
         "label_rendement_pompe": "Pump efficiency (%)",
         "label_vitesse_variable_pompe": "Pump variable speed drive",
-        "sous_titre_eclairage": "Lighting systems",
-        "label_type_eclairage": "Type of lighting (LED, fluorescent, etc.)",
-        "label_puissance_totale_eclairage": "Total installed power (kW)",
-        "label_heures_utilisation": "Number of hours of use per day",
         "sous_titre_ventilation": "Ventilation / HVAC systems",
         "label_nb_ventilation": "Number of ventilation units",
         "label_type_ventilation": "Type of ventilation (natural, mechanical, etc.)",
@@ -458,10 +455,14 @@ translations = {
         "label_nom_machine": "Machine name",
         "label_puissance_machine": "Machine power (kW)",
         "label_taux_utilisation": "Machine utilization rate (%)",
-        "label_rendement_machine": "Machine efficiency (%)"
+        "label_rendement_machine": "Machine efficiency (%)",
+        "label_source_energie_machine": "Energy source (fossil, electricity, etc.)",
+        "sous_titre_eclairage": "Lighting systems",
+        "label_type_eclairage": "Type of lighting (LED, fluorescent, etc.)",
+        "label_puissance_totale_eclairage": "Total installed power (kW)",
+        "label_heures_utilisation": "Number of hours of use per day"
     }
 }
-
 
 st.markdown(f"""
 <div class='section-title'>
