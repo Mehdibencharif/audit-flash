@@ -181,19 +181,50 @@ with st.expander(translations[lang]['texte_expander_infos']):
 # ==========================
 translations = {
     "fr": {
-        # ... autres clés ...
         "titre_contacts_remplisseur": "👥 2. Personne contact et remplisseur",
         "texte_expander_contacts_remplisseur": "Cliquez ici pour remplir cette section",
-        # ... clés existantes déjà présentes ...
+        "sous_titre_ee": "🔌 Efficacité énergétique (Soteck)",
+        "label_contact_ee_nom": "Prénom et Nom (EE)",
+        "label_contact_ee_mail": "Courriel (EE)",
+        "help_contact_ee_mail": "Format : exemple@domaine.com",
+        "label_contact_ee_tel": "Téléphone (EE)",
+        "help_contact_ee_tel": "10 chiffres recommandés",
+        "label_contact_ee_ext": "Extension (EE)",
+        "sous_titre_maint": "🛠️ Maintenance (Externe)",
+        "label_contact_maint_nom": "Prénom et Nom (Maintenance)",
+        "label_contact_maint_mail": "Courriel (Maintenance)",
+        "label_contact_maint_tel": "Téléphone (Maintenance)",
+        "label_contact_maint_ext": "Extension (Maintenance)",
+        "titre_remplisseur": "👤 Personne ayant rempli ce formulaire",
+        "label_rempli_nom": "Nom du remplisseur",
+        "label_rempli_date": "Date de remplissage",
+        "label_rempli_mail": "Courriel du remplisseur",
+        "label_rempli_tel": "Téléphone du remplisseur",
+        "label_rempli_ext": "Extension du remplisseur"
     },
     "en": {
-        # ... autres clés ...
         "titre_contacts_remplisseur": "👥 2. Contact Person and Form Filler",
         "texte_expander_contacts_remplisseur": "Click here to fill out this section",
-        # ... clés existantes déjà présentes ...
+        "sous_titre_ee": "🔌 Energy Efficiency (Soteck)",
+        "label_contact_ee_nom": "First and Last Name (EE)",
+        "label_contact_ee_mail": "Email (EE)",
+        "help_contact_ee_mail": "Format: example@domain.com",
+        "label_contact_ee_tel": "Phone (EE)",
+        "help_contact_ee_tel": "10 digits recommended",
+        "label_contact_ee_ext": "Extension (EE)",
+        "sous_titre_maint": "🛠️ Maintenance (External)",
+        "label_contact_maint_nom": "First and Last Name (Maintenance)",
+        "label_contact_maint_mail": "Email (Maintenance)",
+        "label_contact_maint_tel": "Phone (Maintenance)",
+        "label_contact_maint_ext": "Extension (Maintenance)",
+        "titre_remplisseur": "👤 Person who filled out this form",
+        "label_rempli_nom": "Name of the person who filled out the form",
+        "label_rempli_date": "Date of completion",
+        "label_rempli_mail": "Email of the person who filled out the form",
+        "label_rempli_tel": "Phone number of the person who filled out the form",
+        "label_rempli_ext": "Extension of the person who filled out the form"
     }
 }
-
 
 st.markdown("<div id='contacts_remplisseur'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
