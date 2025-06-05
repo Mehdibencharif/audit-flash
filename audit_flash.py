@@ -383,55 +383,130 @@ with st.expander(translations[lang]['texte_expander_objectifs']):
     autres_objectifs = st.text_area(translations[lang]['label_autres_objectifs'])
 
 
-# ==========================
-# 5. LISTE DES ÉQUIPEMENTS
-# ==========================
-st.markdown("<div id='equipements'></div>", unsafe_allow_html=True)  # ancre cliquable
+translations = {
+    "fr": {
+        # ... autres clés ...
+        "titre_equipements": "⚙️ 5. Liste des équipements",
+        "texte_expander_equipements": "Cliquez ici pour remplir cette section",
+        "sous_titre_chaudieres": "Chaudières",
+        "label_nb_chaudieres": "Nombre de chaudières",
+        "label_type_chaudiere": "Type de chaudière",
+        "label_rendement_chaudiere": "Rendement chaudière (%)",
+        "label_taille_chaudiere": "Taille de la chaudière (BHP ou BTU)",
+        "label_appoint_eau": "Appoint d’eau (volume)",
+        "label_micro_modulation": "Chaudière équipée de micro modulation ?",
+        "sous_titre_frigo": "Équipements frigorifiques",
+        "label_nb_frigo": "Nombre de systèmes frigorifiques",
+        "label_capacite_frigo": "Capacité frigorifique",
+        "sous_titre_compresseur": "Compresseur d’air",
+        "label_puissance_comp": "Puissance compresseur (HP)",
+        "label_variation_vitesse": "Variation de vitesse compresseur",
+        "sous_titre_pompes": "Pompes industrielles",
+        "label_nb_pompes": "Nombre de pompes",
+        "label_type_pompe": "Type de pompe (centrifuge, volumétrique, etc.)",
+        "label_puissance_pompe": "Puissance pompe (kW ou HP)",
+        "label_rendement_pompe": "Rendement pompe (%)",
+        "label_vitesse_variable_pompe": "Variateur de vitesse pompe",
+        "sous_titre_eclairage": "Systèmes d’éclairage",
+        "label_type_eclairage": "Type d’éclairage (LED, fluorescent, etc.)",
+        "label_puissance_totale_eclairage": "Puissance totale installée (kW)",
+        "label_heures_utilisation": "Nombre d’heures d’utilisation par jour",
+        "sous_titre_ventilation": "Systèmes de ventilation / HVAC",
+        "label_nb_ventilation": "Nombre d’unités de ventilation",
+        "label_type_ventilation": "Type de ventilation (naturelle, mécanique, etc.)",
+        "label_puissance_ventilation": "Puissance ventilation (kWh)",
+        "sous_titre_machines": "Autres machines de production",
+        "label_nom_machine": "Nom de la machine",
+        "label_puissance_machine": "Puissance machine (kW)",
+        "label_taux_utilisation": "Taux d’utilisation machine (%)",
+        "label_rendement_machine": "Rendement machine (%)"
+    },
+    "en": {
+        # ... autres clés ...
+        "titre_equipements": "⚙️ 5. Equipment List",
+        "texte_expander_equipements": "Click here to fill out this section",
+        "sous_titre_chaudieres": "Boilers",
+        "label_nb_chaudieres": "Number of boilers",
+        "label_type_chaudiere": "Type of boiler",
+        "label_rendement_chaudiere": "Boiler efficiency (%)",
+        "label_taille_chaudiere": "Boiler size (BHP or BTU)",
+        "label_appoint_eau": "Water make-up (volume)",
+        "label_micro_modulation": "Boiler with micro modulation?",
+        "sous_titre_frigo": "Refrigeration equipment",
+        "label_nb_frigo": "Number of refrigeration systems",
+        "label_capacite_frigo": "Refrigeration capacity",
+        "sous_titre_compresseur": "Air compressor",
+        "label_puissance_comp": "Compressor power (HP)",
+        "label_variation_vitesse": "Variable speed compressor",
+        "sous_titre_pompes": "Industrial pumps",
+        "label_nb_pompes": "Number of pumps",
+        "label_type_pompe": "Type of pump (centrifugal, volumetric, etc.)",
+        "label_puissance_pompe": "Pump power (kW or HP)",
+        "label_rendement_pompe": "Pump efficiency (%)",
+        "label_vitesse_variable_pompe": "Pump variable speed drive",
+        "sous_titre_eclairage": "Lighting systems",
+        "label_type_eclairage": "Type of lighting (LED, fluorescent, etc.)",
+        "label_puissance_totale_eclairage": "Total installed power (kW)",
+        "label_heures_utilisation": "Number of hours of use per day",
+        "sous_titre_ventilation": "Ventilation / HVAC systems",
+        "label_nb_ventilation": "Number of ventilation units",
+        "label_type_ventilation": "Type of ventilation (natural, mechanical, etc.)",
+        "label_puissance_ventilation": "Ventilation power (kWh)",
+        "sous_titre_machines": "Other production machines",
+        "label_nom_machine": "Machine name",
+        "label_puissance_machine": "Machine power (kW)",
+        "label_taux_utilisation": "Machine utilization rate (%)",
+        "label_rendement_machine": "Machine efficiency (%)"
+    }
+}
+
+
 st.markdown(f"""
 <div class='section-title'>
-    ⚙️ 5. Liste des équipements
+    {translations[lang]['titre_equipements']}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander("Cliquez ici pour remplir cette section"):
-    st.markdown("#### Chaudières")
-    nb_chaudieres = st.number_input("Nombre de chaudières", min_value=0, step=1)
-    type_chaudiere = st.text_input("Type de chaudière")
-    rendement_chaudiere = st.text_input("Rendement chaudière (%)")
-    taille_chaudiere = st.text_input("Taille de la chaudière (BHP ou BTU)")
-    appoint_eau = st.text_input("Appoint d’eau (volume)")
-    micro_modulation = st.radio("Chaudière équipée de micro modulation ?", ["Oui", "Non"])
+with st.expander(translations[lang]['texte_expander_equipements']):
+    st.markdown(f"#### {translations[lang]['sous_titre_chaudieres']}")
+    nb_chaudieres = st.number_input(translations[lang]['label_nb_chaudieres'], min_value=0, step=1)
+    type_chaudiere = st.text_input(translations[lang]['label_type_chaudiere'])
+    rendement_chaudiere = st.text_input(translations[lang]['label_rendement_chaudiere'])
+    taille_chaudiere = st.text_input(translations[lang]['label_taille_chaudiere'])
+    appoint_eau = st.text_input(translations[lang]['label_appoint_eau'])
+    micro_modulation = st.radio(translations[lang]['label_micro_modulation'], ["Oui", "Non"])
 
-    st.markdown("#### Équipements frigorifiques")
-    nb_frigo = st.number_input("Nombre de systèmes frigorifiques", min_value=0, step=1)
-    capacite_frigo = st.text_input("Capacité frigorifique")
+    st.markdown(f"#### {translations[lang]['sous_titre_frigo']}")
+    nb_frigo = st.number_input(translations[lang]['label_nb_frigo'], min_value=0, step=1)
+    capacite_frigo = st.text_input(translations[lang]['label_capacite_frigo'])
 
-    st.markdown("#### Compresseur d’air")
-    puissance_comp = st.text_input("Puissance compresseur (HP)")
-    variation_vitesse = st.radio("Variation de vitesse compresseur", ["Oui", "Non"])
+    st.markdown(f"#### {translations[lang]['sous_titre_compresseur']}")
+    puissance_comp = st.text_input(translations[lang]['label_puissance_comp'])
+    variation_vitesse = st.radio(translations[lang]['label_variation_vitesse'], ["Oui", "Non"])
 
-    st.markdown("#### Pompes industrielles")
-    nb_pompes = st.number_input("Nombre de pompes", min_value=0, step=1)
-    type_pompe = st.text_input("Type de pompe (centrifuge, volumétrique, etc.)")
-    puissance_pompe = st.text_input("Puissance pompe (kW ou HP)")
-    rendement_pompe = st.text_input("Rendement pompe (%)")
-    vitesse_variable_pompe = st.radio("Variateur de vitesse pompe", ["Oui", "Non"])
+    st.markdown(f"#### {translations[lang]['sous_titre_pompes']}")
+    nb_pompes = st.number_input(translations[lang]['label_nb_pompes'], min_value=0, step=1)
+    type_pompe = st.text_input(translations[lang]['label_type_pompe'])
+    puissance_pompe = st.text_input(translations[lang]['label_puissance_pompe'])
+    rendement_pompe = st.text_input(translations[lang]['label_rendement_pompe'])
+    vitesse_variable_pompe = st.radio(translations[lang]['label_vitesse_variable_pompe'], ["Oui", "Non"])
 
-    st.markdown("#### Systèmes d’éclairage")
-    type_eclairage = st.text_input("Type d’éclairage (LED, fluorescent, etc.)")
-    puissance_totale_eclairage = st.text_input("Puissance totale installée (kW)")
-    heures_utilisation = st.text_input("Nombre d’heures d’utilisation par jour")
+    st.markdown(f"#### {translations[lang]['sous_titre_ventilation']}")
+    nb_ventilation = st.number_input(translations[lang]['label_nb_ventilation'], min_value=0, step=1)
+    type_ventilation = st.text_input(translations[lang]['label_type_ventilation'])
+    puissance_ventilation = st.text_input(translations[lang]['label_puissance_ventilation'])
 
-    st.markdown("#### Systèmes de ventilation / HVAC")
-    nb_ventilation = st.number_input("Nombre d’unités de ventilation", min_value=0, step=1)
-    type_ventilation = st.text_input("Type de ventilation (naturelle, mécanique, etc.)")
-    puissance_ventilation = st.text_input("Puissance ventilation (kWh)")
+    st.markdown(f"#### {translations[lang]['sous_titre_machines']}")
+    nom_machine = st.text_input(translations[lang]['label_nom_machine'])
+    puissance_machine = st.text_input(translations[lang]['label_puissance_machine'])
+    taux_utilisation = st.text_input(translations[lang]['label_taux_utilisation'])
+    rendement_machine = st.text_input(translations[lang]['label_rendement_machine'])
+    source_energie_machine = st.text_input(translations[lang]['label_source_energie_machine'])
 
-    st.markdown("#### Autres machines de production")
-    nom_machine = st.text_input("Nom de la machine")
-    puissance_machine = st.text_input("Puissance machine (kW)")
-    taux_utilisation = st.text_input("Taux d’utilisation machine (%)")
-    rendement_machine = st.text_input("Rendement machine (%)")
+    st.markdown(f"#### {translations[lang]['sous_titre_eclairage']}")
+    type_eclairage = st.text_input(translations[lang]['label_type_eclairage'])
+    puissance_totale_eclairage = st.text_input(translations[lang]['label_puissance_totale_eclairage'])
+    heures_utilisation = st.text_input(translations[lang]['label_heures_utilisation'])
 
 
 # ==========================
