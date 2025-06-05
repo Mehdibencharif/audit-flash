@@ -181,54 +181,29 @@ with st.expander(translations[lang]['texte_expander_infos']):
 # ==========================
 translations = {
     "fr": {
-        "titre_infos": "📄 1. Informations générales",
-        "texte_expander_infos": "Cliquez ici pour remplir cette section",
-        # ... (tes clés du bloc 1)
-        "titre_contacts": "👤 2. Personne contact",
-        "texte_expander_contacts": "Cliquez ici pour remplir cette section",
-        "sous_titre_ee": "🔌 Efficacité énergétique ",
-        "label_contact_ee_nom": "Prénom et Nom (EE)",
-        "label_contact_ee_mail": "Courriel (EE)",
-        "help_contact_ee_mail": "Format : exemple@domaine.com",
-        "label_contact_ee_tel": "Téléphone (EE)",
-        "help_contact_ee_tel": "10 chiffres recommandés",
-        "label_contact_ee_ext": "Extension (EE)",
-        "sous_titre_maint": "🛠️ Maintenance (Externe)",
-        "label_contact_maint_nom": "Prénom et Nom (Maintenance)",
-        "label_contact_maint_mail": "Courriel (Maintenance)",
-        "label_contact_maint_tel": "Téléphone (Maintenance)",
-        "label_contact_maint_ext": "Extension (Maintenance)"
+        # ... autres clés ...
+        "titre_contacts_remplisseur": "👥 2. Personne contact et remplisseur",
+        "texte_expander_contacts_remplisseur": "Cliquez ici pour remplir cette section",
+        # ... clés existantes déjà présentes ...
     },
     "en": {
-        "titre_infos": "📄 1. General Information",
-        "texte_expander_infos": "Click here to fill out this section",
-        # ... (tes clés du bloc 1)
-        "titre_contacts": "👤 2. Contact Person",
-        "texte_expander_contacts": "Click here to fill out this section",
-        "sous_titre_ee": "🔌 Energy Efficiency ",
-        "label_contact_ee_nom": "First and Last Name (EE)",
-        "label_contact_ee_mail": "Email (EE)",
-        "help_contact_ee_mail": "Format: example@domain.com",
-        "label_contact_ee_tel": "Phone (EE)",
-        "help_contact_ee_tel": "10 digits recommended",
-        "label_contact_ee_ext": "Extension (EE)",
-        "sous_titre_maint": "🛠️ Maintenance (External)",
-        "label_contact_maint_nom": "First and Last Name (Maintenance)",
-        "label_contact_maint_mail": "Email (Maintenance)",
-        "label_contact_maint_tel": "Phone (Maintenance)",
-        "label_contact_maint_ext": "Extension (Maintenance)"
+        # ... autres clés ...
+        "titre_contacts_remplisseur": "👥 2. Contact Person and Form Filler",
+        "texte_expander_contacts_remplisseur": "Click here to fill out this section",
+        # ... clés existantes déjà présentes ...
     }
 }
 
 
-st.markdown("<div id='contacts'></div>", unsafe_allow_html=True)  # ancre cliquable
+st.markdown("<div id='contacts_remplisseur'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
-    {translations[lang]['titre_contacts']}
+    {translations[lang]['titre_contacts_remplisseur']}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander(translations[lang]['texte_expander_contacts']):
+with st.expander(translations[lang]['texte_expander_contacts_remplisseur']):
+    # Sous-titre efficacité énergétique
     st.markdown(f"#### {translations[lang]['sous_titre_ee']}")
     contact_ee_nom = st.text_input(translations[lang]['label_contact_ee_nom'])
     contact_ee_mail = st.text_input(
@@ -241,12 +216,20 @@ with st.expander(translations[lang]['texte_expander_contacts']):
     )
     contact_ee_ext = st.text_input(translations[lang]['label_contact_ee_ext'])
 
+    # Sous-titre maintenance
     st.markdown(f"#### {translations[lang]['sous_titre_maint']}")
     contact_maint_nom = st.text_input(translations[lang]['label_contact_maint_nom'])
     contact_maint_mail = st.text_input(translations[lang]['label_contact_maint_mail'])
     contact_maint_tel = st.text_input(translations[lang]['label_contact_maint_tel'])
     contact_maint_ext = st.text_input(translations[lang]['label_contact_maint_ext'])
 
+    # Sous-titre personne ayant rempli le formulaire
+    st.markdown(f"#### {translations[lang]['titre_remplisseur']}")
+    rempli_nom = st.text_input(translations[lang]['label_rempli_nom'])
+    rempli_date = st.date_input(translations[lang]['label_rempli_date'], value=date.today())
+    rempli_mail = st.text_input(translations[lang]['label_rempli_mail'])
+    rempli_tel = st.text_input(translations[lang]['label_rempli_tel'])
+    rempli_ext = st.text_input(translations[lang]['label_rempli_ext'])
 
 # ==========================
 # 3. DOCUMENTS À FOURNIR
