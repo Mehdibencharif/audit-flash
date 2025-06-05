@@ -112,8 +112,7 @@ if langue == "Français":
     - [5. Liste des équipements](#equipements)
     - [6. Vos priorités stratégiques](#priorites)
     - [7. Services complémentaires](#services)
-    - [8. Personne ayant rempli le formulaire](#remplisseur)
-    - [9. Récapitulatif et génération PDF](#pdf)
+    - [8. Récapitulatif et génération PDF](#pdf)
     """, unsafe_allow_html=True)
 else:
     st.markdown("""
@@ -125,8 +124,7 @@ else:
     - [5. List of Equipment](#equipements)
     - [6. Strategic Priorities](#priorites)
     - [7. Additional Services](#services)
-    - [8. Person Completing the Form](#remplisseur)
-    - [9. Summary and PDF Generation](#pdf)
+    - [8. Summary and PDF Generation](#pdf)
     """, unsafe_allow_html=True)
     
 # ==========================
