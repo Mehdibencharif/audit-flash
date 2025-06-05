@@ -4,6 +4,9 @@ from fpdf import FPDF
 import io
 import re
 import pandas as pd
+import os
+import smtplib
+from email.message import EmailMessage
 
 # CONFIGURATION GLOBALE
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
