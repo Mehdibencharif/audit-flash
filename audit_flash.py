@@ -382,7 +382,9 @@ with st.expander(translations[lang]['texte_expander_objectifs']):
     investissement_prevu = st.text_input(translations[lang]['label_investissement_prevu'])
     autres_objectifs = st.text_area(translations[lang]['label_autres_objectifs'])
 
-
+# ==========================
+# 5. LISTE DES ÉQUIPEMENTS
+# ==========================
 translations = {
     "fr": {
         # ... autres clés ...
