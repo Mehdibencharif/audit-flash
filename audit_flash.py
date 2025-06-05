@@ -911,4 +911,75 @@ if st.checkbox(translations[lang]['msg_checkbox_excel']):
 label_client = translations[lang].get('label_client_nom', 'Nom du client')
 erreurs.append(label_client)
 
+#========================
+# Soumission par courriel
+#========================
+
+if st.button("Soumettre le formulaire"):
+    # Exemple résumé texte
+    resume = f"""
+    Bonjour,
+    
+    Ci-joint le résumé de l'Audit Flash pour le client {client_nom}.
+    
+    Informations saisies :
+    - Site : {site_nom}
+    - Contact : {contact_ee_nom}
+    - Email : {contact_ee_mail}
+    - Priorités stratégiques : Réduction GES {sauver_ges}% ...
+    (ajouter ici tout ce que tu veux)
+    """
+
+    # Générer le PDF si souhaité
+    from fpdf import FPDF
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt=f"Résumé Audit Flash - {client_nom}", ln=True, align='C')
+    pdf.multi_cell(0, 10, resume)
+    pdf_bytes = pdf.output(dest='S').encode('latin1')
+    pdf_filename = f"Resume_AuditFlash_{client_nom}.pdf"
+
+    # Envoyer l'e-mail
+    try:
+        import smtplib
+        from email.message import EmailMessage
+
+        SMTP_SERVER = "smtp.office365.com"
+        SMTP_PORT = 587
+        EMAIL_SENDER = "ton.email@outlook.com"
+        EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+        EMAIL_DESTINATAIRE = "ton.email@outlook.com"  # ou autre destinataire
+
+        msg = EmailMessage()
+        msg['Subject'] = f"Audit Flash - Client {client_nom}"
+        msg['From'] = EMAIL_SENDER
+        msg['To'] = EMAIL_DESTINATAIRE
+        msg.set_content(resume)
+
+        # Attacher le résumé PDF
+        msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
+
+        # Attacher les fichiers téléversés
+        uploads_dir = "uploads"
+        os.makedirs(uploads_dir, exist_ok=True)
+        for file_group in [facture_elec, facture_combustibles, facture_autres, plans_pid]:
+            if file_group:
+                for file in file_group:
+                    file_path = os.path.join(uploads_dir, file.name)
+                    with open(file_path, "wb") as f:
+                        f.write(file.read())
+                    with open(file_path, "rb") as f:
+                        msg.add_attachment(f.read(), maintype='application', subtype='pdf', filename=file.name)
+
+        # Envoi
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+            server.send_message(msg)
+        st.success("Formulaire soumis et envoyé par e-mail avec succès !")
+    except Exception as e:
+        st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
+        
+
 
