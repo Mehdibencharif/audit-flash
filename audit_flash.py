@@ -619,7 +619,7 @@ translations = {
     },
     "en": {
         # ... autres clés ...
-        "titre_pdf": "📝 9. Summary and PDF Generation",
+        "titre_pdf": "📝 8. Summary and PDF Generation",
         "texte_info_pdf": "ℹ️ Note: This trial version does not retain your data after closing the page. A final version will allow you to save and resume your answers later.",
         "bouton_generer_pdf": "📥 Generate PDF",
         "msg_erreur_champs": "Please fill or correct the following fields:",
