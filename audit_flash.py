@@ -471,22 +471,34 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 with st.expander(translations[lang]['texte_expander_equipements']):
+    # Section Chaudières avec tableau dynamique
     st.markdown(f"#### {translations[lang]['sous_titre_chaudieres']}")
-    nb_chaudieres = st.number_input(translations[lang]['label_nb_chaudieres'], min_value=0, step=1)
-    type_chaudiere = st.text_input(translations[lang]['label_type_chaudiere'])
-    rendement_chaudiere = st.text_input(translations[lang]['label_rendement_chaudiere'])
-    taille_chaudiere = st.text_input(translations[lang]['label_taille_chaudiere'])
-    appoint_eau = st.text_input(translations[lang]['label_appoint_eau'])
-    micro_modulation = st.radio(translations[lang]['label_micro_modulation'], ["Oui", "Non"])
+    columns_chaudieres = [
+        translations[lang]['label_type_chaudiere'],
+        translations[lang]['label_rendement_chaudiere'],
+        translations[lang]['label_taille_chaudiere'],
+        translations[lang]['label_appoint_eau'],
+        translations[lang]['label_micro_modulation']
+    ]
+    df_chaudieres = st.data_editor(
+        pd.DataFrame(columns=columns_chaudieres),
+        num_rows="dynamic",
+        key="chaudieres"
+    )
+    st.write("Aperçu des données des chaudières :")
+    st.dataframe(df_chaudieres)
 
+    # Section Équipements frigorifiques (inchangé)
     st.markdown(f"#### {translations[lang]['sous_titre_frigo']}")
     nb_frigo = st.number_input(translations[lang]['label_nb_frigo'], min_value=0, step=1)
     capacite_frigo = st.text_input(translations[lang]['label_capacite_frigo'])
 
+    # Section Compresseur d’air (inchangé)
     st.markdown(f"#### {translations[lang]['sous_titre_compresseur']}")
     puissance_comp = st.text_input(translations[lang]['label_puissance_comp'])
     variation_vitesse = st.radio(translations[lang]['label_variation_vitesse'], ["Oui", "Non"])
 
+    # Section Pompes industrielles (inchangé)
     st.markdown(f"#### {translations[lang]['sous_titre_pompes']}")
     nb_pompes = st.number_input(translations[lang]['label_nb_pompes'], min_value=0, step=1)
     type_pompe = st.text_input(translations[lang]['label_type_pompe'])
@@ -494,11 +506,13 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     rendement_pompe = st.text_input(translations[lang]['label_rendement_pompe'])
     vitesse_variable_pompe = st.radio(translations[lang]['label_vitesse_variable_pompe'], ["Oui", "Non"])
 
+    # Section Ventilation (inchangé)
     st.markdown(f"#### {translations[lang]['sous_titre_ventilation']}")
     nb_ventilation = st.number_input(translations[lang]['label_nb_ventilation'], min_value=0, step=1)
     type_ventilation = st.text_input(translations[lang]['label_type_ventilation'])
     puissance_ventilation = st.text_input(translations[lang]['label_puissance_ventilation'])
 
+    # Section Autres machines de production (inchangé)
     st.markdown(f"#### {translations[lang]['sous_titre_machines']}")
     nom_machine = st.text_input(translations[lang]['label_nom_machine'])
     puissance_machine = st.text_input(translations[lang]['label_puissance_machine'])
@@ -506,11 +520,11 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     rendement_machine = st.text_input(translations[lang]['label_rendement_machine'])
     source_energie_machine = st.text_input(translations[lang]['label_source_energie_machine'])
 
+    # Section Éclairage (inchangé)
     st.markdown(f"#### {translations[lang]['sous_titre_eclairage']}")
     type_eclairage = st.text_input(translations[lang]['label_type_eclairage'])
     puissance_totale_eclairage = st.text_input(translations[lang]['label_puissance_totale_eclairage'])
     heures_utilisation = st.text_input(translations[lang]['label_heures_utilisation'])
-
 
 # ==========================
 # 6. VOS PRIORITÉS STRATÉGIQUES
