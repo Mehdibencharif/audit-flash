@@ -950,13 +950,14 @@ if st.button("Soumettre le formulaire"):
         SMTP_SERVER = "smtp.gmail.com"
         SMTP_PORT = 587
         EMAIL_SENDER = "mbencharif@soteck.com"  ########################################################
-        EMAIL_PASSWORD = os.getenv("ljbirfbvgvbvsfgj")
+        EMAIL_PASSWORD ="ljbirfbvgvbvsfgj"
 
         msg = EmailMessage()
         msg['Subject'] = f"Audit Flash - Client {client_nom}"
         msg['From'] = EMAIL_SENDER
         msg['To'] = EMAIL_DESTINATAIRE
         msg.set_content(resume)
+
 
         # Attacher le résumé PDF
         msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
