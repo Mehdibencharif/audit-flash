@@ -7,6 +7,7 @@ import pandas as pd
 import os
 import smtplib
 from email.message import EmailMessage
+import matplotlib.pyplot as plt
 
 # CONFIGURATION GLOBALE
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
