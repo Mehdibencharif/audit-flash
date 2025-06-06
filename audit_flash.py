@@ -918,8 +918,8 @@ erreurs.append(label_client)
 # Soumission par courriel
 #========================
 
-# Champ pour entrer l'e-mail destinataire
-EMAIL_DESTINATAIRE = st.text_input("Adresse e-mail du destinataire")
+# Adresse e-mail destinataire fixe
+EMAIL_DESTINATAIRE = "mbencharif@soteck.com"
 
 if st.button("Soumettre le formulaire"):
     # Exemple résumé texte
@@ -949,15 +949,14 @@ if st.button("Soumettre le formulaire"):
     try:
         SMTP_SERVER = "smtp.gmail.com"
         SMTP_PORT = 587
-        EMAIL_SENDER = "mbencharif@soteck.com"  ########################################################
-        EMAIL_PASSWORD ="ljbirfbvgvbvsfgj"
+        EMAIL_SENDER = "elmehdi.bencharif@gmail.com"  # Ton adresse Gmail
+        EMAIL_PASSWORD = "ljbirfbvgvbvsfgj"  # Ton mot de passe d'application Gmail
 
         msg = EmailMessage()
         msg['Subject'] = f"Audit Flash - Client {client_nom}"
         msg['From'] = EMAIL_SENDER
         msg['To'] = EMAIL_DESTINATAIRE
         msg.set_content(resume)
-
 
         # Attacher le résumé PDF
         msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
@@ -982,6 +981,7 @@ if st.button("Soumettre le formulaire"):
         st.success("Formulaire soumis et envoyé par e-mail avec succès !")
     except Exception as e:
         st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
