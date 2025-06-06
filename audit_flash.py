@@ -650,7 +650,7 @@ with st.expander(translations[lang]['texte_expander_priorites']):
     )
     priorite_roi = st.slider(
         translations[lang]['label_priorite_roi'], 
-        1, 10, 5,
+        1, 10, 5,  # ROI ajusté : échelle de 1 à 10 pour représenter les années
         help=translations[lang]['help_priorite_roi']
     )
     priorite_ges = st.slider(
@@ -692,33 +692,33 @@ with st.expander(translations[lang]['texte_expander_priorites']):
         st.markdown(f"- {translations[lang]['resultat_priorite_prod']}: **{poids_prod:.0%}**")
         st.markdown(f"- {translations[lang]['resultat_priorite_maintenance']}: **{poids_maintenance:.0%}**")
 
-     # Graphique (aligné avec l'analyse)
-import matplotlib.pyplot as plt
+        # Graphique (aligné avec l'analyse)
+        import matplotlib.pyplot as plt
+        labels = [
+            translations[lang]['resultat_priorite_energie'],
+            translations[lang]['resultat_priorite_roi'],
+            translations[lang]['resultat_priorite_ges'],
+            translations[lang]['resultat_priorite_prod'],
+            translations[lang]['resultat_priorite_maintenance']
+        ]
+        values = [
+            poids_energie * 100,
+            poids_roi * 100,
+            poids_ges * 100,
+            poids_prod * 100,
+            poids_maintenance * 100
+        ]
 
-labels = [
-    translations[lang]['resultat_priorite_energie'],
-    translations[lang]['resultat_priorite_roi'],
-    translations[lang]['resultat_priorite_ges'],
-    translations[lang]['resultat_priorite_prod'],
-    translations[lang]['resultat_priorite_maintenance']
-]
-values = [
-    poids_energie * 100,
-    poids_roi * 100,
-    poids_ges * 100,
-    poids_prod * 100,
-    poids_maintenance * 100
-]
-
-fig, ax = plt.subplots(figsize=(3, 2))  # Taille modérée pour rester lisible
-ax.barh(labels, values, color='#4682B4')  # Bleu doux mais tu peux ajuster
-ax.set_xlabel("Poids (%)", fontsize=8)
-ax.set_xlim(0, 100)
-ax.set_title(translations[lang]['titre_priorites'], fontsize=9)
-ax.tick_params(axis='both', labelsize=7)
-plt.tight_layout()
-st.pyplot(fig)
-
+        fig, ax = plt.subplots(figsize=(3, 2))  # Taille modérée pour rester lisible
+        ax.barh(labels, values, color='#4682B4')  # Bleu doux mais tu peux ajuster
+        ax.set_xlabel("Poids (%)", fontsize=8)
+        ax.set_xlim(0, 100)
+        ax.set_title(translations[lang]['titre_priorites'], fontsize=9)
+        ax.tick_params(axis='both', labelsize=7)
+        plt.tight_layout()
+        st.pyplot(fig)
+    else:
+        st.warning(translations[lang]['warning_priorites'])
 
 
 # ==========================
