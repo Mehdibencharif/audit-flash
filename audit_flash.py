@@ -933,7 +933,7 @@ if st.button("Soumettre le formulaire"):
     - Contact : {contact_ee_nom}
     - Email : {contact_ee_mail}
     - Réduction GES : {sauver_ges}%
-    (ajouter ici tout ce que tu veux)
+ 
     """
 
     # Générer le PDF si souhaité
