@@ -579,7 +579,10 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     )
     st.write("Aperçu des données des systèmes d’éclairage :")
     st.dataframe(df_eclairage)
-
+    
+# ==========================
+# 6. VOS PRIORITÉS STRATÉGIQUES
+# ==========================
 
 translations = {
     "fr": {
@@ -689,35 +692,36 @@ with st.expander(translations[lang]['texte_expander_priorites']):
         st.markdown(f"- {translations[lang]['resultat_priorite_prod']}: **{poids_prod:.0%}**")
         st.markdown(f"- {translations[lang]['resultat_priorite_maintenance']}: **{poids_maintenance:.0%}**")
 
-        # Graphique (aligné avec l'analyse)
-        import matplotlib.pyplot as plt
-        labels = [
-            translations[lang]['resultat_priorite_energie'],
-            translations[lang]['resultat_priorite_roi'],
-            translations[lang]['resultat_priorite_ges'],
-            translations[lang]['resultat_priorite_prod'],
-            translations[lang]['resultat_priorite_maintenance']
-        ]
-        values = [
-            poids_energie * 100,
-            poids_roi * 100,
-            poids_ges * 100,
-            poids_prod * 100,
-            poids_maintenance * 100
-        ]
+      # Graphique (aligné avec l'analyse)
+import matplotlib.pyplot as plt
 
-        fig, ax = plt.subplots(figsize=(4, 2))  # Ajuste la taille si nécessaire
-        ax.barh(labels, values)
-        ax.set_xlabel("Poids (%)")
-        ax.set_xlim(0, 100)
-        ax.set_title(translations[lang]['titre_priorites'])
-        plt.tight_layout()
-        st.pyplot(fig)
+labels = [
+    translations[lang]['resultat_priorite_energie'],
+    translations[lang]['resultat_priorite_roi'],
+    translations[lang]['resultat_priorite_ges'],
+    translations[lang]['resultat_priorite_prod'],
+    translations[lang]['resultat_priorite_maintenance']
+]
+values = [
+    poids_energie * 100,
+    poids_roi * 100,
+    poids_ges * 100,
+    poids_prod * 100,
+    poids_maintenance * 100
+]
 
-    else:
-        st.warning(translations[lang]['warning_priorites'])
-
-
+fig, ax = plt.subplots(figsize=(4, 2.5))  # Graphique plus petit et plus intégré
+ax.barh(labels, values)
+ax.set_xlabel("Poids (%)", fontsize=8)
+ax.set_xlim(0, 100)
+ax.set_title(translations[lang]['titre_priorites'], fontsize=9)
+ax.tick_params(axis='both', labelsize=7)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_visible(False)
+ax.spines['bottom'].set_visible(False)
+plt.tight_layout()
+st.pyplot(fig)
 
 
 # ==========================
