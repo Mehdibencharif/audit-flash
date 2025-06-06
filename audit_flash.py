@@ -584,6 +584,48 @@ with st.expander(translations[lang]['texte_expander_equipements']):
 # ==========================
 # 6. VOS PRIORITÉS STRATÉGIQUES
 # ==========================
+translations = {
+    "fr": {
+        # ... autres clés ...
+        "titre_priorites": "🎯 6. Vos priorités stratégiques",
+        "texte_expander_priorites": "Cliquez ici pour remplir cette section",
+        "intro_priorites": "Indiquez vos priorités stratégiques en attribuant une note de 0 (pas important) à 10 (très important).",
+        "label_priorite_energie": "Réduction de la consommation énergétique",
+        "label_priorite_roi": "Retour sur investissement",
+        "help_priorite_roi": "Nombre d'années pour le retour sur investissement (1 an = retour rapide, 10 ans = retour lent).",
+        "label_priorite_ges": "Réduction des émissions de GES",
+        "label_priorite_prod": "Productivité et fiabilité",
+        "label_priorite_maintenance": "Maintenance et fiabilité",
+        "analyse_priorites": "### 📊 Analyse de vos priorités stratégiques",
+        "resultat_priorite_energie": "Réduction de la consommation énergétique",
+        "resultat_priorite_roi": "Retour sur investissement",
+        "resultat_priorite_ges": "Réduction des émissions de GES",
+        "resultat_priorite_prod": "Productivité et fiabilité",
+        "resultat_priorite_maintenance": "Maintenance et fiabilité",
+        "warning_priorites": "⚠️ Veuillez indiquer vos priorités pour générer l'analyse."
+    },
+    "en": {
+        # ... autres clés ...
+        "titre_priorites": "🎯 6. Your Strategic Priorities",
+        "texte_expander_priorites": "Click here to fill out this section",
+        "intro_priorites": "Indicate your strategic priorities by assigning a score from 0 (not important) to 10 (very important).",
+        "label_priorite_energie": "Energy consumption reduction",
+        "label_priorite_roi": "Return on investment",
+        "help_priorite_roi": "Number of years for ROI (1 year = fast payback, 10 years = slow payback).",
+        "label_priorite_ges": "GHG emissions reduction",
+        "label_priorite_prod": "Productivity and reliability",
+        "label_priorite_maintenance": "Maintenance and reliability",
+        "analyse_priorites": "### 📊 Analysis of your strategic priorities",
+        "resultat_priorite_energie": "Energy consumption reduction",
+        "resultat_priorite_roi": "Return on investment",
+        "resultat_priorite_ges": "GHG emissions reduction",
+        "resultat_priorite_prod": "Productivity and reliability",
+        "resultat_priorite_maintenance": "Maintenance and reliability",
+        "warning_priorites": "⚠️ Please indicate your priorities to generate the analysis."
+    }
+}
+
+
 st.markdown("<div id='priorites'></div>", unsafe_allow_html=True)
 
 st.markdown(f"""
