@@ -693,40 +693,37 @@ with st.expander(translations[lang]['texte_expander_priorites']):
         st.markdown(f"- {translations[lang]['resultat_priorite_maintenance']}: **{poids_maintenance:.0%}**")
 
          # Graphique (aligné avec l'analyse)
-        import matplotlib.pyplot as plt
-        labels = [
-            translations[lang]['resultat_priorite_energie'],
-            translations[lang]['resultat_priorite_roi'],
-            translations[lang]['resultat_priorite_ges'],
-            translations[lang]['resultat_priorite_prod'],
-            translations[lang]['resultat_priorite_maintenance']
-        ]
-        values = [
-            poids_energie * 100,
-            poids_roi * 100,
-            poids_ges * 100,
-            poids_prod * 100,
-            poids_maintenance * 100
-        ]
+        
+labels = [
+    translations[lang]['resultat_priorite_energie'],
+    translations[lang]['resultat_priorite_roi'],
+    translations[lang]['resultat_priorite_ges'],
+    translations[lang]['resultat_priorite_prod'],
+    translations[lang]['resultat_priorite_maintenance']
+]
+values = [
+    poids_energie * 100,
+    poids_roi * 100,
+    poids_ges * 100,
+    poids_prod * 100,
+    poids_maintenance * 100
+]
 
-        fig, ax = plt.subplots(figsize=(4, 2.5))  # Ajusté légèrement plus large et un peu plus haut
-        bars = ax.barh(labels, values, color='#4682B4', edgecolor='black')  # Ajoute un contour noir
+fig, ax = plt.subplots(figsize=(5, 3))  # Taille modérée
+bars = ax.bar(labels, values, color='#4682B4', edgecolor='black')
+ax.set_ylabel("Poids (%)", fontsize=8)
+ax.set_ylim(0, 100)
+ax.set_title(translations[lang]['titre_priorites'], fontsize=9)
+ax.tick_params(axis='x', rotation=45, labelsize=7)
+ax.tick_params(axis='y', labelsize=7)
 
-        ax.set_xlabel("Poids (%)", fontsize=8)
-        ax.set_xlim(0, 100)
-        ax.tick_params(axis='both', labelsize=7)
+# Ajouter les valeurs sur les barres
+for bar, value in zip(bars, values):
+    height = bar.get_height()
+    ax.text(bar.get_x() + bar.get_width()/2, height + 2, f"{value:.0f}%", ha='center', va='bottom', fontsize=7)
 
-        # Supprimer la bordure et le fond gris (optionnel)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['left'].set_visible(False)
-        ax.spines['bottom'].set_visible(False)
-        ax.set_facecolor('white')
-        fig.patch.set_facecolor('white')
-
-        plt.tight_layout()
-        st.pyplot(fig)
-
+plt.tight_layout()
+st.pyplot(fig)
 
 # ==========================
 # 7. SERVICES COMPLÉMENTAIRES
