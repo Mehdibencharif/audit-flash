@@ -645,36 +645,36 @@ with st.expander(translations[lang]['texte_expander_priorites']):
     st.markdown(translations[lang]['intro_priorites'])
 
     priorite_energie = st.slider(
-        translations[lang]['label_priorite_energie'], 
+        translations[lang]['label_priorite_energie'],
         0, 10, 5,
         help=translations[lang]['help_priorite_energie']
     )
     priorite_roi = st.slider(
-        translations[lang]['label_priorite_roi'], 
-        1, 10, 5,  # ROI ajusté : échelle de 1 à 10 pour représenter les années
+        translations[lang]['label_priorite_roi'],
+        1, 10, 5,
         help=translations[lang]['help_priorite_roi']
     )
     priorite_ges = st.slider(
-        translations[lang]['label_priorite_ges'], 
+        translations[lang]['label_priorite_ges'],
         0, 10, 5,
         help=translations[lang]['help_priorite_ges']
     )
     priorite_prod = st.slider(
-        translations[lang]['label_priorite_prod'], 
+        translations[lang]['label_priorite_prod'],
         0, 10, 5,
         help=translations[lang]['help_priorite_prod']
     )
     priorite_maintenance = st.slider(
-        translations[lang]['label_priorite_maintenance'], 
+        translations[lang]['label_priorite_maintenance'],
         0, 10, 5,
         help=translations[lang]['help_priorite_maintenance']
     )
 
     total_priorites = (
-        priorite_energie + 
-        priorite_roi + 
-        priorite_ges + 
-        priorite_prod + 
+        priorite_energie +
+        priorite_roi +
+        priorite_ges +
+        priorite_prod +
         priorite_maintenance
     )
 
@@ -712,17 +712,17 @@ with st.expander(translations[lang]['texte_expander_priorites']):
                 poids_maintenance * 100
             ]
 
-            fig, ax = plt.subplots(figsize=(3, 2))  # Taille modérée et compacte
-            ax.barh(labels, values, color='#4682B4', edgecolor='black')
+            fig, ax = plt.subplots(figsize=(4, 2.5))  # Taille modérée et compacte
+            ax.barh(labels, values, color='#4682B4', edgecolor='black', height=0.5)
             ax.set_xlabel("Poids (%)", fontsize=8)
             ax.set_xlim(0, 100)
             ax.tick_params(axis='both', labelsize=7)
             ax.set_title(translations[lang]['titre_priorites'], fontsize=9)
             plt.tight_layout()
             st.pyplot(fig)
-
     else:
         st.warning(translations[lang]['warning_priorites'])
+
 
 # ==========================
 # 7. SERVICES COMPLÉMENTAIRES
