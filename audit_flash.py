@@ -706,7 +706,7 @@ with st.expander(translations[lang]['texte_expander_priorites']):
             poids_maintenance * 100
         ]
 
-        fig, ax = plt.subplots(figsize=(6, 4))  # Ajuste la taille si nécessaire
+        fig, ax = plt.subplots(figsize=(4, 2))  # Ajuste la taille si nécessaire
         ax.barh(labels, values)
         ax.set_xlabel("Poids (%)")
         ax.set_xlim(0, 100)
