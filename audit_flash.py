@@ -930,7 +930,7 @@ erreurs.append(label_client)
 #========================
 # Soumission par courriel
 #========================
-
+EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
 # Adresse e-mail destinataire fixe
 EMAIL_DESTINATAIRE = "mbencharif@soteck.com"
 
@@ -968,7 +968,7 @@ if st.button("Soumettre le formulaire"):
         msg = EmailMessage()
         msg['Subject'] = f"Audit Flash - Client {client_nom}"
         msg['From'] = EMAIL_SENDER
-        msg['To'] = EMAIL_DESTINATAIRE
+        msg['To'] = ", ".join(EMAIL_DESTINATAIRE)
         msg.set_content(resume)
 
         # Attacher le résumé PDF
