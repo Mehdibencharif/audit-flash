@@ -950,7 +950,7 @@ if st.button("Soumettre le formulaire"):
         SMTP_SERVER = "smtp.gmail.com"
         SMTP_PORT = 587
         EMAIL_SENDER = "mbencharif@soteck.com"  ########################################################
-        EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+        EMAIL_PASSWORD = os.getenv("ljbirfbvgvbvsfgj")
 
         msg = EmailMessage()
         msg['Subject'] = f"Audit Flash - Client {client_nom}"
