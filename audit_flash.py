@@ -692,7 +692,7 @@ with st.expander(translations[lang]['texte_expander_priorites']):
         st.markdown(f"- {translations[lang]['resultat_priorite_prod']}: **{poids_prod:.0%}**")
         st.markdown(f"- {translations[lang]['resultat_priorite_maintenance']}: **{poids_maintenance:.0%}**")
 
-      # Graphique (aligné avec l'analyse)
+     # Graphique (aligné avec l'analyse)
 import matplotlib.pyplot as plt
 
 labels = [
@@ -710,18 +710,15 @@ values = [
     poids_maintenance * 100
 ]
 
-fig, ax = plt.subplots(figsize=(4, 2.5))  # Graphique plus petit et plus intégré
-ax.barh(labels, values)
+fig, ax = plt.subplots(figsize=(3, 2))  # Taille modérée pour rester lisible
+ax.barh(labels, values, color='#4682B4')  # Bleu doux mais tu peux ajuster
 ax.set_xlabel("Poids (%)", fontsize=8)
 ax.set_xlim(0, 100)
 ax.set_title(translations[lang]['titre_priorites'], fontsize=9)
 ax.tick_params(axis='both', labelsize=7)
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-ax.spines['left'].set_visible(False)
-ax.spines['bottom'].set_visible(False)
 plt.tight_layout()
 st.pyplot(fig)
+
 
 
 # ==========================
