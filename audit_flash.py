@@ -918,23 +918,25 @@ erreurs.append(label_client)
 # Soumission par courriel
 #========================
 
+# Champ pour entrer l'e-mail destinataire
+EMAIL_DESTINATAIRE = st.text_input("Adresse e-mail du destinataire")
+
 if st.button("Soumettre le formulaire"):
     # Exemple résumé texte
     resume = f"""
     Bonjour,
-    
+
     Ci-joint le résumé de l'Audit Flash pour le client {client_nom}.
-    
+
     Informations saisies :
     - Site : {site_nom}
     - Contact : {contact_ee_nom}
     - Email : {contact_ee_mail}
-    - Priorités stratégiques : Réduction GES {sauver_ges}% ...
+    - Réduction GES : {sauver_ges}%
     (ajouter ici tout ce que tu veux)
     """
 
     # Générer le PDF si souhaité
-    from fpdf import FPDF
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
@@ -945,14 +947,10 @@ if st.button("Soumettre le formulaire"):
 
     # Envoyer l'e-mail
     try:
-        import smtplib
-        from email.message import EmailMessage
-
-        SMTP_SERVER = "smtp.office365.com"
+        SMTP_SERVER = "smtp.gmail.com"
         SMTP_PORT = 587
-        EMAIL_SENDER = "ton.email@outlook.com"
+        EMAIL_SENDER = "mbencharif@soteck.com"  ########################################################
         EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
-        EMAIL_DESTINATAIRE = "ton.email@outlook.com"  # ou autre destinataire
 
         msg = EmailMessage()
         msg['Subject'] = f"Audit Flash - Client {client_nom}"
@@ -975,7 +973,7 @@ if st.button("Soumettre le formulaire"):
                     with open(file_path, "rb") as f:
                         msg.add_attachment(f.read(), maintype='application', subtype='pdf', filename=file.name)
 
-        # Envoi
+        # Envoi via SMTP Gmail
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()
             server.login(EMAIL_SENDER, EMAIL_PASSWORD)
@@ -983,6 +981,6 @@ if st.button("Soumettre le formulaire"):
         st.success("Formulaire soumis et envoyé par e-mail avec succès !")
     except Exception as e:
         st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
-        
+
 
 
