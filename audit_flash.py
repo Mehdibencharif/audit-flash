@@ -581,21 +581,21 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     st.dataframe(df_eclairage)
 
 
-# ==========================
-# 6. VOS PRIORITÉS STRATÉGIQUES
-# ==========================
 translations = {
     "fr": {
-        # ... autres clés ...
         "titre_priorites": "🎯 6. Vos priorités stratégiques",
         "texte_expander_priorites": "Cliquez ici pour remplir cette section",
         "intro_priorites": "Indiquez vos priorités stratégiques en attribuant une note de 0 (pas important) à 10 (très important).",
         "label_priorite_energie": "Réduction de la consommation énergétique",
+        "help_priorite_energie": "Économies d’énergie globales pour votre site.",
         "label_priorite_roi": "Retour sur investissement",
         "help_priorite_roi": "Nombre d'années pour le retour sur investissement (1 an = retour rapide, 10 ans = retour lent).",
         "label_priorite_ges": "Réduction des émissions de GES",
+        "help_priorite_ges": "Conformité réglementaire et impact environnemental.",
         "label_priorite_prod": "Productivité et fiabilité",
+        "help_priorite_prod": "Optimisation des performances et disponibilité des équipements.",
         "label_priorite_maintenance": "Maintenance et fiabilité",
+        "help_priorite_maintenance": "Facilité d’entretien et durabilité des équipements.",
         "analyse_priorites": "### 📊 Analyse de vos priorités stratégiques",
         "resultat_priorite_energie": "Réduction de la consommation énergétique",
         "resultat_priorite_roi": "Retour sur investissement",
@@ -605,16 +605,19 @@ translations = {
         "warning_priorites": "⚠️ Veuillez indiquer vos priorités pour générer l'analyse."
     },
     "en": {
-        # ... autres clés ...
         "titre_priorites": "🎯 6. Your Strategic Priorities",
         "texte_expander_priorites": "Click here to fill out this section",
         "intro_priorites": "Indicate your strategic priorities by assigning a score from 0 (not important) to 10 (very important).",
         "label_priorite_energie": "Energy consumption reduction",
+        "help_priorite_energie": "Overall energy savings for your site.",
         "label_priorite_roi": "Return on investment",
         "help_priorite_roi": "Number of years for ROI (1 year = fast payback, 10 years = slow payback).",
         "label_priorite_ges": "GHG emissions reduction",
+        "help_priorite_ges": "Regulatory compliance and environmental impact.",
         "label_priorite_prod": "Productivity and reliability",
+        "help_priorite_prod": "Performance optimization and equipment availability.",
         "label_priorite_maintenance": "Maintenance and reliability",
+        "help_priorite_maintenance": "Ease of maintenance and equipment longevity.",
         "analyse_priorites": "### 📊 Analysis of your strategic priorities",
         "resultat_priorite_energie": "Energy consumption reduction",
         "resultat_priorite_roi": "Return on investment",
@@ -644,8 +647,8 @@ with st.expander(translations[lang]['texte_expander_priorites']):
     )
     priorite_roi = st.slider(
         translations[lang]['label_priorite_roi'], 
-        1, 10, 5,  # ROI ajusté : échelle de 1 à 10 pour représenter les années
-        help="Nombre d'années pour le retour sur investissement (1 an = retour rapide, 10 ans = retour lent)."
+        1, 10, 5,
+        help=translations[lang]['help_priorite_roi']
     )
     priorite_ges = st.slider(
         translations[lang]['label_priorite_ges'], 
@@ -713,6 +716,8 @@ with st.expander(translations[lang]['texte_expander_priorites']):
 
     else:
         st.warning(translations[lang]['warning_priorites'])
+
+
 
 
 # ==========================
