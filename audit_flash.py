@@ -957,10 +957,11 @@ if st.button("Soumettre le formulaire"):
     (ajouter ici tout ce que tu veux)
     """
 
+    # Initialisation du PDF
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
 
-    # Page 1 - Résumé
+     # Page 1 - Résumé
     pdf.add_page()
     pdf.set_font("Arial", size=12)
     pdf.cell(0, 10, f"Résumé Audit Flash - {client_nom}", ln=True, align='C')
@@ -1078,64 +1079,7 @@ if st.button("Soumettre le formulaire"):
             pdf.ln()
         pdf.ln(5)
 
-# 🔹 Page 3 - Graphique des priorités stratégiques
-pdf.add_page()
-pdf.set_font("Arial", "B", 14)
-pdf.cell(0, 10, "📊 Graphique des priorités stratégiques", ln=True)
-
-fig, ax = plt.subplots()
-priorites = ["Conso énergétique", "ROI", "GES", "Productivité", "Maintenance"]
-valeurs = [20, 20, 20, 20, 20]  # Remplace par tes vraies données si besoin
-ax.bar(priorites, valeurs)
-plt.title("Priorités stratégiques du client")
-plt.xlabel("Critères")
-plt.ylabel("Priorité (%)")
-plt.tight_layout()
-
-graph_filename = "priorites.png"
-fig.savefig(graph_filename)
-plt.close(fig)
-
-pdf.image(graph_filename, x=10, y=30, w=pdf.w - 20)
-
-# 🔹 Génération finale du PDF et envoi
-pdf_bytes = pdf.output(dest='S').encode('latin1')
-pdf_filename = f"Resume_AuditFlash_{client_nom}.pdf"
-
-try:
-    SMTP_SERVER = "smtp.gmail.com"
-    SMTP_PORT = 587
-    EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
-    EMAIL_PASSWORD = "ljbirfbvgvbvsfgj"
-
-    msg = EmailMessage()
-    msg['Subject'] = f"Audit Flash - Client {client_nom}"
-    msg['From'] = EMAIL_SENDER
-    msg['To'] = ", ".join(EMAIL_DESTINATAIRE)
-    msg.set_content(resume)
-    msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
-
-    uploads_dir = "uploads"
-    os.makedirs(uploads_dir, exist_ok=True)
-    for file_group in [facture_elec, facture_combustibles, facture_autres, plans_pid]:
-        if file_group:
-            for file in file_group:
-                file_path = os.path.join(uploads_dir, file.name)
-                with open(file_path, "wb") as f:
-                    f.write(file.read())
-                with open(file_path, "rb") as f:
-                    msg.add_attachment(f.read(), maintype='application', subtype='pdf', filename=file.name)
-
-    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-        server.starttls()
-        server.login(EMAIL_SENDER, EMAIL_PASSWORD)
-        server.send_message(msg)
-
-    st.success("Formulaire soumis et envoyé par e-mail avec succès !")
-except Exception as e:
-    st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
-
-# 🔹 Page 3 - Graphique des priorités stratégiques
+    # 🔹 Page 3 - Graphique des priorités stratégiques
     pdf.add_page()
     pdf.set_font("Arial", "B", 14)
     pdf.cell(0, 10, "📊 Graphique des priorités stratégiques", ln=True)
@@ -1155,15 +1099,16 @@ except Exception as e:
 
     pdf.image(graph_filename, x=10, y=30, w=pdf.w - 20)
 
-    # 🔹 Génération finale du PDF et envoi
+    # 🔹 Génération finale du PDF
     pdf_bytes = pdf.output(dest='S').encode('latin1')
     pdf_filename = f"Resume_AuditFlash_{client_nom}.pdf"
 
+    # 🔹 Envoi du PDF par email
     try:
         SMTP_SERVER = "smtp.gmail.com"
         SMTP_PORT = 587
         EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
-        EMAIL_PASSWORD = "ljbirfbvgvbvsfgj"
+        EMAIL_PASSWORD = "ljbirfbvgvbvsfgj"  # Remplace par un mot de passe sécurisé
 
         msg = EmailMessage()
         msg['Subject'] = f"Audit Flash - Client {client_nom}"
@@ -1190,8 +1135,6 @@ except Exception as e:
 
         st.success("Formulaire soumis et envoyé par e-mail avec succès !")
     except Exception as e:
-        st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
-
-
+        st.error(f"Erreur lors de l'envoi de l'e-ma
 
 
