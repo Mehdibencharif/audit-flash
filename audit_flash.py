@@ -930,14 +930,19 @@ erreurs.append(label_client)
 #========================
 # Soumission par courriel
 #========================
-#========================
-# Soumission par courriel
-#========================
-
 # Adresse e-mail destinataire fixe
 EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
 
 if st.button("Soumettre le formulaire"):
+    # Conversion des DataFrames en listes de dictionnaires
+    liste_chaudieres = df_chaudieres.to_dict(orient='records')
+    liste_frigo = df_frigo.to_dict(orient='records')
+    liste_compresseurs = df_compresseur.to_dict(orient='records')
+    liste_pompes = df_pompes.to_dict(orient='records')
+    liste_ventilation = df_ventilation.to_dict(orient='records')
+    liste_machines = df_machines.to_dict(orient='records')
+    liste_eclairage = df_eclairage.to_dict(orient='records')
+
     # Exemple résumé texte
     resume = f"""
     Bonjour,
@@ -954,64 +959,130 @@ if st.button("Soumettre le formulaire"):
 
     # Générer le PDF
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    # Page 1 - Résumé
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt=f"Résumé Audit Flash - {client_nom}", ln=True, align='C')
+    pdf.cell(0, 10, f"Résumé Audit Flash - {client_nom}", ln=True, align='C')
+    pdf.ln(10)
     pdf.multi_cell(0, 10, resume)
 
-    # 🔹 Page 1 : Chaudières, Frigo, Compresseurs
+    # 🔹 Page 2 - Liste des équipements
     pdf.add_page()
     pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "⚙️ Liste des équipements (Page 1)", ln=True)
-    pdf.set_font("Arial", size=12)
+    pdf.cell(0, 10, "⚙️ Liste des équipements", ln=True)
+    pdf.ln(5)
 
     # Chaudières
-    pdf.cell(0, 10, "Chaudières :", ln=True)
-    for idx, row in enumerate(liste_chaudieres):
-        pdf.cell(0, 8, f"- Type: {row['Type']}, Rendement: {row['Rendement']}%", ln=True)
+    if liste_chaudieres:
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(0, 10, "Chaudières :", ln=True)
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(60, 8, "Type", border=1, align='C')
+        pdf.cell(40, 8, "Rendement (%)", border=1, align='C')
+        pdf.cell(60, 8, "Taille", border=1, align='C')
+        pdf.ln()
+        pdf.set_font("Arial", "", 10)
+        for row in liste_chaudieres:
+            pdf.cell(60, 8, row.get("Type", "N/A"), border=1)
+            pdf.cell(40, 8, str(row.get("Rendement", "N/A")), border=1, align='C')
+            pdf.cell(60, 8, row.get("Taille", "N/A"), border=1)
+            pdf.ln()
+        pdf.ln(5)
 
     # Frigo
-    pdf.cell(0, 10, "Équipements frigorifiques :", ln=True)
-    for idx, row in enumerate(liste_frigo):
-        pdf.cell(0, 8, f"- Capacité: {row['Capacité']}", ln=True)
+    if liste_frigo:
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(0, 10, "Équipements frigorifiques :", ln=True)
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(60, 8, "Capacité", border=1, align='C')
+        pdf.ln()
+        pdf.set_font("Arial", "", 10)
+        for row in liste_frigo:
+            pdf.cell(60, 8, row.get("Capacité", "N/A"), border=1)
+            pdf.ln()
+        pdf.ln(5)
 
     # Compresseurs
-    pdf.cell(0, 10, "Compresseurs :", ln=True)
-    for idx, row in enumerate(liste_compresseurs):
-        pdf.cell(0, 8, f"- Puissance: {row['Puissance']} HP", ln=True)
-
-    # 🔹 Page 2 : Pompes, Ventilation, Machines, Éclairage
-    pdf.add_page()
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "⚙️ Liste des équipements (Page 2)", ln=True)
-    pdf.set_font("Arial", size=12)
+    if liste_compresseurs:
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(0, 10, "Compresseurs :", ln=True)
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(60, 8, "Puissance (HP)", border=1, align='C')
+        pdf.cell(60, 8, "Variation de vitesse", border=1, align='C')
+        pdf.ln()
+        pdf.set_font("Arial", "", 10)
+        for row in liste_compresseurs:
+            pdf.cell(60, 8, str(row.get("Puissance", "N/A")), border=1)
+            pdf.cell(60, 8, row.get("Variation de vitesse", "N/A"), border=1)
+            pdf.ln()
+        pdf.ln(5)
 
     # Pompes
-    pdf.cell(0, 10, "Pompes industrielles :", ln=True)
-    for idx, row in enumerate(liste_pompes):
-        pdf.cell(0, 8, f"- Type: {row['Type']}, Puissance: {row['Puissance']} kW", ln=True)
+    if liste_pompes:
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(0, 10, "Pompes industrielles :", ln=True)
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(60, 8, "Type", border=1, align='C')
+        pdf.cell(60, 8, "Puissance (kW)", border=1, align='C')
+        pdf.ln()
+        pdf.set_font("Arial", "", 10)
+        for row in liste_pompes:
+            pdf.cell(60, 8, row.get("Type", "N/A"), border=1)
+            pdf.cell(60, 8, str(row.get("Puissance", "N/A")), border=1)
+            pdf.ln()
+        pdf.ln(5)
 
     # Ventilation
-    pdf.cell(0, 10, "Systèmes de ventilation :", ln=True)
-    for idx, row in enumerate(liste_ventilation):
-        pdf.cell(0, 8, f"- Type: {row['Type']}, Puissance: {row['Puissance']} kWh", ln=True)
+    if liste_ventilation:
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(0, 10, "Systèmes de ventilation :", ln=True)
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(60, 8, "Type", border=1, align='C')
+        pdf.cell(60, 8, "Puissance (kWh)", border=1, align='C')
+        pdf.ln()
+        pdf.set_font("Arial", "", 10)
+        for row in liste_ventilation:
+            pdf.cell(60, 8, row.get("Type", "N/A"), border=1)
+            pdf.cell(60, 8, str(row.get("Puissance", "N/A")), border=1)
+            pdf.ln()
+        pdf.ln(5)
 
     # Machines
-    pdf.cell(0, 10, "Autres machines de production :", ln=True)
-    for idx, row in enumerate(liste_machines):
-        pdf.cell(0, 8, f"- Nom: {row['Nom']}, Puissance: {row['Puissance']} kW", ln=True)
+    if liste_machines:
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(0, 10, "Autres machines de production :", ln=True)
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(60, 8, "Nom", border=1, align='C')
+        pdf.cell(60, 8, "Puissance (kW)", border=1, align='C')
+        pdf.ln()
+        pdf.set_font("Arial", "", 10)
+        for row in liste_machines:
+            pdf.cell(60, 8, row.get("Nom", "N/A"), border=1)
+            pdf.cell(60, 8, str(row.get("Puissance", "N/A")), border=1)
+            pdf.ln()
+        pdf.ln(5)
 
     # Éclairage
-    pdf.cell(0, 10, "Systèmes d’éclairage :", ln=True)
-    for idx, row in enumerate(liste_eclairage):
-        pdf.cell(0, 8, f"- Type: {row['Type']}, Puissance: {row['Puissance']} kW", ln=True)
+    if liste_eclairage:
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(0, 10, "Systèmes d’éclairage :", ln=True)
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(60, 8, "Type", border=1, align='C')
+        pdf.cell(60, 8, "Puissance (kW)", border=1, align='C')
+        pdf.ln()
+        pdf.set_font("Arial", "", 10)
+        for row in liste_eclairage:
+            pdf.cell(60, 8, row.get("Type", "N/A"), border=1)
+            pdf.cell(60, 8, str(row.get("Puissance", "N/A")), border=1)
+            pdf.ln()
 
-    # 🔹 Graphique des priorités stratégiques
+    # 🔹 Page 3 - Graphique des priorités stratégiques
     pdf.add_page()
     pdf.set_font("Arial", "B", 14)
     pdf.cell(0, 10, "📊 Graphique des priorités stratégiques", ln=True)
 
-    # Crée un graphique avec matplotlib
     fig, ax = plt.subplots()
     priorites = ["Conso énergétique", "ROI", "GES", "Productivité", "Maintenance"]
     valeurs = [20, 20, 20, 20, 20]  # Remplace par tes vraies données si besoin
@@ -1021,35 +1092,28 @@ if st.button("Soumettre le formulaire"):
     plt.ylabel("Priorité (%)")
     plt.tight_layout()
 
-    # Sauvegarde le graphe en PNG temporaire
     graph_filename = "priorites.png"
     fig.savefig(graph_filename)
     plt.close(fig)
 
-    # Insère l'image dans le PDF
     pdf.image(graph_filename, x=10, y=30, w=pdf.w - 20)
 
-    # Convertit le PDF en bytes
     pdf_bytes = pdf.output(dest='S').encode('latin1')
     pdf_filename = f"Resume_AuditFlash_{client_nom}.pdf"
 
-    # Envoyer l'e-mail
     try:
         SMTP_SERVER = "smtp.gmail.com"
         SMTP_PORT = 587
         EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
-        EMAIL_PASSWORD = "ljbirfbvgvbvsfgj"  # Attention : à sécuriser
+        EMAIL_PASSWORD = "ljbirfbvgvbvsfgj"
 
         msg = EmailMessage()
         msg['Subject'] = f"Audit Flash - Client {client_nom}"
         msg['From'] = EMAIL_SENDER
         msg['To'] = ", ".join(EMAIL_DESTINATAIRE)
         msg.set_content(resume)
-
-        # Attacher le résumé PDF
         msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
 
-        # Attacher les fichiers téléversés
         uploads_dir = "uploads"
         os.makedirs(uploads_dir, exist_ok=True)
         for file_group in [facture_elec, facture_combustibles, facture_autres, plans_pid]:
@@ -1061,7 +1125,6 @@ if st.button("Soumettre le formulaire"):
                     with open(file_path, "rb") as f:
                         msg.add_attachment(f.read(), maintype='application', subtype='pdf', filename=file.name)
 
-        # Envoi via SMTP Gmail
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()
             server.login(EMAIL_SENDER, EMAIL_PASSWORD)
