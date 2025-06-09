@@ -185,7 +185,7 @@ translations = {
     "fr": {
         "titre_contacts_remplisseur": "👥 2. Personne contact et remplisseur",
         "texte_expander_contacts_remplisseur": "Cliquez ici pour remplir cette section",
-        "sous_titre_ee": "🔌 Efficacité énergétique (Soteck)",
+        "sous_titre_ee": "🔌 Efficacité énergétique ",
         "label_contact_ee_nom": "Prénom et Nom (EE)",
         "label_contact_ee_mail": "Courriel (EE)",
         "help_contact_ee_mail": "Format : exemple@domaine.com",
