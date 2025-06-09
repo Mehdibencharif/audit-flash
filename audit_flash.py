@@ -945,20 +945,20 @@ if st.button("Soumettre le formulaire"):
 
     # Exemple résumé texte
     resume = f"""
-Bonjour,
+    Bonjour,
 
-Ci-joint le résumé de l'Audit Flash pour le client {client_nom}.
+    Ci-joint le résumé de l'Audit Flash pour le client {client_nom}.
 
-Informations saisies :
-- Site : {site_nom}
-- Contact : {contact_ee_nom}
-- Email : {contact_ee_mail}
-- Réduction GES : {sauver_ges}%
-(ajouter ici tout ce que tu veux)
-"""
+    Informations saisies :
+    - Site : {site_nom}
+    - Contact : {contact_ee_nom}
+    - Email : {contact_ee_mail}
+    - Réduction GES : {sauver_ges}%
+    (ajouter ici tout ce que tu veux)
+    """
 
-pdf = FPDF()
-pdf.set_auto_page_break(auto=True, margin=15)
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
 
 # Page 1 - Résumé
 pdf.add_page()
