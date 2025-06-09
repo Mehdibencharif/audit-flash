@@ -930,9 +930,12 @@ erreurs.append(label_client)
 #========================
 # Soumission par courriel
 #========================
-EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
+#========================
+# Soumission par courriel
+#========================
+
 # Adresse e-mail destinataire fixe
-EMAIL_DESTINATAIRE = "mbencharif@soteck.com"
+EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
 
 if st.button("Soumettre le formulaire"):
     # Exemple résumé texte
@@ -946,15 +949,87 @@ if st.button("Soumettre le formulaire"):
     - Contact : {contact_ee_nom}
     - Email : {contact_ee_mail}
     - Réduction GES : {sauver_ges}%
- 
+    (ajouter ici tout ce que tu veux)
     """
 
-    # Générer le PDF si souhaité
+    # Générer le PDF
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
     pdf.cell(200, 10, txt=f"Résumé Audit Flash - {client_nom}", ln=True, align='C')
     pdf.multi_cell(0, 10, resume)
+
+    # 🔹 Page 1 : Chaudières, Frigo, Compresseurs
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, "⚙️ Liste des équipements (Page 1)", ln=True)
+    pdf.set_font("Arial", size=12)
+
+    # Chaudières
+    pdf.cell(0, 10, "Chaudières :", ln=True)
+    for idx, row in enumerate(liste_chaudieres):
+        pdf.cell(0, 8, f"- Type: {row['Type']}, Rendement: {row['Rendement']}%", ln=True)
+
+    # Frigo
+    pdf.cell(0, 10, "Équipements frigorifiques :", ln=True)
+    for idx, row in enumerate(liste_frigo):
+        pdf.cell(0, 8, f"- Capacité: {row['Capacité']}", ln=True)
+
+    # Compresseurs
+    pdf.cell(0, 10, "Compresseurs :", ln=True)
+    for idx, row in enumerate(liste_compresseurs):
+        pdf.cell(0, 8, f"- Puissance: {row['Puissance']} HP", ln=True)
+
+    # 🔹 Page 2 : Pompes, Ventilation, Machines, Éclairage
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, "⚙️ Liste des équipements (Page 2)", ln=True)
+    pdf.set_font("Arial", size=12)
+
+    # Pompes
+    pdf.cell(0, 10, "Pompes industrielles :", ln=True)
+    for idx, row in enumerate(liste_pompes):
+        pdf.cell(0, 8, f"- Type: {row['Type']}, Puissance: {row['Puissance']} kW", ln=True)
+
+    # Ventilation
+    pdf.cell(0, 10, "Systèmes de ventilation :", ln=True)
+    for idx, row in enumerate(liste_ventilation):
+        pdf.cell(0, 8, f"- Type: {row['Type']}, Puissance: {row['Puissance']} kWh", ln=True)
+
+    # Machines
+    pdf.cell(0, 10, "Autres machines de production :", ln=True)
+    for idx, row in enumerate(liste_machines):
+        pdf.cell(0, 8, f"- Nom: {row['Nom']}, Puissance: {row['Puissance']} kW", ln=True)
+
+    # Éclairage
+    pdf.cell(0, 10, "Systèmes d’éclairage :", ln=True)
+    for idx, row in enumerate(liste_eclairage):
+        pdf.cell(0, 8, f"- Type: {row['Type']}, Puissance: {row['Puissance']} kW", ln=True)
+
+    # 🔹 Graphique des priorités stratégiques
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, "📊 Graphique des priorités stratégiques", ln=True)
+
+    # Crée un graphique avec matplotlib
+    fig, ax = plt.subplots()
+    priorites = ["Conso énergétique", "ROI", "GES", "Productivité", "Maintenance"]
+    valeurs = [20, 20, 20, 20, 20]  # Remplace par tes vraies données si besoin
+    ax.bar(priorites, valeurs)
+    plt.title("Priorités stratégiques du client")
+    plt.xlabel("Critères")
+    plt.ylabel("Priorité (%)")
+    plt.tight_layout()
+
+    # Sauvegarde le graphe en PNG temporaire
+    graph_filename = "priorites.png"
+    fig.savefig(graph_filename)
+    plt.close(fig)
+
+    # Insère l'image dans le PDF
+    pdf.image(graph_filename, x=10, y=30, w=pdf.w - 20)
+
+    # Convertit le PDF en bytes
     pdf_bytes = pdf.output(dest='S').encode('latin1')
     pdf_filename = f"Resume_AuditFlash_{client_nom}.pdf"
 
@@ -962,8 +1037,8 @@ if st.button("Soumettre le formulaire"):
     try:
         SMTP_SERVER = "smtp.gmail.com"
         SMTP_PORT = 587
-        EMAIL_SENDER = "elmehdi.bencharif@gmail.com"  # Ton adresse Gmail
-        EMAIL_PASSWORD = "ljbirfbvgvbvsfgj"  # Ton mot de passe d'application Gmail
+        EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
+        EMAIL_PASSWORD = "ljbirfbvgvbvsfgj"  # Attention : à sécuriser
 
         msg = EmailMessage()
         msg['Subject'] = f"Audit Flash - Client {client_nom}"
@@ -991,6 +1066,7 @@ if st.button("Soumettre le formulaire"):
             server.starttls()
             server.login(EMAIL_SENDER, EMAIL_PASSWORD)
             server.send_message(msg)
+
         st.success("Formulaire soumis et envoyé par e-mail avec succès !")
     except Exception as e:
         st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
