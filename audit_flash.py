@@ -945,138 +945,138 @@ if st.button("Soumettre le formulaire"):
 
     # Exemple résumé texte
     resume = f"""
-    Bonjour,
+Bonjour,
 
-    Ci-joint le résumé de l'Audit Flash pour le client {client_nom}.
+Ci-joint le résumé de l'Audit Flash pour le client {client_nom}.
 
-    Informations saisies :
-    - Site : {site_nom}
-    - Contact : {contact_ee_nom}
-    - Email : {contact_ee_mail}
-    - Réduction GES : {sauver_ges}%
-    (ajouter ici tout ce que tu veux)
-    """
+Informations saisies :
+- Site : {site_nom}
+- Contact : {contact_ee_nom}
+- Email : {contact_ee_mail}
+- Réduction GES : {sauver_ges}%
+(ajouter ici tout ce que tu veux)
+"""
 
-    # Générer le PDF
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
+pdf = FPDF()
+pdf.set_auto_page_break(auto=True, margin=15)
 
-    # Page 1 - Résumé
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.cell(0, 10, f"Résumé Audit Flash - {client_nom}", ln=True, align='C')
-    pdf.ln(10)
-    pdf.multi_cell(0, 10, resume)
+# Page 1 - Résumé
+pdf.add_page()
+pdf.set_font("Arial", size=12)
+pdf.cell(0, 10, f"Résumé Audit Flash - {client_nom}", ln=True, align='C')
+pdf.ln(10)
+pdf.multi_cell(0, 10, resume)
 
-    # 🔹 Page 2 - Liste des équipements
-    pdf.add_page()
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "⚙️ Liste des équipements", ln=True)
+# 🔹 Page 2 - Liste des équipements
+pdf.add_page()
+pdf.set_font("Arial", "B", 14)
+pdf.cell(0, 10, "⚙️ Liste des équipements", ln=True)
+pdf.ln(5)
+
+# Chaudières
+if liste_chaudieres:
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 10, "Chaudières :", ln=True)
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(60, 8, "Type", border=1, align='C')
+    pdf.cell(40, 8, "Rendement (%)", border=1, align='C')
+    pdf.cell(60, 8, "Taille", border=1, align='C')
+    pdf.ln()
+    pdf.set_font("Arial", "", 10)
+    for row in liste_chaudieres:
+        pdf.cell(60, 8, row.get("Type de chaudière", "N/A"), border=1)
+        pdf.cell(40, 8, str(row.get("Rendement chaudière (%)", "N/A")), border=1, align='C')
+        pdf.cell(60, 8, row.get("Taille de la chaudière (BHP ou BTU)", "N/A"), border=1)
+        pdf.ln()
     pdf.ln(5)
 
-    # Chaudières
-    if liste_chaudieres:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Chaudières :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Type", border=1, align='C')
-        pdf.cell(40, 8, "Rendement (%)", border=1, align='C')
-        pdf.cell(60, 8, "Taille", border=1, align='C')
+# Frigo
+if liste_frigo:
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 10, "Équipements frigorifiques :", ln=True)
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(60, 8, "Capacité", border=1, align='C')
+    pdf.ln()
+    pdf.set_font("Arial", "", 10)
+    for row in liste_frigo:
+        pdf.cell(60, 8, row.get("Capacité frigorifique", "N/A"), border=1)
         pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_chaudieres:
-            pdf.cell(60, 8, row.get("Type", "N/A"), border=1)
-            pdf.cell(40, 8, str(row.get("Rendement", "N/A")), border=1, align='C')
-            pdf.cell(60, 8, row.get("Taille", "N/A"), border=1)
-            pdf.ln()
-        pdf.ln(5)
+    pdf.ln(5)
 
-    # Frigo
-    if liste_frigo:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Équipements frigorifiques :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Capacité", border=1, align='C')
+# Compresseurs
+if liste_compresseurs:
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 10, "Compresseurs :", ln=True)
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(60, 8, "Puissance (HP)", border=1, align='C')
+    pdf.cell(60, 8, "Variation de vitesse", border=1, align='C')
+    pdf.ln()
+    pdf.set_font("Arial", "", 10)
+    for row in liste_compresseurs:
+        pdf.cell(60, 8, str(row.get("Puissance compresseur (HP)", "N/A")), border=1)
+        pdf.cell(60, 8, row.get("Variation de vitesse compresseur", "N/A"), border=1)
         pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_frigo:
-            pdf.cell(60, 8, row.get("Capacité", "N/A"), border=1)
-            pdf.ln()
-        pdf.ln(5)
+    pdf.ln(5)
 
-    # Compresseurs
-    if liste_compresseurs:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Compresseurs :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Puissance (HP)", border=1, align='C')
-        pdf.cell(60, 8, "Variation de vitesse", border=1, align='C')
+# Pompes
+if liste_pompes:
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 10, "Pompes industrielles :", ln=True)
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(60, 8, "Type", border=1, align='C')
+    pdf.cell(60, 8, "Puissance", border=1, align='C')
+    pdf.ln()
+    pdf.set_font("Arial", "", 10)
+    for row in liste_pompes:
+        pdf.cell(60, 8, row.get("Type de pompe (centrifuge, volumétrique, etc.)", "N/A"), border=1)
+        pdf.cell(60, 8, str(row.get("Puissance pompe (kW ou HP)", "N/A")), border=1)
         pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_compresseurs:
-            pdf.cell(60, 8, str(row.get("Puissance", "N/A")), border=1)
-            pdf.cell(60, 8, row.get("Variation de vitesse", "N/A"), border=1)
-            pdf.ln()
-        pdf.ln(5)
+    pdf.ln(5)
 
-    # Pompes
-    if liste_pompes:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Pompes industrielles :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Type", border=1, align='C')
-        pdf.cell(60, 8, "Puissance (kW)", border=1, align='C')
+# Ventilation
+if liste_ventilation:
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 10, "Systèmes de ventilation :", ln=True)
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(60, 8, "Type", border=1, align='C')
+    pdf.cell(60, 8, "Puissance", border=1, align='C')
+    pdf.ln()
+    pdf.set_font("Arial", "", 10)
+    for row in liste_ventilation:
+        pdf.cell(60, 8, row.get("Type de ventilation (naturelle, mécanique, etc.)", "N/A"), border=1)
+        pdf.cell(60, 8, str(row.get("Puissance ventilation (kWh)", "N/A")), border=1)
         pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_pompes:
-            pdf.cell(60, 8, row.get("Type", "N/A"), border=1)
-            pdf.cell(60, 8, str(row.get("Puissance", "N/A")), border=1)
-            pdf.ln()
-        pdf.ln(5)
+    pdf.ln(5)
 
-    # Ventilation
-    if liste_ventilation:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Systèmes de ventilation :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Type", border=1, align='C')
-        pdf.cell(60, 8, "Puissance (kWh)", border=1, align='C')
+# Machines
+if liste_machines:
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 10, "Autres machines de production :", ln=True)
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(60, 8, "Nom", border=1, align='C')
+    pdf.cell(60, 8, "Puissance", border=1, align='C')
+    pdf.ln()
+    pdf.set_font("Arial", "", 10)
+    for row in liste_machines:
+        pdf.cell(60, 8, row.get("Nom de la machine", "N/A"), border=1)
+        pdf.cell(60, 8, str(row.get("Puissance machine (kW)", "N/A")), border=1)
         pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_ventilation:
-            pdf.cell(60, 8, row.get("Type", "N/A"), border=1)
-            pdf.cell(60, 8, str(row.get("Puissance", "N/A")), border=1)
-            pdf.ln()
-        pdf.ln(5)
+    pdf.ln(5)
 
-    # Machines
-    if liste_machines:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Autres machines de production :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Nom", border=1, align='C')
-        pdf.cell(60, 8, "Puissance (kW)", border=1, align='C')
+# Éclairage
+if liste_eclairage:
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 10, "Systèmes d’éclairage :", ln=True)
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(60, 8, "Type", border=1, align='C')
+    pdf.cell(60, 8, "Puissance", border=1, align='C')
+    pdf.ln()
+    pdf.set_font("Arial", "", 10)
+    for row in liste_eclairage:
+        pdf.cell(60, 8, row.get("Type d’éclairage (LED, fluorescent, etc.)", "N/A"), border=1)
+        pdf.cell(60, 8, str(row.get("Puissance totale installée (kW)", "N/A")), border=1)
         pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_machines:
-            pdf.cell(60, 8, row.get("Nom", "N/A"), border=1)
-            pdf.cell(60, 8, str(row.get("Puissance", "N/A")), border=1)
-            pdf.ln()
-        pdf.ln(5)
 
-    # Éclairage
-    if liste_eclairage:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Systèmes d’éclairage :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Type", border=1, align='C')
-        pdf.cell(60, 8, "Puissance (kW)", border=1, align='C')
-        pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_eclairage:
-            pdf.cell(60, 8, row.get("Type", "N/A"), border=1)
-            pdf.cell(60, 8, str(row.get("Puissance", "N/A")), border=1)
-            pdf.ln()
 
     # 🔹 Page 3 - Graphique des priorités stratégiques
     pdf.add_page()
