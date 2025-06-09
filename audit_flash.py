@@ -1108,7 +1108,7 @@ if st.button("Soumettre le formulaire"):
         SMTP_SERVER = "smtp.gmail.com"
         SMTP_PORT = 587
         EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
-        EMAIL_PASSWORD = "ljbirfbvgvbvsfgj"  # Remplace par un mot de passe sécurisé
+        EMAIL_PASSWORD = "ljbirfbvgvbvsfgj"
 
         msg = EmailMessage()
         msg['Subject'] = f"Audit Flash - Client {client_nom}"
@@ -1135,6 +1135,5 @@ if st.button("Soumettre le formulaire"):
 
         st.success("Formulaire soumis et envoyé par e-mail avec succès !")
     except Exception as e:
-        st.error(f"Erreur lors de l'envoi de l'e-ma
-
+        st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
 
