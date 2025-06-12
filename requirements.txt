@@ -6,3 +6,4 @@ fpdf
 xlsxwriter
 matplotlib
 openai
+python-dotenv
