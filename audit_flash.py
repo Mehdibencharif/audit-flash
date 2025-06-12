@@ -8,6 +8,10 @@ import os
 import smtplib
 from email.message import EmailMessage
 import matplotlib.pyplot as plt
+import openai
+
+# ✅ Import du chatbot
+from chatbot import repondre_a_question
 
 # CONFIGURATION GLOBALE
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
@@ -37,6 +41,25 @@ translations = {
 
 # Sélection de la langue
 lang = "fr" if langue == "Français" else "en"
+
+# ==========================
+# Chatbot intelligent
+# ==========================
+with st.sidebar:
+    st.markdown("## 🤖 Assistant Audit Flash")
+    user_question = st.text_area("💬 Posez votre question ici :", key="chatbot_input")
+    
+    if st.button("Envoyer ma question", key="chatbot_button"):
+        if user_question.strip():
+            st.markdown("**Réponse :**")
+            reponse = repondre_a_question(
+                user_question, 
+                langue="en" if langue == "English" else "fr"
+            )
+            st.write(reponse)
+        else:
+            st.warning("❗ Veuillez écrire une question avant d’envoyer.")
+
 
 # COULEURS ET STYLE PERSONNALISÉ
 couleur_primaire = "#cddc39"  # Lime doux inspiré de ton branding
