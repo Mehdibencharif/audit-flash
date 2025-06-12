@@ -47,16 +47,25 @@ lang = "fr" if langue == "Français" else "en"
 # ==========================
 with st.sidebar:
     st.markdown("## 🤖 Assistant Audit Flash")
-    user_question = st.text_area("💬 Posez votre question ici :", key="chatbot_input")
-    
-    if st.button("Envoyer ma question", key="chatbot_button"):
+    user_question = st.text_area("💬 Posez votre question ici :", key="chatbot_input", placeholder="Ex: Quelle est la priorité énergie ?")
+
+    if st.button("📤 Envoyer ma question", key="chatbot_button"):
         if user_question.strip():
-            st.markdown("**Réponse :**")
-            reponse = repondre_a_question(
-                user_question, 
-                langue="en" if langue == "English" else "fr"
-            )
-            st.write(reponse)
+            with st.spinner("💬 L’assistant réfléchit..."):
+                reponse = repondre_a_question(
+                    user_question,
+                    langue="en" if langue == "English" else "fr"
+                )
+
+            if reponse.startswith("⚠️"):
+                st.error(reponse)
+            else:
+                st.markdown("#### ✅ Réponse de l’assistant :")
+                st.markdown(f"""
+                <div style='background-color:#f0f2f6;padding:10px;border-radius:10px;margin-top:10px'>
+                    🤖 <em>{reponse}</em>
+                </div>
+                """, unsafe_allow_html=True)
         else:
             st.warning("❗ Veuillez écrire une question avant d’envoyer.")
 
