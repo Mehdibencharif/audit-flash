@@ -444,9 +444,11 @@ translations = {
         "label_taille_chaudiere": "Taille de la chaudière (BHP ou BTU)",
         "label_appoint_eau": "Appoint d’eau (volume)",
         "label_micro_modulation": "Chaudière équipée de micro modulation ?",
+        "label_economiseur_chaudiere": "Économiseur installé ?",  # ✅ corrigé
         "sous_titre_frigo": "Équipements frigorifiques",
         "label_nb_frigo": "Nombre de systèmes frigorifiques",
         "label_capacite_frigo": "Capacité frigorifique",
+        "label_nom_frigorigenes": "Nom du frigorigène",  # ✅ corrigé
         "sous_titre_compresseur": "Compresseur d’air",
         "label_puissance_comp": "Puissance compresseur (HP)",
         "label_variation_vitesse": "Variation de vitesse compresseur",
@@ -470,8 +472,6 @@ translations = {
         "label_type_eclairage": "Type d’éclairage (LED, fluorescent, etc.)",
         "label_puissance_totale_eclairage": "Puissance totale installée (kW)",
         "label_heures_utilisation": "Nombre d’heures d’utilisation par jour"
-        "label_economiseur_chaudiere": ""Économiseur installé ?",
-        "label_nom_frigorigenes": "Nom du frigorigène",
     },
     "en": {
         # ... autres clés ...
@@ -484,9 +484,11 @@ translations = {
         "label_taille_chaudiere": "Boiler size (BHP or BTU)",
         "label_appoint_eau": "Water make-up (volume)",
         "label_micro_modulation": "Boiler with micro modulation?",
+        "label_economiseur_chaudiere": "Economizer installed?",  # ✅ corrigé
         "sous_titre_frigo": "Refrigeration equipment",
         "label_nb_frigo": "Number of refrigeration systems",
         "label_capacite_frigo": "Refrigeration capacity",
+        "label_nom_frigorigenes": "Refrigerant name",  # ✅ corrigé
         "sous_titre_compresseur": "Air compressor",
         "label_puissance_comp": "Compressor power (HP)",
         "label_variation_vitesse": "Variable speed compressor",
@@ -510,8 +512,6 @@ translations = {
         "label_type_eclairage": "Type of lighting (LED, fluorescent, etc.)",
         "label_puissance_totale_eclairage": "Total installed power (kW)",
         "label_heures_utilisation": "Number of hours of use per day"
-        "label_economiseur_chaudiere": "Economizer installed?",
-        "label_nom_frigorigenes": "Refrigerant name",
     }
 }
 
