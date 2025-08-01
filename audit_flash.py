@@ -994,32 +994,41 @@ erreurs.append(label_client)
 #========================
 EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
 
+# Récupération des données des sections en amont pour éviter les erreurs de portée
+liste_chaudieres = st.session_state.get("chaudieres", [])
+liste_frigo = st.session_state.get("frigo", [])
+liste_compresseurs = st.session_state.get("compresseur", [])
+liste_pompes = st.session_state.get("pompes", [])
+liste_ventilation = st.session_state.get("ventilation", [])
+liste_machines = st.session_state.get("machines", [])
+liste_eclairage = st.session_state.get("eclairage", [])
+
+# Initialisation sécurisée des champs du formulaire
+client_nom = st.session_state.get("client_nom", "N/A")
+site_nom = st.session_state.get("site_nom", "N/A")
+contact_ee_nom = st.session_state.get("contact_ee_nom", "N/A")
+contact_ee_mail = st.session_state.get("contact_ee_mail", "N/A")
+sauver_ges = st.session_state.get("sauver_ges", None)
+poids_energie = st.session_state.get("poids_energie", 0)
+poids_roi = st.session_state.get("poids_roi", 0)
+poids_ges = st.session_state.get("poids_ges", 0)
+poids_productivite = st.session_state.get("poids_productivite", 0)
+poids_maintenance = st.session_state.get("poids_maintenance", 0)
+facture_elec = st.session_state.get("facture_elec", [])
+facture_combustibles = st.session_state.get("facture_combustibles", [])
+facture_autres = st.session_state.get("facture_autres", [])
+plans_pid = st.session_state.get("plans_pid", [])
+
+# Affichage debug pour inspection
+st.write("Chaudières :", liste_chaudieres)
+st.write("Frigo :", liste_frigo)
+st.write("Compresseurs :", liste_compresseurs)
+st.write("Pompes :", liste_pompes)
+st.write("Ventilation :", liste_ventilation)
+st.write("Machines :", liste_machines)
+st.write("Éclairage :", liste_eclairage)
+
 if st.button("Soumettre le formulaire"):
-    # Récupération des données des sections
-    liste_chaudieres = st.session_state.get("chaudieres", [])
-    liste_frigo = st.session_state.get("frigo", [])
-    liste_compresseurs = st.session_state.get("compresseur", [])
-    liste_pompes = st.session_state.get("pompes", [])
-    liste_ventilation = st.session_state.get("ventilation", [])
-    liste_machines = st.session_state.get("machines", [])
-    liste_eclairage = st.session_state.get("eclairage", [])
-
-    # Initialisation sécurisée de variables potentiellement manquantes
-    client_nom = st.session_state.get("client_nom", "N/A")
-    site_nom = st.session_state.get("site_nom", "N/A")
-    contact_ee_nom = st.session_state.get("contact_ee_nom", "N/A")
-    contact_ee_mail = st.session_state.get("contact_ee_mail", "N/A")
-    sauver_ges = st.session_state.get("sauver_ges", None)
-    poids_energie = st.session_state.get("poids_energie", 0)
-    poids_roi = st.session_state.get("poids_roi", 0)
-    poids_ges = st.session_state.get("poids_ges", 0)
-    poids_productivite = st.session_state.get("poids_productivite", 0)
-    poids_maintenance = st.session_state.get("poids_maintenance", 0)
-    facture_elec = st.session_state.get("facture_elec", [])
-    facture_combustibles = st.session_state.get("facture_combustibles", [])
-    facture_autres = st.session_state.get("facture_autres", [])
-    plans_pid = st.session_state.get("plans_pid", [])
-
     # Résumé texte
     resume = (
         f"Bonjour,\n\n"
@@ -1041,19 +1050,6 @@ if st.button("Soumettre le formulaire"):
     pdf.cell(0, 10, f"Résumé Audit Flash - {client_nom}", ln=True, align='C')
     pdf.ln(10)
     pdf.multi_cell(0, 10, resume)
-
-    # Page 2 : Liste des équipements (optionnel, affichage Streamlit pour debug)
-    if isinstance(liste_chaudieres, list):
-        st.write("Chaudières :", liste_chaudieres)
-    else:
-        st.warning("⚠️ La variable 'liste_chaudieres' n'est pas une liste. Vérifie l'état de session.")
-
-    st.write("Frigo :", liste_frigo)
-    st.write("Compresseurs :", liste_compresseurs)
-    st.write("Pompes :", liste_pompes)
-    st.write("Ventilation :", liste_ventilation)
-    st.write("Machines :", liste_machines)
-    st.write("Éclairage :", liste_eclairage)
 
     # Page 3 : Graphique des priorités stratégiques
     pdf.add_page()
