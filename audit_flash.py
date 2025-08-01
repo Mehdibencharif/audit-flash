@@ -1019,6 +1019,23 @@ facture_combustibles = st.session_state.get("facture_combustibles", [])
 facture_autres = st.session_state.get("facture_autres", [])
 plans_pid = st.session_state.get("plans_pid", [])
 
+# Sécuriser les clés dans le session_state
+for key in ["chaudieres", "frigo", "compresseur", "pompes", "ventilation", "machines", "eclairage"]:
+    if key not in st.session_state:
+        st.session_state[key] = []
+
+# Récupération
+liste_chaudieres = st.session_state["chaudieres"]
+liste_frigo = st.session_state["frigo"]
+liste_compresseurs = st.session_state["compresseur"]
+liste_pompes = st.session_state["pompes"]
+liste_ventilation = st.session_state["ventilation"]
+liste_machines = st.session_state["machines"]
+liste_eclairage = st.session_state["eclairage"]
+
+# Debug (affichage si besoin)
+st.write("Chaudières :", liste_chaudieres)
+
 # Affichage debug pour inspection
 st.write("Chaudières :", liste_chaudieres)
 st.write("Frigo :", liste_frigo)
