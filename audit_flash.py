@@ -872,6 +872,10 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         pdf = FPDF()
         pdf.add_page()
         pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
+        pdf.add_font('DejaVu', 'B', 'fonts/DejaVuSans-Bold.ttf', uni=True)
+        pdf.set_font('DejaVu', 'B', 16)
+        pdf.cell(0, 10, "Résumé - Audit Flash", ln=True, align="C")
+        pdf.ln(10)
         pdf.set_font('DejaVu', '', 12)
 
         try:
@@ -880,20 +884,15 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         except Exception:
             pass
 
-        pdf.set_font("Arial", 'B', 16)
-        pdf.cell(0, 10, "Résumé - Audit Flash", ln=True, align="C")
-        pdf.ln(10)
-        pdf.set_font("Arial", '', 12)
-
         pdf.cell(0, 10, f"Client: {client_nom}", ln=True)
         pdf.cell(0, 10, f"Site: {site_nom}", ln=True)
         pdf.cell(0, 10, f"Date: {date.today().strftime('%d/%m/%Y')}", ln=True)
         pdf.ln(5)
 
         # === Objectifs client ===
-        pdf.set_font("Arial", 'B', 12)
+        pdf.set_font('DejaVu', 'B', 12)
         pdf.cell(0, 10, "Objectifs du client:", ln=True)
-        pdf.set_font("Arial", '', 12)
+        pdf.set_font('DejaVu', '', 12)
         pdf.cell(0, 10, f"Réduction GES: {sauver_ges}%", ln=True)
         pdf.cell(0, 10, f"Économie énergie: {'Oui' if economie_energie else 'Non'}", ln=True)
         pdf.cell(0, 10, f"Productivité accrue: {'Oui' if gain_productivite else 'Non'}", ln=True)
@@ -903,9 +902,9 @@ if st.button(translations[lang]['bouton_generer_pdf']):
 
         # === Services complémentaires ===
         pdf.ln(5)
-        pdf.set_font("Arial", 'B', 12)
+        pdf.set_font('DejaVu', 'B', 12)
         pdf.cell(0, 10, "Services complémentaires souhaités:", ln=True)
-        pdf.set_font("Arial", '', 12)
+        pdf.set_font('DejaVu', '', 12)
         pdf.cell(0, 10, f"- Contrôle et automatisation: {'Oui' if controle else 'Non'}", ln=True)
         pdf.cell(0, 10, f"- Maintenance: {'Oui' if maintenance else 'Non'}", ln=True)
         pdf.cell(0, 10, f"- Ventilation: {'Oui' if ventilation else 'Non'}", ln=True)
@@ -913,9 +912,9 @@ if st.button(translations[lang]['bouton_generer_pdf']):
 
         # === Priorités stratégiques ===
         pdf.ln(5)
-        pdf.set_font("Arial", 'B', 12)
+        pdf.set_font('DejaVu', 'B', 12)
         pdf.cell(0, 10, "Priorités stratégiques du client:", ln=True)
-        pdf.set_font("Arial", '', 12)
+        pdf.set_font('DejaVu', '', 12)
 
         if total_priorites > 0:
             pdf.cell(0, 10, f"Réduction consommation énergétique : {poids_energie:.0%}", ln=True)
