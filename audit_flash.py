@@ -994,14 +994,19 @@ erreurs.append(label_client)
 #========================
 EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
 
-# Récupération des données des sections en amont pour éviter les erreurs de portée
-liste_chaudieres = st.session_state.get("chaudieres", [])
-liste_frigo = st.session_state.get("frigo", [])
-liste_compresseurs = st.session_state.get("compresseur", [])
-liste_pompes = st.session_state.get("pompes", [])
-liste_ventilation = st.session_state.get("ventilation", [])
-liste_machines = st.session_state.get("machines", [])
-liste_eclairage = st.session_state.get("eclairage", [])
+# Sécuriser les clés d'équipement même si non remplies
+for key in ["chaudieres", "frigo", "compresseur", "pompes", "ventilation", "machines", "eclairage"]:
+    if key not in st.session_state or st.session_state[key] is None:
+        st.session_state[key] = []
+
+# Initialisation sécurisée
+liste_chaudieres = st.session_state["chaudieres"]
+liste_frigo = st.session_state["frigo"]
+liste_compresseurs = st.session_state["compresseur"]
+liste_pompes = st.session_state["pompes"]
+liste_ventilation = st.session_state["ventilation"]
+liste_machines = st.session_state["machines"]
+liste_eclairage = st.session_state["eclairage"]
 
 # Initialisation sécurisée des champs du formulaire
 client_nom = st.session_state.get("client_nom", "N/A")
