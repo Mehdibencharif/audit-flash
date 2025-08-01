@@ -1092,41 +1092,54 @@ if st.button("Soumettre le formulaire"):
 
     pdf_filename = f"Resume_AuditFlash_{client_nom}.pdf"
 
-    # 📧 Envoi par courriel
-    try:
-        SMTP_SERVER = "smtp.gmail.com"
-        SMTP_PORT = 587
-        EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
-        EMAIL_PASSWORD = st.secrets["email_password"]
+  import os
+import smtplib
+from email.message import EmailMessage
 
-        msg = EmailMessage()
-        msg['Subject'] = f"Audit Flash - Client {client_nom}"
-        msg['From'] = EMAIL_SENDER
-        msg['To'] = ", ".join(EMAIL_DESTINATAIRE)
-        msg.set_content(resume)
-        msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
+# 📧 Envoi par courriel
+try:
+    SMTP_SERVER = "smtp.gmail.com"
+    SMTP_PORT = 587  # STARTTLS
+    EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
+    EMAIL_PASSWORD = st.secrets["email_password"]
 
-        # 📎 Ajout des pièces jointes (factures et plans)
-        uploads_dir = "uploads"
-        os.makedirs(uploads_dir, exist_ok=True)
+    # ✅ Ajout des destinataires ici
+    EMAIL_DESTINATAIRE = ["mbencharif@gmail.com", "pdelorme@gmail.com"]
 
-        for file_group in [facture_elec, facture_combustibles, facture_autres, plans_pid]:
-            for file in file_group or []:
-                try:
-                    file_path = os.path.join(uploads_dir, file.name)
-                    with open(file_path, "wb") as f:
-                        f.write(file.read())
-                    with open(file_path, "rb") as f:
-                        msg.add_attachment(f.read(), maintype='application', subtype='pdf', filename=file.name)
-                except Exception as e:
-                    st.warning(f"⚠️ Fichier {file.name} non attaché : {e}")
+    # Création du message
+    msg = EmailMessage()
+    msg['Subject'] = f"Audit Flash - Client {client_nom}"
+    msg['From'] = EMAIL_SENDER
+    msg['To'] = ", ".join(EMAIL_DESTINATAIRE)
+    msg.set_content(resume)
 
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(EMAIL_SENDER, EMAIL_PASSWORD)
-            server.send_message(msg)
+    # Pièce jointe principale (PDF du résumé)
+    msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
 
-        st.success("✅ Formulaire soumis et envoyé par e-mail avec succès !")
+    # 📎 Ajout des autres pièces jointes (factures et plans)
+    uploads_dir = "uploads"
+    os.makedirs(uploads_dir, exist_ok=True)
 
-    except Exception as e:
-        st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+    for file_group in [facture_elec, facture_combustibles, facture_autres, plans_pid]:
+        for file in file_group or []:
+            try:
+                file_path = os.path.join(uploads_dir, file.name)
+                # Enregistrement local temporaire
+                with open(file_path, "wb") as f:
+                    f.write(file.read())
+                # Relecture pour l'attachement
+                with open(file_path, "rb") as f:
+                    msg.add_attachment(f.read(), maintype='application', subtype='pdf', filename=file.name)
+            except Exception as e:
+                st.warning(f"⚠️ Fichier {file.name} non attaché : {e}")
+
+    # Connexion et envoi
+    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+        server.starttls()
+        server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+        server.send_message(msg)
+
+    st.success("✅ Formulaire soumis et envoyé par e-mail avec succès !")
+
+except Exception as e:
+    st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
