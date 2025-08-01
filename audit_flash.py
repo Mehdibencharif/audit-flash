@@ -1092,7 +1092,7 @@ if st.button("Soumettre le formulaire"):
 
     pdf_filename = f"Resume_AuditFlash_{client_nom}.pdf"
 
-  import os
+import os
 import smtplib
 from email.message import EmailMessage
 
@@ -1143,3 +1143,4 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
