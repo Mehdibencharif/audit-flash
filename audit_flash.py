@@ -1110,11 +1110,21 @@ try:
     EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
 
     # Création du message
-    msg = EmailMessage()
-    msg['Subject'] = f"Audit Flash - Client {client_nom}"
-    msg['From'] = EMAIL_SENDER
-    msg['To'] = ", ".join(EMAIL_DESTINATAIRE)
-    msg.set_content(resume)
+resume = f"""Résumé de l'audit pour le client {client_nom} - Site {site_nom}
+Date : {date.today().strftime('%d/%m/%Y')}
+Objectifs :
+- Réduction GES : {sauver_ges}%
+- Économie d’énergie : {'Oui' if economie_energie else 'Non'}
+- Productivité accrue : {'Oui' if gain_productivite else 'Non'}
+- ROI visé : {roi_vise}
+- Investissement prévu : {investissement_prevu}
+"""
+
+msg = EmailMessage()
+msg['Subject'] = f"Audit Flash - Client {client_nom}"
+msg['From'] = EMAIL_SENDER
+msg['To'] = ", ".join(EMAIL_DESTINATAIRE)
+msg.set_content(resume)
 
     # Pièce jointe principale (PDF du résumé)
     msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
@@ -1146,6 +1156,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
