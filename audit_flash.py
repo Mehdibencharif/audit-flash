@@ -1060,6 +1060,8 @@ if st.button("Soumettre le formulaire"):
 
     # 📊 Page des priorités stratégiques
     pdf.add_page()
+    pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
+    pdf.add_font('DejaVu', 'B', 'fonts/DejaVuSans-Bold.ttf', uni=True)
     pdf.set_font("DejaVu", 'B', 14)
     pdf.cell(0, 10, "📊 Graphique des priorités stratégiques", ln=True)
 
