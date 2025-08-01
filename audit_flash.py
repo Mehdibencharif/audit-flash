@@ -813,7 +813,7 @@ with st.expander(translations[lang]['texte_expander_services']):
 # ==========================
 # 8. RÉCAPITULATIF ET GÉNÉRATION PDF
 # ==========================
-# Traductions (aucun problème ici, juste à garder tel quel)
+# === Traductions (aucun problème ici) ===
 translations = {
     "fr": {
         "titre_pdf": "📝 8. Récapitulatif et génération PDF",
@@ -839,16 +839,12 @@ translations = {
     }
 }
 
-# 🔹 Affichage du titre
+# === Titre et introduction ===
 st.info(translations[lang]['texte_info_pdf'])
 st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
-st.markdown(f"""
-<div class='section-title'>
-    {translations[lang]['titre_pdf']}
-</div>
-""", unsafe_allow_html=True)
+st.markdown(f"<div class='section-title'>{translations[lang]['titre_pdf']}</div>", unsafe_allow_html=True)
 
-# 🔹 Bouton Générer PDF
+# === Bouton Générer PDF ===
 if st.button(translations[lang]['bouton_generer_pdf']):
     erreurs = []
 
@@ -863,8 +859,7 @@ if st.button(translations[lang]['bouton_generer_pdf']):
     if erreurs:
         st.error(f"{translations[lang]['msg_erreur_champs']} {', '.join(erreurs)}")
     else:
-        # 🔍 Debug des listes (hors PDF)
-        st.write("🔍 Debug PDF : contenu des listes")
+        # === Données sécurisées ===
         liste_chaudieres = st.session_state.get("chaudieres", [])
         liste_frigo = st.session_state.get("frigo", [])
         liste_compresseurs = st.session_state.get("compresseur", [])
@@ -873,12 +868,15 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         liste_machines = st.session_state.get("machines", [])
         liste_eclairage = st.session_state.get("eclairage", [])
 
-        # 📝 Génération du PDF
+        # === Création PDF ===
         pdf = FPDF()
         pdf.add_page()
+        pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
+        pdf.set_font('DejaVu', '', 12)
 
         try:
-            pdf.image(logo_path, x=160, y=10, w=30)
+            if logo_path:
+                pdf.image(logo_path, x=160, y=10, w=30)
         except Exception:
             pass
 
@@ -892,7 +890,7 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         pdf.cell(0, 10, f"Date: {date.today().strftime('%d/%m/%Y')}", ln=True)
         pdf.ln(5)
 
-        # Objectifs du client
+        # === Objectifs client ===
         pdf.set_font("Arial", 'B', 12)
         pdf.cell(0, 10, "Objectifs du client:", ln=True)
         pdf.set_font("Arial", '', 12)
@@ -903,7 +901,7 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         pdf.cell(0, 10, f"Investissement prévu: {investissement_prevu}", ln=True)
         pdf.multi_cell(0, 10, f"Autres objectifs: {autres_objectifs}")
 
-        # Services complémentaires
+        # === Services complémentaires ===
         pdf.ln(5)
         pdf.set_font("Arial", 'B', 12)
         pdf.cell(0, 10, "Services complémentaires souhaités:", ln=True)
@@ -913,21 +911,22 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         pdf.cell(0, 10, f"- Ventilation: {'Oui' if ventilation else 'Non'}", ln=True)
         pdf.multi_cell(0, 10, f"Autres services: {autres_services}")
 
-        # Priorités stratégiques
+        # === Priorités stratégiques ===
         pdf.ln(5)
         pdf.set_font("Arial", 'B', 12)
         pdf.cell(0, 10, "Priorités stratégiques du client:", ln=True)
         pdf.set_font("Arial", '', 12)
+
         if total_priorites > 0:
             pdf.cell(0, 10, f"Réduction consommation énergétique : {poids_energie:.0%}", ln=True)
             pdf.cell(0, 10, f"Retour sur investissement : {poids_roi:.0%}", ln=True)
             pdf.cell(0, 10, f"Réduction émissions GES : {poids_ges:.0%}", ln=True)
-            pdf.cell(0, 10, f"Productivité et fiabilité : {poids_prod:.0%}", ln=True)
+            pdf.cell(0, 10, f"Productivité et fiabilité : {poids_productivite:.0%}", ln=True)
             pdf.cell(0, 10, f"Maintenance et fiabilité : {poids_maintenance:.0%}", ln=True)
         else:
             pdf.cell(0, 10, "Les priorités stratégiques n'ont pas été renseignées.", ln=True)
 
-        # ✅ Export
+        # === Export PDF ===
         pdf_buffer = io.BytesIO()
         pdf_bytes = pdf.output(dest='S').encode('latin1')
         pdf_buffer.write(pdf_bytes)
@@ -941,9 +940,45 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         )
         st.success(translations[lang]['msg_succes_pdf'])
         
-# BONUS : EXPORT EXCEL
-# ==========================
-translations = {
+# ===========================
+# 🔁 Récupération des données
+# ===========================
+
+# Initialisation sécurisée des champs du formulaire
+client_nom = st.session_state.get("client_nom", "N/A")
+site_nom = st.session_state.get("site_nom", "N/A")
+contact_ee_nom = st.session_state.get("contact_ee_nom", "N/A")
+contact_ee_mail = st.session_state.get("contact_ee_mail", "N/A")
+sauver_ges = st.session_state.get("sauver_ges", "N/A")
+roi_vise = st.session_state.get("roi_vise", "N/A")
+controle = st.session_state.get("controle", False)
+maintenance = st.session_state.get("maintenance", False)
+ventilation = st.session_state.get("ventilation", False)
+poids_energie = st.session_state.get("poids_energie", 0)
+poids_roi = st.session_state.get("poids_roi", 0)
+poids_ges = st.session_state.get("poids_ges", 0)
+poids_productivite = st.session_state.get("poids_productivite", 0)
+poids_maintenance = st.session_state.get("poids_maintenance", 0)
+
+# Sécurisation des équipements sous forme de listes
+equipements = ["chaudieres", "frigo", "compresseur", "pompes", "ventilation", "machines", "eclairage"]
+for key in equipements:
+    if key not in st.session_state or st.session_state[key] is None:
+        st.session_state[key] = []
+
+liste_chaudieres = st.session_state["chaudieres"]
+liste_frigo = st.session_state["frigo"]
+liste_compresseurs = st.session_state["compresseur"]
+liste_pompes = st.session_state["pompes"]
+liste_ventilation = st.session_state["ventilation"]
+liste_machines = st.session_state["machines"]
+liste_eclairage = st.session_state["eclairage"]
+
+# ===========================
+# 📤 EXPORT EXCEL
+# ===========================
+
+translations_excel = {
     "fr": {
         "label_client_nom": "Nom du client",
         "msg_checkbox_excel": "Exporter les données au format Excel",
@@ -956,93 +991,52 @@ translations = {
     }
 }
 
-# Vérifie que la langue est définie et existe
-if 'lang' not in locals() or lang not in translations:
-    lang = "fr"  # Valeur par défaut
+# Langue par défaut si non définie
+if 'lang' not in locals() or lang not in translations_excel:
+    lang = "fr"
 
-# Initialisation de la liste erreurs
-erreurs = []
-
-if st.checkbox(translations[lang]['msg_checkbox_excel']):
+if st.checkbox(translations_excel[lang]['msg_checkbox_excel']):
     data = {
-        translations[lang]['label_client_nom']: [client_nom],
+        translations_excel[lang]['label_client_nom']: [client_nom],
         "Site": [site_nom],
-        "GES": [sauver_ges],
-        "ROI": [roi_vise],
+        "GES (%)": [sauver_ges],
+        "ROI visé": [roi_vise],
         "Contrôle": ['Oui' if controle else 'Non'],
         "Maintenance": ['Oui' if maintenance else 'Non'],
         "Ventilation": ['Oui' if ventilation else 'Non'],
+        "Poids énergie": [f"{poids_energie:.0%}"],
+        "Poids ROI": [f"{poids_roi:.0%}"],
+        "Poids GES": [f"{poids_ges:.0%}"],
+        "Poids Productivité": [f"{poids_productivite:.0%}"],
+        "Poids Maintenance": [f"{poids_maintenance:.0%}"],
     }
+
     df_export = pd.DataFrame(data)
+
     excel_buffer = io.BytesIO()
     with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
-        df_export.to_excel(writer, index=False)
+        df_export.to_excel(writer, index=False, sheet_name="Audit Flash")
+
     excel_buffer.seek(0)
     st.download_button(
-        label=translations[lang]['bouton_export_excel'],
+        label=translations_excel[lang]['bouton_export_excel'],
         data=excel_buffer,
         file_name="audit_flash.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
-# Ajout d'erreur simulée (juste pour tester la ligne incriminée)
-label_client = translations[lang].get('label_client_nom', 'Nom du client')
-erreurs.append(label_client)
-
-#========================
-# Soumission par courriel
-#========================
-# Adresse e-mail destinataire fixe
-EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
-
-# =============================
-# 🔐 Sécurisation des équipements
-# =============================
-equipements = ["chaudieres", "frigo", "compresseur", "pompes", "ventilation", "machines", "eclairage"]
-for key in equipements:
-    if key not in st.session_state or st.session_state[key] is None:
-        st.session_state[key] = []
-
-# =============================
-# 🔁 Récupération des listes
-# =============================
-liste_chaudieres = st.session_state["chaudieres"]
-liste_frigo = st.session_state["frigo"]
-liste_compresseurs = st.session_state["compresseur"]
-liste_pompes = st.session_state["pompes"]
-liste_ventilation = st.session_state["ventilation"]
-liste_machines = st.session_state["machines"]
-liste_eclairage = st.session_state["eclairage"]
-
-# Initialisation sécurisée des champs du formulaire
-client_nom = st.session_state.get("client_nom", "N/A")
-site_nom = st.session_state.get("site_nom", "N/A")
-contact_ee_nom = st.session_state.get("contact_ee_nom", "N/A")
-contact_ee_mail = st.session_state.get("contact_ee_mail", "N/A")
-sauver_ges = st.session_state.get("sauver_ges", None)
-poids_energie = st.session_state.get("poids_energie", 0)
-poids_roi = st.session_state.get("poids_roi", 0)
-poids_ges = st.session_state.get("poids_ges", 0)
-poids_productivite = st.session_state.get("poids_productivite", 0)
-poids_maintenance = st.session_state.get("poids_maintenance", 0)
-facture_elec = st.session_state.get("facture_elec", [])
-facture_combustibles = st.session_state.get("facture_combustibles", [])
-facture_autres = st.session_state.get("facture_autres", [])
-plans_pid = st.session_state.get("plans_pid", [])
-
 # =============================
 # 🧪 Debug simple
 # =============================
-try:
-    st.write("✅ Chaudières :", liste_chaudieres)
-    st.write("Frigo :", liste_frigo)
-    st.write("Compresseurs :", liste_compresseurs)
-    st.write("Pompes :", liste_pompes)
-    st.write("Ventilation :", liste_ventilation)
-    st.write("Machines :", liste_machines)
-    st.write("Éclairage :", liste_eclairage)
-except Exception as e:
-    st.error(f"⛔ Erreur d'affichage d'une des listes : {e}")
+#try:
+  #  st.write("✅ Chaudières :", liste_chaudieres)
+  #  st.write("Frigo :", liste_frigo)
+  #  st.write("Compresseurs :", liste_compresseurs)
+ #   st.write("Pompes :", liste_pompes)
+#    st.write("Ventilation :", liste_ventilation)
+#    st.write("Machines :", liste_machines)
+#    st.write("Éclairage :", liste_eclairage)
+#except Exception as e:
+ #   st.error(f"⛔ Erreur d'affichage d'une des listes : {e}")
 
 if st.button("Soumettre le formulaire"):
     resume = (
@@ -1055,36 +1049,49 @@ if st.button("Soumettre le formulaire"):
         f"- Réduction GES : {sauver_ges if sauver_ges is not None else 'N/A'}%"
     )
 
+    # 📄 Génération du PDF
     pdf = FPDF()
+    pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
+    pdf.set_font("DejaVu", '', 12)
     pdf.cell(0, 10, f"Résumé Audit Flash - {client_nom}", ln=True, align='C')
     pdf.ln(10)
     pdf.multi_cell(0, 10, resume)
 
+    # 📊 Page des priorités stratégiques
     pdf.add_page()
-    pdf.set_font("Arial", "B", 14)
+    pdf.set_font("DejaVu", 'B', 14)
     pdf.cell(0, 10, "📊 Graphique des priorités stratégiques", ln=True)
 
     fig, ax = plt.subplots()
     priorites = ["Conso énergétique", "ROI", "GES", "Productivité", "Maintenance"]
     valeurs = [poids_energie, poids_roi, poids_ges, poids_productivite, poids_maintenance]
     ax.bar(priorites, valeurs)
-    plt.title("Priorités stratégiques du client")
-    plt.xlabel("Critères")
-    plt.ylabel("Priorité (%)")
+    ax.set_title("Priorités stratégiques du client")
+    ax.set_xlabel("Critères")
+    ax.set_ylabel("Priorité (%)")
     plt.tight_layout()
 
     graph_filename = "priorites.png"
-    fig.savefig(graph_filename)
+    fig.savefig(graph_filename, bbox_inches='tight')
     plt.close(fig)
 
-    pdf.image(graph_filename, x=10, y=30, w=pdf.w - 20)
+    try:
+        pdf.image(graph_filename, x=10, y=30, w=pdf.w - 20)
+    except Exception as e:
+        st.warning(f"⚠️ Graphique non intégré : {e}")
 
-    pdf_bytes = pdf.output(dest='S').encode('latin1')
+    # 🔁 Encodage UTF-8
+    try:
+        pdf_bytes = pdf.output(dest='S').encode('latin1')  # DejaVu supporte les accents ici
+    except Exception as e:
+        st.error(f"Erreur d'encodage PDF : {e}")
+        raise
+
     pdf_filename = f"Resume_AuditFlash_{client_nom}.pdf"
 
+    # 📧 Envoi par courriel
     try:
         SMTP_SERVER = "smtp.gmail.com"
         SMTP_PORT = 587
@@ -1098,22 +1105,27 @@ if st.button("Soumettre le formulaire"):
         msg.set_content(resume)
         msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
 
+        # 📎 Ajout des pièces jointes (factures et plans)
         uploads_dir = "uploads"
         os.makedirs(uploads_dir, exist_ok=True)
+
         for file_group in [facture_elec, facture_combustibles, facture_autres, plans_pid]:
-            if file_group:
-                for file in file_group:
+            for file in file_group or []:
+                try:
                     file_path = os.path.join(uploads_dir, file.name)
                     with open(file_path, "wb") as f:
                         f.write(file.read())
                     with open(file_path, "rb") as f:
                         msg.add_attachment(f.read(), maintype='application', subtype='pdf', filename=file.name)
+                except Exception as e:
+                    st.warning(f"⚠️ Fichier {file.name} non attaché : {e}")
 
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()
             server.login(EMAIL_SENDER, EMAIL_PASSWORD)
             server.send_message(msg)
 
-        st.success("Formulaire soumis et envoyé par e-mail avec succès !")
+        st.success("✅ Formulaire soumis et envoyé par e-mail avec succès !")
+
     except Exception as e:
-        st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
+        st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
