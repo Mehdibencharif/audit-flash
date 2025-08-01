@@ -1104,7 +1104,7 @@ try:
     EMAIL_PASSWORD = st.secrets["email_password"]
 
     # ✅ Ajout des destinataires ici
-    EMAIL_DESTINATAIRE = ["mbencharif@gmail.com", "pdelorme@gmail.com"]
+    EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
 
     # Création du message
     msg = EmailMessage()
@@ -1143,4 +1143,5 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
