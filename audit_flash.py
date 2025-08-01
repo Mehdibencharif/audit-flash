@@ -865,6 +865,7 @@ if st.button(translations[lang]['bouton_generer_pdf']):
     else:
         # 🔍 Debug des listes (hors PDF)
         st.write("🔍 Debug PDF : contenu des listes")
+        st.write("🔍 Variables disponibles :", list(locals().keys()))
         st.write("Chaudières :", liste_chaudieres)
         st.write("Frigo :", liste_frigo)
         st.write("Compresseurs :", liste_compresseurs)
