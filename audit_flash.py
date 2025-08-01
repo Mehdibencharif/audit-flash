@@ -470,7 +470,7 @@ translations = {
         "label_type_eclairage": "Type d’éclairage (LED, fluorescent, etc.)",
         "label_puissance_totale_eclairage": "Puissance totale installée (kW)",
         "label_heures_utilisation": "Nombre d’heures d’utilisation par jour"
-        "label_economiseur_chaudiere": "Économiseur installé ?",
+        "label_economiseur_chaudiere": ""Économiseur installé ?",
         "label_nom_frigorigenes": "Nom du frigorigène",
     },
     "en": {
@@ -524,7 +524,7 @@ st.markdown(f"""
 with st.expander(translations[lang]['texte_expander_equipements']):
     # 🔥 Section Chaudières
     st.markdown(f"#### {translations[lang]['sous_titre_chaudieres']}")
-   columns_chaudieres = [
+    columns_chaudieres = [
     translations[lang]['label_type_chaudiere'],
     translations[lang]['label_rendement_chaudiere'],
     translations[lang]['label_taille_chaudiere'],
