@@ -995,14 +995,17 @@ erreurs.append(label_client)
 EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
 
 if st.button("Soumettre le formulaire"):
-    # Récupération des données des sections
-    liste_chaudieres = st.session_state.get("chaudieres", [])
-    liste_frigo = st.session_state.get("frigo", [])
-    liste_compresseurs = st.session_state.get("compresseur", [])
-    liste_pompes = st.session_state.get("pompes", [])
-    liste_ventilation = st.session_state.get("ventilation", [])
-    liste_machines = st.session_state.get("machines", [])
-    liste_eclairage = st.session_state.get("eclairage", [])
+   # Initialisation en dehors du bouton pour éviter les erreurs
+liste_chaudieres = st.session_state.get("chaudieres", [])
+liste_frigo = st.session_state.get("frigo", [])
+liste_compresseurs = st.session_state.get("compresseur", [])
+liste_pompes = st.session_state.get("pompes", [])
+liste_ventilation = st.session_state.get("ventilation", [])
+liste_machines = st.session_state.get("machines", [])
+liste_eclairage = st.session_state.get("eclairage", [])
+
+# Tu peux maintenant les utiliser sans erreur
+st.write("Chaudières :", liste_chaudieres)
 
     # Résumé texte
     resume = f"""
