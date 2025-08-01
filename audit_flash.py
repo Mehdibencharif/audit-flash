@@ -916,14 +916,17 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         pdf.cell(0, 10, "Priorités stratégiques du client:", ln=True)
         pdf.set_font('DejaVu', '', 12)
 
-        if total_priorites > 0:
-            pdf.cell(0, 10, f"Réduction consommation énergétique : {poids_energie:.0%}", ln=True)
-            pdf.cell(0, 10, f"Retour sur investissement : {poids_roi:.0%}", ln=True)
-            pdf.cell(0, 10, f"Réduction émissions GES : {poids_ges:.0%}", ln=True)
-            pdf.cell(0, 10, f"Productivité et fiabilité : {poids_productivite:.0%}", ln=True)
-            pdf.cell(0, 10, f"Maintenance et fiabilité : {poids_maintenance:.0%}", ln=True)
-        else:
-            pdf.cell(0, 10, "Les priorités stratégiques n'ont pas été renseignées.", ln=True)
+        try:
+            if total_priorites > 0:
+                pdf.cell(0, 10, f"Réduction consommation énergétique : {poids_energie:.0%}", ln=True)
+                pdf.cell(0, 10, f"Retour sur investissement : {poids_roi:.0%}", ln=True)
+                pdf.cell(0, 10, f"Réduction émissions GES : {poids_ges:.0%}", ln=True)
+                pdf.cell(0, 10, f"Productivité et fiabilité : {poids_prod:.0%}", ln=True)
+                pdf.cell(0, 10, f"Maintenance et fiabilité : {poids_maintenance:.0%}", ln=True)
+            else:
+                pdf.cell(0, 10, "Les priorités stratégiques n'ont pas été renseignées.", ln=True)
+        except Exception as e:
+            pdf.cell(0, 10, "Erreur lors du calcul des priorités stratégiques.", ln=True)
 
         # === Export PDF ===
         pdf_buffer = io.BytesIO()
@@ -1143,5 +1146,6 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
