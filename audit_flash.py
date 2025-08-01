@@ -813,9 +813,9 @@ with st.expander(translations[lang]['texte_expander_services']):
 # ==========================
 # 8. RÉCAPITULATIF ET GÉNÉRATION PDF
 # ==========================
+# Traductions (aucun problème ici, juste à garder tel quel)
 translations = {
     "fr": {
-        # ... autres clés ...
         "titre_pdf": "📝 8. Récapitulatif et génération PDF",
         "texte_info_pdf": "ℹ️ Note : Cette version d’essai ne conserve pas vos données après fermeture de la page. Une version finale permettra d’enregistrer et de reprendre vos réponses ultérieurement.",
         "bouton_generer_pdf": "📥 Générer le PDF",
@@ -827,7 +827,6 @@ translations = {
         "label_contact_ee_mail": "Courriel de contact EE"
     },
     "en": {
-        # ... autres clés ...
         "titre_pdf": "📝 8. Summary and PDF Generation",
         "texte_info_pdf": "ℹ️ Note: This trial version does not retain your data after closing the page. A final version will allow you to save and resume your answers later.",
         "bouton_generer_pdf": "📥 Generate PDF",
@@ -840,9 +839,8 @@ translations = {
     }
 }
 
-
+# 🔹 Affichage du titre
 st.info(translations[lang]['texte_info_pdf'])
-
 st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
 st.markdown(f"""
 <div class='section-title'>
@@ -850,8 +848,10 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# 🔹 Bouton Générer PDF
 if st.button(translations[lang]['bouton_generer_pdf']):
     erreurs = []
+
     if not client_nom:
         erreurs.append(translations[lang]['label_client_nom'])
     if not site_nom:
@@ -863,11 +863,23 @@ if st.button(translations[lang]['bouton_generer_pdf']):
     if erreurs:
         st.error(f"{translations[lang]['msg_erreur_champs']} {', '.join(erreurs)}")
     else:
+        # 🔍 Debug des listes (hors PDF)
+        st.write("🔍 Debug PDF : contenu des listes")
+        st.write("Chaudières :", liste_chaudieres)
+        st.write("Frigo :", liste_frigo)
+        st.write("Compresseurs :", liste_compresseurs)
+        st.write("Pompes :", liste_pompes)
+        st.write("Ventilation :", liste_ventilation)
+        st.write("Machines :", liste_machines)
+        st.write("Éclairage :", liste_eclairage)
+
+        # 📝 Génération du PDF
         pdf = FPDF()
         pdf.add_page()
+
         try:
             pdf.image(logo_path, x=160, y=10, w=30)
-        except:
+        except Exception:
             pass
 
         pdf.set_font("Arial", 'B', 16)
@@ -915,6 +927,7 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         else:
             pdf.cell(0, 10, "Les priorités stratégiques n'ont pas été renseignées.", ln=True)
 
+        # ✅ Export
         pdf_buffer = io.BytesIO()
         pdf_bytes = pdf.output(dest='S').encode('latin1')
         pdf_buffer.write(pdf_bytes)
@@ -927,7 +940,7 @@ if st.button(translations[lang]['bouton_generer_pdf']):
             mime="application/pdf"
         )
         st.success(translations[lang]['msg_succes_pdf'])
-
+        
 # BONUS : EXPORT EXCEL
 # ==========================
 translations = {
@@ -979,45 +992,43 @@ erreurs.append(label_client)
 #========================
 # Soumission par courriel
 #========================
-# Adresse e-mail destinataire fixe
 EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
 
 if st.button("Soumettre le formulaire"):
-    # Conversion des DataFrames en listes de dictionnaires
-    liste_chaudieres = df_chaudieres.to_dict(orient='records')
-    liste_frigo = df_frigo.to_dict(orient='records')
-    liste_compresseurs = df_compresseur.to_dict(orient='records')
-    liste_pompes = df_pompes.to_dict(orient='records')
-    liste_ventilation = df_ventilation.to_dict(orient='records')
-    liste_machines = df_machines.to_dict(orient='records')
-    liste_eclairage = df_eclairage.to_dict(orient='records')
+    # Récupération des données des sections
+    liste_chaudieres = st.session_state.get("chaudieres", [])
+    liste_frigo = st.session_state.get("frigo", [])
+    liste_compresseurs = st.session_state.get("compresseur", [])
+    liste_pompes = st.session_state.get("pompes", [])
+    liste_ventilation = st.session_state.get("ventilation", [])
+    liste_machines = st.session_state.get("machines", [])
+    liste_eclairage = st.session_state.get("eclairage", [])
 
-    # Exemple résumé texte
+    # Résumé texte
     resume = f"""
     Bonjour,
 
-    Ci-joint le résumé de l'Audit Flash pour le client {client_nom}.
+    Ci-joint le résumé de l'Audit Flash pour le client {client_nom or 'N/A'}.
 
     Informations saisies :
-    - Site : {site_nom}
-    - Contact : {contact_ee_nom}
-    - Email : {contact_ee_mail}
-    - Réduction GES : {sauver_ges}%
-    (ajouter ici tout ce que tu veux)
+    - Site : {site_nom or 'N/A'}
+    - Contact : {contact_ee_nom or 'N/A'}
+    - Email : {contact_ee_mail or 'N/A'}
+    - Réduction GES : {sauver_ges if sauver_ges is not None else 'N/A'}%
     """
 
-    # Initialisation du PDF
+    # Création du PDF
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
 
-     # Page 1 - Résumé
+    # Page 1 : Résumé
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(0, 10, f"Résumé Audit Flash - {client_nom}", ln=True, align='C')
+    pdf.cell(0, 10, f"Résumé Audit Flash - {client_nom or 'N/A'}", ln=True, align='C')
     pdf.ln(10)
     pdf.multi_cell(0, 10, resume)
 
-    # 🔹 Page 2 - Liste des équipements
+    # Page 2 : Liste des équipements
     pdf.add_page()
     pdf.set_font("Arial", "B", 14)
     pdf.cell(0, 10, "⚙️ Liste des équipements", ln=True)
@@ -1028,15 +1039,21 @@ if st.button("Soumettre le formulaire"):
         pdf.set_font("Arial", "B", 12)
         pdf.cell(0, 10, "Chaudières :", ln=True)
         pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Type", border=1, align='C')
-        pdf.cell(40, 8, "Rendement (%)", border=1, align='C')
-        pdf.cell(60, 8, "Taille", border=1, align='C')
+        pdf.cell(40, 8, "Type", border=1, align='C')
+        pdf.cell(30, 8, "Rendement (%)", border=1, align='C')
+        pdf.cell(40, 8, "Taille", border=1, align='C')
+        pdf.cell(30, 8, "Appoint eau", border=1, align='C')
+        pdf.cell(30, 8, "Micro mod.", border=1, align='C')
+        pdf.cell(30, 8, "Économiseur", border=1, align='C')
         pdf.ln()
         pdf.set_font("Arial", "", 10)
         for row in liste_chaudieres:
-            pdf.cell(60, 8, row.get("Type de chaudière", "N/A"), border=1)
-            pdf.cell(40, 8, str(row.get("Rendement chaudière (%)", "N/A")), border=1, align='C')
-            pdf.cell(60, 8, row.get("Taille de la chaudière (BHP ou BTU)", "N/A"), border=1)
+            pdf.cell(40, 8, str(row.get("Type de chaudière", "N/A")), border=1)
+            pdf.cell(30, 8, str(row.get("Rendement chaudière (%)", "N/A")), border=1)
+            pdf.cell(40, 8, str(row.get("Taille de la chaudière (BHP ou BTU)", "N/A")), border=1)
+            pdf.cell(30, 8, str(row.get("Appoint d’eau (volume)", "N/A")), border=1)
+            pdf.cell(30, 8, str(row.get("Chaudière équipée de micro modulation ?", "N/A")), border=1)
+            pdf.cell(30, 8, str(row.get("Économiseur installé ?", "N/A")), border=1)
             pdf.ln()
         pdf.ln(5)
 
@@ -1046,10 +1063,12 @@ if st.button("Soumettre le formulaire"):
         pdf.cell(0, 10, "Équipements frigorifiques :", ln=True)
         pdf.set_font("Arial", "B", 10)
         pdf.cell(60, 8, "Capacité", border=1, align='C')
+        pdf.cell(60, 8, "Frigorigène", border=1, align='C')
         pdf.ln()
         pdf.set_font("Arial", "", 10)
         for row in liste_frigo:
-            pdf.cell(60, 8, row.get("Capacité frigorifique", "N/A"), border=1)
+            pdf.cell(60, 8, str(row.get("Capacité frigorifique", "N/A")), border=1)
+            pdf.cell(60, 8, str(row.get("Nom du frigorigène", "N/A")), border=1)
             pdf.ln()
         pdf.ln(5)
 
@@ -1064,7 +1083,7 @@ if st.button("Soumettre le formulaire"):
         pdf.set_font("Arial", "", 10)
         for row in liste_compresseurs:
             pdf.cell(60, 8, str(row.get("Puissance compresseur (HP)", "N/A")), border=1)
-            pdf.cell(60, 8, row.get("Variation de vitesse compresseur", "N/A"), border=1)
+            pdf.cell(60, 8, str(row.get("Variation de vitesse compresseur", "N/A")), border=1)
             pdf.ln()
         pdf.ln(5)
 
@@ -1078,7 +1097,7 @@ if st.button("Soumettre le formulaire"):
         pdf.ln()
         pdf.set_font("Arial", "", 10)
         for row in liste_pompes:
-            pdf.cell(60, 8, row.get("Type de pompe (centrifuge, volumétrique, etc.)", "N/A"), border=1)
+            pdf.cell(60, 8, str(row.get("Type de pompe (centrifuge, volumétrique, etc.)", "N/A")), border=1)
             pdf.cell(60, 8, str(row.get("Puissance pompe (kW ou HP)", "N/A")), border=1)
             pdf.ln()
         pdf.ln(5)
@@ -1093,7 +1112,7 @@ if st.button("Soumettre le formulaire"):
         pdf.ln()
         pdf.set_font("Arial", "", 10)
         for row in liste_ventilation:
-            pdf.cell(60, 8, row.get("Type de ventilation (naturelle, mécanique, etc.)", "N/A"), border=1)
+            pdf.cell(60, 8, str(row.get("Type de ventilation (naturelle, mécanique, etc.)", "N/A")), border=1)
             pdf.cell(60, 8, str(row.get("Puissance ventilation (kWh)", "N/A")), border=1)
             pdf.ln()
         pdf.ln(5)
@@ -1103,13 +1122,17 @@ if st.button("Soumettre le formulaire"):
         pdf.set_font("Arial", "B", 12)
         pdf.cell(0, 10, "Autres machines de production :", ln=True)
         pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Nom", border=1, align='C')
-        pdf.cell(60, 8, "Puissance", border=1, align='C')
+        pdf.cell(40, 8, "Nom", border=1, align='C')
+        pdf.cell(40, 8, "Puissance", border=1, align='C')
+        pdf.cell(40, 8, "Taux util. (%)", border=1, align='C')
+        pdf.cell(40, 8, "Source énergie", border=1, align='C')
         pdf.ln()
         pdf.set_font("Arial", "", 10)
         for row in liste_machines:
-            pdf.cell(60, 8, row.get("Nom de la machine", "N/A"), border=1)
-            pdf.cell(60, 8, str(row.get("Puissance machine (kW)", "N/A")), border=1)
+            pdf.cell(40, 8, str(row.get("Nom de la machine", "N/A")), border=1)
+            pdf.cell(40, 8, str(row.get("Puissance machine (kW)", "N/A")), border=1)
+            pdf.cell(40, 8, str(row.get("Taux d’utilisation machine (%)", "N/A")), border=1)
+            pdf.cell(40, 8, str(row.get("Source d’énergie (fossile, électricité, etc.)", "N/A")), border=1)
             pdf.ln()
         pdf.ln(5)
 
@@ -1120,23 +1143,25 @@ if st.button("Soumettre le formulaire"):
         pdf.set_font("Arial", "B", 10)
         pdf.cell(60, 8, "Type", border=1, align='C')
         pdf.cell(60, 8, "Puissance", border=1, align='C')
+        pdf.cell(60, 8, "Heures/jour", border=1, align='C')
         pdf.ln()
         pdf.set_font("Arial", "", 10)
         for row in liste_eclairage:
-            pdf.cell(60, 8, row.get("Type d’éclairage (LED, fluorescent, etc.)", "N/A"), border=1)
+            pdf.cell(60, 8, str(row.get("Type d’éclairage (LED, fluorescent, etc.)", "N/A")), border=1)
             pdf.cell(60, 8, str(row.get("Puissance totale installée (kW)", "N/A")), border=1)
+            pdf.cell(60, 8, str(row.get("Nombre d’heures d’utilisation par jour", "N/A")), border=1)
             pdf.ln()
         pdf.ln(5)
 
-    # 🔹 Page 3 - Graphique des priorités stratégiques
+   # Page 3 : Graphique des priorités stratégiques
     pdf.add_page()
     pdf.set_font("Arial", "B", 14)
     pdf.cell(0, 10, "📊 Graphique des priorités stratégiques", ln=True)
 
     fig, ax = plt.subplots()
     priorites = ["Conso énergétique", "ROI", "GES", "Productivité", "Maintenance"]
-    valeurs = [20, 20, 20, 20, 20]  # Remplace par tes vraies données si besoin
-    ax.bar(priorites, valeurs)
+    valeurs = [poids_energie or 0, poids_roi or 0, poids_ges or 0, poids_productivite or 0, poids_maintenance or 0]
+    ax.bar(priorites, valeurs, color='skyblue')
     plt.title("Priorités stratégiques du client")
     plt.xlabel("Critères")
     plt.ylabel("Priorité (%)")
@@ -1148,16 +1173,16 @@ if st.button("Soumettre le formulaire"):
 
     pdf.image(graph_filename, x=10, y=30, w=pdf.w - 20)
 
-    # 🔹 Génération finale du PDF
+    # Génération finale du PDF
     pdf_bytes = pdf.output(dest='S').encode('latin1')
     pdf_filename = f"Resume_AuditFlash_{client_nom}.pdf"
 
-    # 🔹 Envoi du PDF par email
+    # Envoi du PDF par email
     try:
         SMTP_SERVER = "smtp.gmail.com"
         SMTP_PORT = 587
         EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
-        EMAIL_PASSWORD = "ljbirfbvgvbvsfgj"
+        EMAIL_PASSWORD = st.secrets["email_password"]
 
         msg = EmailMessage()
         msg['Subject'] = f"Audit Flash - Client {client_nom}"
@@ -1185,4 +1210,5 @@ if st.button("Soumettre le formulaire"):
         st.success("Formulaire soumis et envoyé par e-mail avec succès !")
     except Exception as e:
         st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
+
 
