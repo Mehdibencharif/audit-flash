@@ -865,14 +865,13 @@ if st.button(translations[lang]['bouton_generer_pdf']):
     else:
         # 🔍 Debug des listes (hors PDF)
         st.write("🔍 Debug PDF : contenu des listes")
-        st.write("🔍 Variables disponibles :", list(locals().keys()))
-        st.write("Chaudières :", liste_chaudieres)
-        st.write("Frigo :", liste_frigo)
-        st.write("Compresseurs :", liste_compresseurs)
-        st.write("Pompes :", liste_pompes)
-        st.write("Ventilation :", liste_ventilation)
-        st.write("Machines :", liste_machines)
-        st.write("Éclairage :", liste_eclairage)
+        liste_chaudieres = st.session_state.get("chaudieres", [])
+        liste_frigo = st.session_state.get("frigo", [])
+        liste_compresseurs = st.session_state.get("compresseur", [])
+        liste_pompes = st.session_state.get("pompes", [])
+        liste_ventilation = st.session_state.get("ventilation", [])
+        liste_machines = st.session_state.get("machines", [])
+        liste_eclairage = st.session_state.get("eclairage", [])
 
         # 📝 Génération du PDF
         pdf = FPDF()
