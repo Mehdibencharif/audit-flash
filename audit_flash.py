@@ -542,7 +542,7 @@ with st.expander(translations[lang]['texte_expander_equipements']):
 
     # ❄️ Section Équipements frigorifiques
     st.markdown(f"#### {translations[lang]['sous_titre_frigo']}")
-   columns_frigo = [
+    columns_frigo = [
     translations[lang]['label_capacite_frigo'],
     translations[lang]['label_nom_frigorigenes']  
     ]
