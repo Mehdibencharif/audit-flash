@@ -1043,7 +1043,11 @@ if st.button("Soumettre le formulaire"):
     pdf.multi_cell(0, 10, resume)
 
     # Page 2 : Liste des équipements (optionnel, affichage Streamlit pour debug)
+   if isinstance(liste_chaudieres, list):
     st.write("Chaudières :", liste_chaudieres)
+else:
+    st.warning("⚠️ La variable 'liste_chaudieres' n'est pas une liste. Vérifie l'état de session.")
+
     st.write("Frigo :", liste_frigo)
     st.write("Compresseurs :", liste_compresseurs)
     st.write("Pompes :", liste_pompes)
