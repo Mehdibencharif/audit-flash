@@ -995,12 +995,17 @@ erreurs.append(label_client)
 # Adresse e-mail destinataire fixe
 EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
 
-# Sécurisation des listes d’équipements
-for key in ["chaudieres", "frigo", "compresseur", "pompes", "ventilation", "machines", "eclairage"]:
+# =============================
+# 🔐 Sécurisation des équipements
+# =============================
+equipements = ["chaudieres", "frigo", "compresseur", "pompes", "ventilation", "machines", "eclairage"]
+for key in equipements:
     if key not in st.session_state or st.session_state[key] is None:
         st.session_state[key] = []
 
-# Récupération des données des sections
+# =============================
+# 🔁 Récupération des listes
+# =============================
 liste_chaudieres = st.session_state["chaudieres"]
 liste_frigo = st.session_state["frigo"]
 liste_compresseurs = st.session_state["compresseur"]
@@ -1025,17 +1030,21 @@ facture_combustibles = st.session_state.get("facture_combustibles", [])
 facture_autres = st.session_state.get("facture_autres", [])
 plans_pid = st.session_state.get("plans_pid", [])
 
-# Affichage debug pour inspection
-st.write("Chaudières :", liste_chaudieres)
-st.write("Frigo :", liste_frigo)
-st.write("Compresseurs :", liste_compresseurs)
-st.write("Pompes :", liste_pompes)
-st.write("Ventilation :", liste_ventilation)
-st.write("Machines :", liste_machines)
-st.write("Éclairage :", liste_eclairage)
+# =============================
+# 🧪 Debug simple
+# =============================
+try:
+    st.write("✅ Chaudières :", liste_chaudieres)
+    st.write("Frigo :", liste_frigo)
+    st.write("Compresseurs :", liste_compresseurs)
+    st.write("Pompes :", liste_pompes)
+    st.write("Ventilation :", liste_ventilation)
+    st.write("Machines :", liste_machines)
+    st.write("Éclairage :", liste_eclairage)
+except Exception as e:
+    st.error(f"⛔ Erreur d'affichage d'une des listes : {e}")
 
 if st.button("Soumettre le formulaire"):
-    # Résumé texte
     resume = (
         f"Bonjour,\n\n"
         f"Ci-joint le résumé de l'Audit Flash pour le client {client_nom}.\n\n"
@@ -1046,18 +1055,14 @@ if st.button("Soumettre le formulaire"):
         f"- Réduction GES : {sauver_ges if sauver_ges is not None else 'N/A'}%"
     )
 
-    # Création du PDF
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
-
-    # Page 1 : Résumé
     pdf.add_page()
     pdf.set_font("Arial", size=12)
     pdf.cell(0, 10, f"Résumé Audit Flash - {client_nom}", ln=True, align='C')
     pdf.ln(10)
     pdf.multi_cell(0, 10, resume)
 
-    # Page 3 : Graphique des priorités stratégiques
     pdf.add_page()
     pdf.set_font("Arial", "B", 14)
     pdf.cell(0, 10, "📊 Graphique des priorités stratégiques", ln=True)
@@ -1077,11 +1082,9 @@ if st.button("Soumettre le formulaire"):
 
     pdf.image(graph_filename, x=10, y=30, w=pdf.w - 20)
 
-    # Génération finale du PDF
     pdf_bytes = pdf.output(dest='S').encode('latin1')
     pdf_filename = f"Resume_AuditFlash_{client_nom}.pdf"
 
-    # Envoi du PDF par email
     try:
         SMTP_SERVER = "smtp.gmail.com"
         SMTP_PORT = 587
