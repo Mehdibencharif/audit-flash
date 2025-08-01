@@ -531,7 +531,7 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     translations[lang]['label_appoint_eau'],
     translations[lang]['label_micro_modulation'],
     translations[lang]['label_economiseur_chaudiere']  
-]
+    ]
     df_chaudieres = st.data_editor(
         pd.DataFrame(columns=columns_chaudieres),
         num_rows="dynamic",
@@ -545,7 +545,7 @@ with st.expander(translations[lang]['texte_expander_equipements']):
    columns_frigo = [
     translations[lang]['label_capacite_frigo'],
     translations[lang]['label_nom_frigorigenes']  
-]
+    ]
     df_frigo = st.data_editor(
         pd.DataFrame(columns=columns_frigo),
         num_rows="dynamic",
