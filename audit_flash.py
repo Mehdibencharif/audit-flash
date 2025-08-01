@@ -1004,14 +1004,30 @@ if st.button("Soumettre le formulaire"):
     liste_machines = st.session_state.get("machines", [])
     liste_eclairage = st.session_state.get("eclairage", [])
 
+    # Initialisation sécurisée de variables potentiellement manquantes
+    client_nom = st.session_state.get("client_nom", "N/A")
+    site_nom = st.session_state.get("site_nom", "N/A")
+    contact_ee_nom = st.session_state.get("contact_ee_nom", "N/A")
+    contact_ee_mail = st.session_state.get("contact_ee_mail", "N/A")
+    sauver_ges = st.session_state.get("sauver_ges", None)
+    poids_energie = st.session_state.get("poids_energie", 0)
+    poids_roi = st.session_state.get("poids_roi", 0)
+    poids_ges = st.session_state.get("poids_ges", 0)
+    poids_productivite = st.session_state.get("poids_productivite", 0)
+    poids_maintenance = st.session_state.get("poids_maintenance", 0)
+    facture_elec = st.session_state.get("facture_elec", [])
+    facture_combustibles = st.session_state.get("facture_combustibles", [])
+    facture_autres = st.session_state.get("facture_autres", [])
+    plans_pid = st.session_state.get("plans_pid", [])
+
     # Résumé texte
     resume = (
         f"Bonjour,\n\n"
-        f"Ci-joint le résumé de l'Audit Flash pour le client {client_nom or 'N/A'}.\n\n"
+        f"Ci-joint le résumé de l'Audit Flash pour le client {client_nom}.\n\n"
         f"Informations saisies :\n"
-        f"- Site : {site_nom or 'N/A'}\n"
-        f"- Contact : {contact_ee_nom or 'N/A'}\n"
-        f"- Email : {contact_ee_mail or 'N/A'}\n"
+        f"- Site : {site_nom}\n"
+        f"- Contact : {contact_ee_nom}\n"
+        f"- Email : {contact_ee_mail}\n"
         f"- Réduction GES : {sauver_ges if sauver_ges is not None else 'N/A'}%"
     )
 
@@ -1022,7 +1038,7 @@ if st.button("Soumettre le formulaire"):
     # Page 1 : Résumé
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(0, 10, f"Résumé Audit Flash - {client_nom or 'N/A'}", ln=True, align='C')
+    pdf.cell(0, 10, f"Résumé Audit Flash - {client_nom}", ln=True, align='C')
     pdf.ln(10)
     pdf.multi_cell(0, 10, resume)
 
@@ -1042,7 +1058,7 @@ if st.button("Soumettre le formulaire"):
 
     fig, ax = plt.subplots()
     priorites = ["Conso énergétique", "ROI", "GES", "Productivité", "Maintenance"]
-    valeurs = [poids_energie or 0, poids_roi or 0, poids_ges or 0, poids_productivite or 0, poids_maintenance or 0]
+    valeurs = [poids_energie, poids_roi, poids_ges, poids_productivite, poids_maintenance]
     ax.bar(priorites, valeurs)
     plt.title("Priorités stratégiques du client")
     plt.xlabel("Critères")
@@ -1092,4 +1108,3 @@ if st.button("Soumettre le formulaire"):
         st.success("Formulaire soumis et envoyé par e-mail avec succès !")
     except Exception as e:
         st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
-
