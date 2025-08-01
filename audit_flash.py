@@ -181,7 +181,7 @@ translations = {
     "fr": {
         "titre_infos": "📄 1. Informations générales",
         "texte_expander_infos": "Cliquez ici pour remplir cette section",
-        "label_client_nom": "Nom du client portail *",
+        "label_client_nom": "Nom du client *",
         "aide_client_nom": "Ex: Soteck Clauger",
         "label_site_nom": "Nom du site du client *",
         "label_adresse": "Adresse",
@@ -192,7 +192,7 @@ translations = {
     "en": {
         "titre_infos": "📄 1. General Information",
         "texte_expander_infos": "Click here to fill out this section",
-        "label_client_nom": "Client portal name *",
+        "label_client_nom": "Client name *",
         "aide_client_nom": "E.g., Soteck Clauger",
         "label_site_nom": "Client site name *",
         "label_adresse": "Address",
