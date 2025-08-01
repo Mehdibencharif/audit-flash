@@ -1027,7 +1027,7 @@ if st.checkbox(translations_excel[lang]['msg_checkbox_excel']):
 # 🧪 Debug simple
 # =============================
 #try:
-  #  st.write("✅ Chaudières :", liste_chaudieres)
+  #  st.write(" Chaudières :", liste_chaudieres)
   #  st.write("Frigo :", liste_frigo)
   #  st.write("Compresseurs :", liste_compresseurs)
  #   st.write("Pompes :", liste_pompes)
@@ -1035,7 +1035,7 @@ if st.checkbox(translations_excel[lang]['msg_checkbox_excel']):
 #    st.write("Machines :", liste_machines)
 #    st.write("Éclairage :", liste_eclairage)
 #except Exception as e:
- #   st.error(f"⛔ Erreur d'affichage d'une des listes : {e}")
+ #   st.error(f" Erreur d'affichage d'une des listes : {e}")
 
 if st.button("Soumettre le formulaire"):
     resume = (
@@ -1063,7 +1063,7 @@ if st.button("Soumettre le formulaire"):
     pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
     pdf.add_font('DejaVu', 'B', 'fonts/DejaVuSans-Bold.ttf', uni=True)
     pdf.set_font("DejaVu", 'B', 14)
-    pdf.cell(0, 10, "📊 Graphique des priorités stratégiques", ln=True)
+    pdf.cell(0, 10, " Graphique des priorités stratégiques", ln=True)
 
     fig, ax = plt.subplots()
     priorites = ["Conso énergétique", "ROI", "GES", "Productivité", "Maintenance"]
@@ -1085,7 +1085,7 @@ if st.button("Soumettre le formulaire"):
 
     # 🔁 Encodage UTF-8
     try:
-        pdf_bytes = pdf.output(dest='S').encode('latin1')  # DejaVu supporte les accents ici
+        pdf_bytes = pdf.output(dest='S').encode('utf-8')
     except Exception as e:
         st.error(f"Erreur d'encodage PDF : {e}")
         raise
