@@ -126,16 +126,27 @@ with col2:
         st.warning("⚠️ Logo non trouvé.")
 
         
-# MESSAGE DE BIENVENUE
-st.markdown("""
-**Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.  
-Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.**
+# MESSAGE DE BIENVENUE (multilingue)
+if langue == "Français":
+    st.markdown("""
+    **Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.  
+    Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.**
 
----
-🔗 Pour en savoir plus sur notre entreprise et nos services :  
-**[Soteck](https://www.soteck.com/fr)**
----
-""")
+    ---
+    🔗 Pour en savoir plus sur notre entreprise et nos services :  
+    **[Soteck](https://www.soteck.com/fr)**
+    ---
+    """)
+else:
+    st.markdown("""
+    **Welcome to our interactive needs assessment form for the energy flash audit.  
+    Please fill out all the sections below so that we can efficiently prepare your audit.**
+
+    ---
+    🔗 Learn more about our company and services:  
+    **[Soteck](https://www.soteck.com/en)**
+    ---
+    """)
 
 # SOMMAIRE INTERACTIF (avec ancres)
 if langue == "Français":
