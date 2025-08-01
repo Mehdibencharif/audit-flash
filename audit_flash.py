@@ -995,28 +995,25 @@ erreurs.append(label_client)
 EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
 
 if st.button("Soumettre le formulaire"):
-   # Initialisation en dehors du bouton pour éviter les erreurs
-   liste_chaudieres = st.session_state.get("chaudieres", [])
-   liste_frigo = st.session_state.get("frigo", [])
-   liste_compresseurs = st.session_state.get("compresseur", [])
-   liste_pompes = st.session_state.get("pompes", [])
-   liste_ventilation = st.session_state.get("ventilation", [])
-   liste_machines = st.session_state.get("machines", [])
-   liste_eclairage = st.session_state.get("eclairage", [])
-
+    # Récupération des données des sections
+    liste_chaudieres = st.session_state.get("chaudieres", [])
+    liste_frigo = st.session_state.get("frigo", [])
+    liste_compresseurs = st.session_state.get("compresseur", [])
+    liste_pompes = st.session_state.get("pompes", [])
+    liste_ventilation = st.session_state.get("ventilation", [])
+    liste_machines = st.session_state.get("machines", [])
+    liste_eclairage = st.session_state.get("eclairage", [])
 
     # Résumé texte
-    resume = f"""
-    Bonjour,
-
-    Ci-joint le résumé de l'Audit Flash pour le client {client_nom or 'N/A'}.
-
-    Informations saisies :
-    - Site : {site_nom or 'N/A'}
-    - Contact : {contact_ee_nom or 'N/A'}
-    - Email : {contact_ee_mail or 'N/A'}
-    - Réduction GES : {sauver_ges if sauver_ges is not None else 'N/A'}%
-    """
+    resume = (
+        f"Bonjour,\n\n"
+        f"Ci-joint le résumé de l'Audit Flash pour le client {client_nom or 'N/A'}.\n\n"
+        f"Informations saisies :\n"
+        f"- Site : {site_nom or 'N/A'}\n"
+        f"- Contact : {contact_ee_nom or 'N/A'}\n"
+        f"- Email : {contact_ee_mail or 'N/A'}\n"
+        f"- Réduction GES : {sauver_ges if sauver_ges is not None else 'N/A'}%"
+    )
 
     # Création du PDF
     pdf = FPDF()
@@ -1029,132 +1026,16 @@ if st.button("Soumettre le formulaire"):
     pdf.ln(10)
     pdf.multi_cell(0, 10, resume)
 
-    # Page 2 : Liste des équipements
-    pdf.add_page()
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "⚙️ Liste des équipements", ln=True)
-    pdf.ln(5)
+    # Page 2 : Liste des équipements (optionnel, affichage Streamlit pour debug)
+    st.write("Chaudières :", liste_chaudieres)
+    st.write("Frigo :", liste_frigo)
+    st.write("Compresseurs :", liste_compresseurs)
+    st.write("Pompes :", liste_pompes)
+    st.write("Ventilation :", liste_ventilation)
+    st.write("Machines :", liste_machines)
+    st.write("Éclairage :", liste_eclairage)
 
-    # Chaudières
-    if liste_chaudieres:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Chaudières :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(40, 8, "Type", border=1, align='C')
-        pdf.cell(30, 8, "Rendement (%)", border=1, align='C')
-        pdf.cell(40, 8, "Taille", border=1, align='C')
-        pdf.cell(30, 8, "Appoint eau", border=1, align='C')
-        pdf.cell(30, 8, "Micro mod.", border=1, align='C')
-        pdf.cell(30, 8, "Économiseur", border=1, align='C')
-        pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_chaudieres:
-            pdf.cell(40, 8, str(row.get("Type de chaudière", "N/A")), border=1)
-            pdf.cell(30, 8, str(row.get("Rendement chaudière (%)", "N/A")), border=1)
-            pdf.cell(40, 8, str(row.get("Taille de la chaudière (BHP ou BTU)", "N/A")), border=1)
-            pdf.cell(30, 8, str(row.get("Appoint d’eau (volume)", "N/A")), border=1)
-            pdf.cell(30, 8, str(row.get("Chaudière équipée de micro modulation ?", "N/A")), border=1)
-            pdf.cell(30, 8, str(row.get("Économiseur installé ?", "N/A")), border=1)
-            pdf.ln()
-        pdf.ln(5)
-
-    # Frigo
-    if liste_frigo:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Équipements frigorifiques :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Capacité", border=1, align='C')
-        pdf.cell(60, 8, "Frigorigène", border=1, align='C')
-        pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_frigo:
-            pdf.cell(60, 8, str(row.get("Capacité frigorifique", "N/A")), border=1)
-            pdf.cell(60, 8, str(row.get("Nom du frigorigène", "N/A")), border=1)
-            pdf.ln()
-        pdf.ln(5)
-
-    # Compresseurs
-    if liste_compresseurs:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Compresseurs :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Puissance (HP)", border=1, align='C')
-        pdf.cell(60, 8, "Variation de vitesse", border=1, align='C')
-        pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_compresseurs:
-            pdf.cell(60, 8, str(row.get("Puissance compresseur (HP)", "N/A")), border=1)
-            pdf.cell(60, 8, str(row.get("Variation de vitesse compresseur", "N/A")), border=1)
-            pdf.ln()
-        pdf.ln(5)
-
-    # Pompes
-    if liste_pompes:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Pompes industrielles :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Type", border=1, align='C')
-        pdf.cell(60, 8, "Puissance", border=1, align='C')
-        pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_pompes:
-            pdf.cell(60, 8, str(row.get("Type de pompe (centrifuge, volumétrique, etc.)", "N/A")), border=1)
-            pdf.cell(60, 8, str(row.get("Puissance pompe (kW ou HP)", "N/A")), border=1)
-            pdf.ln()
-        pdf.ln(5)
-
-    # Ventilation
-    if liste_ventilation:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Systèmes de ventilation :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Type", border=1, align='C')
-        pdf.cell(60, 8, "Puissance", border=1, align='C')
-        pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_ventilation:
-            pdf.cell(60, 8, str(row.get("Type de ventilation (naturelle, mécanique, etc.)", "N/A")), border=1)
-            pdf.cell(60, 8, str(row.get("Puissance ventilation (kWh)", "N/A")), border=1)
-            pdf.ln()
-        pdf.ln(5)
-
-    # Machines
-    if liste_machines:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Autres machines de production :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(40, 8, "Nom", border=1, align='C')
-        pdf.cell(40, 8, "Puissance", border=1, align='C')
-        pdf.cell(40, 8, "Taux util. (%)", border=1, align='C')
-        pdf.cell(40, 8, "Source énergie", border=1, align='C')
-        pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_machines:
-            pdf.cell(40, 8, str(row.get("Nom de la machine", "N/A")), border=1)
-            pdf.cell(40, 8, str(row.get("Puissance machine (kW)", "N/A")), border=1)
-            pdf.cell(40, 8, str(row.get("Taux d’utilisation machine (%)", "N/A")), border=1)
-            pdf.cell(40, 8, str(row.get("Source d’énergie (fossile, électricité, etc.)", "N/A")), border=1)
-            pdf.ln()
-        pdf.ln(5)
-
-    # Éclairage
-    if liste_eclairage:
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 10, "Systèmes d’éclairage :", ln=True)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(60, 8, "Type", border=1, align='C')
-        pdf.cell(60, 8, "Puissance", border=1, align='C')
-        pdf.cell(60, 8, "Heures/jour", border=1, align='C')
-        pdf.ln()
-        pdf.set_font("Arial", "", 10)
-        for row in liste_eclairage:
-            pdf.cell(60, 8, str(row.get("Type d’éclairage (LED, fluorescent, etc.)", "N/A")), border=1)
-            pdf.cell(60, 8, str(row.get("Puissance totale installée (kW)", "N/A")), border=1)
-            pdf.cell(60, 8, str(row.get("Nombre d’heures d’utilisation par jour", "N/A")), border=1)
-            pdf.ln()
-        pdf.ln(5)
-
-   # Page 3 : Graphique des priorités stratégiques
+    # Page 3 : Graphique des priorités stratégiques
     pdf.add_page()
     pdf.set_font("Arial", "B", 14)
     pdf.cell(0, 10, "📊 Graphique des priorités stratégiques", ln=True)
@@ -1162,7 +1043,7 @@ if st.button("Soumettre le formulaire"):
     fig, ax = plt.subplots()
     priorites = ["Conso énergétique", "ROI", "GES", "Productivité", "Maintenance"]
     valeurs = [poids_energie or 0, poids_roi or 0, poids_ges or 0, poids_productivite or 0, poids_maintenance or 0]
-    ax.bar(priorites, valeurs, color='skyblue')
+    ax.bar(priorites, valeurs)
     plt.title("Priorités stratégiques du client")
     plt.xlabel("Critères")
     plt.ylabel("Priorité (%)")
@@ -1211,5 +1092,4 @@ if st.button("Soumettre le formulaire"):
         st.success("Formulaire soumis et envoyé par e-mail avec succès !")
     except Exception as e:
         st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
-
 
