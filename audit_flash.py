@@ -1004,8 +1004,6 @@ if st.button("Soumettre le formulaire"):
    liste_machines = st.session_state.get("machines", [])
    liste_eclairage = st.session_state.get("eclairage", [])
 
-  #Tu peux maintenant les utiliser sans erreur
-  st.write("Chaudières :", liste_chaudieres)
 
     # Résumé texte
     resume = f"""
