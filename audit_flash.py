@@ -892,37 +892,40 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         liste_machines = extraire_noms_depuis_editor("machines")
         liste_eclairage = extraire_noms_depuis_editor("eclairage")
 
-       # === Création PDF ===
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
-        pdf.add_font('DejaVu', 'B', 'fonts/DejaVuSans-Bold.ttf', uni=True)
-        pdf.set_font('DejaVu', 'B', 16)
+        # === Création PDF ===
+pdf = FPDF()
+pdf.add_page()
+pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
+pdf.add_font('DejaVu', 'B', 'fonts/DejaVuSans-Bold.ttf', uni=True)
+pdf.set_font('DejaVu', 'B', 16)
 
-       # Titre principal
-       pdf.cell(0, 10, "Résumé - Audit Flash", ln=True, align="C")
-       pdf.ln(10)
-       pdf.set_font('DejaVu', '', 12)
+# Titre
+pdf.cell(0, 10, "Résumé - Audit Flash", ln=True, align="C")
+pdf.ln(10)
+pdf.set_font('DejaVu', '', 12)
 
-# === Logo principal (en haut à droite) ===
+# === Logo principal (haut de page) ===
 try:
-     pdf.image("Image/Logo Soteck.jpg", x=170, y=10, w=30)  # Ajuste x/y si besoin
+    pdf.image("Image/Logo Soteck.jpg", x=170, y=10, w=30)  # ajuste si besoin
 except Exception as e:
     print(f"Erreur logo haut de page : {e}")
 
-# === Infos de base ===
-     pdf.cell(0, 10, f"Client: {client_nom}", ln=True)
-     pdf.cell(0, 10, f"Site: {site_nom}", ln=True)
-     pdf.cell(0, 10, f"Date: {date.today().strftime('%d/%m/%Y')}", ln=True)
-     pdf.ln(5)
+# === Informations client ===
+pdf.cell(0, 10, f"Client: {client_nom}", ln=True)
+pdf.cell(0, 10, f"Site: {site_nom}", ln=True)
+pdf.cell(0, 10, f"Date: {date.today().strftime('%d/%m/%Y')}", ln=True)
+pdf.ln(5)
 
-     # (... reste de ton contenu PDF ici ...)
+# (... le reste de ton contenu ici, puis à la toute fin du PDF ...)
 
-     # === Logo en bas de page ===
+# === Logo en bas de page ===
 try:
-    pdf.image("Image/sous-page.jpg", x=10, y=265, w=190)  # pleine largeur, bas de page
+    pdf.image("Image/sous-page.jpg", x=10, y=265, w=190)  # pleine largeur bas de page
 except Exception as e:
     print(f"Erreur logo bas de page : {e}")
+        
+
+
 
         # === Objectifs client ===
         pdf.set_font('DejaVu', 'B', 12)
@@ -1221,6 +1224,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
