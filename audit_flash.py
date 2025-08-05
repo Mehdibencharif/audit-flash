@@ -843,7 +843,30 @@ translations = {
 st.info(translations[lang]['texte_info_pdf'])
 st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
 st.markdown(f"<div class='section-title'>{translations[lang]['titre_pdf']}</div>", unsafe_allow_html=True)
+#############################
+def extraire_noms_depuis_editor(data_key):
+    lignes = st.session_state.get(data_key, {})
+    noms = []
 
+    # Cas avec structure 'edited_rows', 'added_rows' (streamlit >= 1.25)
+    if isinstance(lignes, dict) and any(k in lignes for k in ['edited_rows', 'added_rows']):
+        for section in ['edited_rows', 'added_rows']:
+            if section in lignes:
+                source = lignes[section]
+                if isinstance(source, dict):
+                    source = source.values()
+                for row in source:
+                    nom = row.get("Nom", "").strip() if isinstance(row, dict) else ""
+                    if nom:
+                        noms.append(nom)
+    elif isinstance(lignes, list):  # Liste simple
+        for row in lignes:
+            nom = row.get("Nom", "").strip() if isinstance(row, dict) else ""
+            if nom:
+                noms.append(nom)
+
+    return noms
+# === Bouton Générer PDF ===
 # === Bouton Générer PDF ===
 if st.button(translations[lang]['bouton_generer_pdf']):
     erreurs = []
@@ -859,14 +882,14 @@ if st.button(translations[lang]['bouton_generer_pdf']):
     if erreurs:
         st.error(f"{translations[lang]['msg_erreur_champs']} {', '.join(erreurs)}")
     else:
-        # === Données sécurisées ===
-        liste_chaudieres = [eq.get("Nom", "").strip() for eq in st.session_state.get("chaudieres", []) if eq.get("Nom")]
-        liste_frigo = [eq.get("Nom", "").strip() for eq in st.session_state.get("frigo", []) if eq.get("Nom")]
-        liste_compresseurs = [eq.get("Nom", "").strip() for eq in st.session_state.get("compresseur", []) if eq.get("Nom")]
-        liste_pompes = [eq.get("Nom", "").strip() for eq in st.session_state.get("pompes", []) if eq.get("Nom")]
-        liste_ventilation = [eq.get("Nom", "").strip() for eq in st.session_state.get("ventilation", []) if eq.get("Nom")]
-        liste_machines = [eq.get("Nom", "").strip() for eq in st.session_state.get("machines", []) if eq.get("Nom")]
-        liste_eclairage = [eq.get("Nom", "").strip() for eq in st.session_state.get("eclairage", []) if eq.get("Nom")]
+        # 🔹 Extraction propre des équipements
+        liste_chaudieres = extraire_noms_depuis_editor("chaudieres")
+        liste_frigo = extraire_noms_depuis_editor("frigo")
+        liste_compresseurs = extraire_noms_depuis_editor("compresseur")
+        liste_pompes = extraire_noms_depuis_editor("pompes")
+        liste_ventilation = extraire_noms_depuis_editor("ventilation")
+        liste_machines = extraire_noms_depuis_editor("machines")
+        liste_eclairage = extraire_noms_depuis_editor("eclairage")
 
         # === Création PDF ===
         pdf = FPDF()
@@ -915,6 +938,7 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         pdf.set_font('DejaVu', 'B', 12)
         pdf.cell(0, 10, "Priorités stratégiques du client:", ln=True)
         pdf.set_font('DejaVu', '', 12)
+
         try:
             if total_priorites > 0:
                 pdf.cell(0, 10, f"Réduction consommation énergétique : {poids_energie:.0%}", ln=True)
@@ -949,12 +973,12 @@ if st.button(translations[lang]['bouton_generer_pdf']):
             else:
                 pdf.cell(0, 10, f"- {nom} : Aucun équipement saisi", ln=True)
 
-        # === Pied de page (coordonnées entreprise) ===
+        # === Pied de page : logo entreprise ===
         pdf.ln(10)
-        pdf.set_font('DejaVu', '', 10)
-        pdf.cell(0, 10, "1171, rue Notre-Dame Ouest, suite 200 – Victoriaville (Québec) G6P 7L1", ln=True, align="C")
-        pdf.cell(0, 10, "Tél : 819 758-0313 – info@soteck.com", ln=True, align="C")
-        pdf.cell(0, 10, "Créateur de valeur depuis 1993", ln=True, align="C")
+        try:
+            pdf.image("assets/footer-soteck.png", x=10, w=190)
+        except Exception:
+            pass
 
         # === Export PDF ===
         pdf_buffer = io.BytesIO()
@@ -969,7 +993,7 @@ if st.button(translations[lang]['bouton_generer_pdf']):
             mime="application/pdf"
         )
         st.success(translations[lang]['msg_succes_pdf'])
-        
+
         
 # ===========================
 # 🔁 Récupération des données
@@ -1185,6 +1209,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
