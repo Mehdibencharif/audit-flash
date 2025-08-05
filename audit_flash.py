@@ -849,7 +849,7 @@ def extraire_noms_depuis_editor(data_key):
     lignes = st.session_state.get(data_key, {})
     noms = []
 
-    # Cas avec structure 'edited_rows', 'added_rows' (streamlit >= 1.25)
+    # Cas avec structure 'edited_rows', 'added_rows'
     if isinstance(lignes, dict) and any(k in lignes for k in ['edited_rows', 'added_rows']):
         for section in ['edited_rows', 'added_rows']:
             if section in lignes:
@@ -860,11 +860,19 @@ def extraire_noms_depuis_editor(data_key):
                     nom = row.get("Nom", "").strip() if isinstance(row, dict) else ""
                     if nom:
                         noms.append(nom)
+
     elif isinstance(lignes, list):  # Liste simple
         for row in lignes:
             nom = row.get("Nom", "").strip() if isinstance(row, dict) else ""
             if nom:
                 noms.append(nom)
+
+    elif isinstance(lignes, str):  # Cas inattendu : une seule chaîne de caractères
+        nom = lignes.strip()
+        if nom:
+            noms.append(nom)
+
+    # Sinon : ignorer silencieusement
 
     return noms
 # === Bouton Générer PDF ===
@@ -1209,6 +1217,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
