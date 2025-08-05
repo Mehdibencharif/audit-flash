@@ -572,21 +572,21 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     st.dataframe(df_compresseur)
 
     # 🚰 Section Pompes industrielles
-    st.markdown(f"#### {translations[lang]['sous_titre_pompes']}")
-    columns_pompes = [
-         "Nom",
-        translations[lang]['label_type_pompe'],
-        translations[lang]['label_puissance_pompe'],
-        translations[lang]['label_rendement_pompe'],
-    ]
-        translations[lang]['label_vitesse_variable_pompe']
-    df_pompes = st.data_editor(
-        pd.DataFrame(columns=columns_pompes),
-        num_rows="dynamic",
-        key="pompes"
-    )
-    st.write("Aperçu des données des pompes industrielles :")
-    st.dataframe(df_pompes)
+st.markdown(f"#### {translations[lang]['sous_titre_pompes']}")
+columns_pompes = [
+    "Nom",  # ✅ Ajout du champ 'Nom'
+    translations[lang]['label_type_pompe'],
+    translations[lang]['label_puissance_pompe'],
+    translations[lang]['label_rendement_pompe'],
+    translations[lang]['label_vitesse_variable_pompe']  # ✅ 🛠️ Ajout corrigé avec bonne virgule
+]
+df_pompes = st.data_editor(
+    pd.DataFrame(columns=columns_pompes),
+    num_rows="dynamic",
+    key="pompes"
+)
+st.write("Aperçu des données des pompes industrielles :")
+st.dataframe(df_pompes)
 
     # 🌬️ Section Ventilation
     st.markdown(f"#### {translations[lang]['sous_titre_ventilation']}")
@@ -1216,6 +1216,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
