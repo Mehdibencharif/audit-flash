@@ -589,8 +589,8 @@ st.write("Aperçu des données des pompes industrielles :")
 st.dataframe(df_pompes)
 
         # 🌬️ Section Ventilation
-    st.markdown(f"#### {translations[lang]['sous_titre_ventilation']}")
-    columns_ventilation = [
+st.markdown(f"#### {translations[lang]['sous_titre_ventilation']}")
+columns_ventilation = [
         "Nom",
         translations[lang]['label_type_ventilation'],
         translations[lang]['label_puissance_ventilation']
@@ -600,12 +600,12 @@ st.dataframe(df_pompes)
         num_rows="dynamic",
         key="ventilation"
     )
-    st.write("Aperçu des données des systèmes de ventilation :")
-    st.dataframe(df_ventilation)
+st.write("Aperçu des données des systèmes de ventilation :")
+st.dataframe(df_ventilation)
 
     # 🛠️ Section Autres machines de production
-    st.markdown(f"#### {translations[lang]['sous_titre_machines']}")
-    columns_machines = [
+st.markdown(f"#### {translations[lang]['sous_titre_machines']}")
+columns_machines = [
         "Nom",
         translations[lang]['label_nom_machine'],
         translations[lang]['label_puissance_machine'],
@@ -618,12 +618,12 @@ st.dataframe(df_pompes)
         num_rows="dynamic",
         key="machines"
     )
-    st.write("Aperçu des données des autres machines de production :")
-    st.dataframe(df_machines)
+st.write("Aperçu des données des autres machines de production :")
+st.dataframe(df_machines)
 
     # 💡 Section Éclairage
-    st.markdown(f"#### {translations[lang]['sous_titre_eclairage']}")
-    columns_eclairage = [
+st.markdown(f"#### {translations[lang]['sous_titre_eclairage']}")
+columns_eclairage = [
         "Nom",
         translations[lang]['label_type_eclairage'],
         translations[lang]['label_puissance_totale_eclairage'],
@@ -634,8 +634,8 @@ st.dataframe(df_pompes)
         num_rows="dynamic",
         key="eclairage"
     )
-    st.write("Aperçu des données des systèmes d’éclairage :")
-    st.dataframe(df_eclairage)
+st.write("Aperçu des données des systèmes d’éclairage :")
+st.dataframe(df_eclairage)
 
     
 # ==========================
@@ -1217,6 +1217,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
