@@ -846,10 +846,13 @@ st.markdown(f"<div class='section-title'>{translations[lang]['titre_pdf']}</div>
 
 #############################
 def extraire_noms_depuis_editor(data_key):
-    lignes = st.session_state.get(data_key, {})
+    lignes = st.session_state.get(data_key, None)
     noms = []
 
-    # Cas avec structure 'edited_rows', 'added_rows'
+    if not lignes:
+        return noms
+
+    # Cas avec 'edited_rows', 'added_rows' (structure Streamlit >= 1.25)
     if isinstance(lignes, dict) and any(k in lignes for k in ['edited_rows', 'added_rows']):
         for section in ['edited_rows', 'added_rows']:
             if section in lignes:
@@ -857,22 +860,24 @@ def extraire_noms_depuis_editor(data_key):
                 if isinstance(source, dict):
                     source = source.values()
                 for row in source:
-                    nom = row.get("Nom", "").strip() if isinstance(row, dict) else ""
-                    if nom:
-                        noms.append(nom)
+                    if isinstance(row, dict):
+                        nom = row.get("Nom", "").strip()
+                        if nom:
+                            noms.append(nom)
 
-    elif isinstance(lignes, list):  # Liste simple
+    # Cas classique : liste de dictionnaires
+    elif isinstance(lignes, list):
         for row in lignes:
-            nom = row.get("Nom", "").strip() if isinstance(row, dict) else ""
-            if nom:
-                noms.append(nom)
+            if isinstance(row, dict):
+                nom = row.get("Nom", "").strip()
+                if nom:
+                    noms.append(nom)
 
-    elif isinstance(lignes, str):  # Cas inattendu : une seule chaîne de caractères
-        nom = lignes.strip()
-        if nom:
-            noms.append(nom)
+    # Cas anormal : une chaîne unique
+    elif isinstance(lignes, str):
+        noms.append(lignes.strip())
 
-    # Sinon : ignorer silencieusement
+    # Sinon : ne rien faire
 
     return noms
 # === Bouton Générer PDF ===
@@ -1217,6 +1222,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
