@@ -860,13 +860,13 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         st.error(f"{translations[lang]['msg_erreur_champs']} {', '.join(erreurs)}")
     else:
         # === Données sécurisées ===
-        liste_chaudieres = st.session_state.get("chaudieres", [])
-        liste_frigo = st.session_state.get("frigo", [])
-        liste_compresseurs = st.session_state.get("compresseur", [])
-        liste_pompes = st.session_state.get("pompes", [])
-        liste_ventilation = st.session_state.get("ventilation", [])
-        liste_machines = st.session_state.get("machines", [])
-        liste_eclairage = st.session_state.get("eclairage", [])
+        liste_chaudieres = [eq.get("Nom", "").strip() for eq in st.session_state.get("chaudieres", []) if eq.get("Nom")]
+        liste_frigo = [eq.get("Nom", "").strip() for eq in st.session_state.get("frigo", []) if eq.get("Nom")]
+        liste_compresseurs = [eq.get("Nom", "").strip() for eq in st.session_state.get("compresseur", []) if eq.get("Nom")]
+        liste_pompes = [eq.get("Nom", "").strip() for eq in st.session_state.get("pompes", []) if eq.get("Nom")]
+        liste_ventilation = [eq.get("Nom", "").strip() for eq in st.session_state.get("ventilation", []) if eq.get("Nom")]
+        liste_machines = [eq.get("Nom", "").strip() for eq in st.session_state.get("machines", []) if eq.get("Nom")]
+        liste_eclairage = [eq.get("Nom", "").strip() for eq in st.session_state.get("eclairage", []) if eq.get("Nom")]
 
         # === Création PDF ===
         pdf = FPDF()
@@ -915,7 +915,6 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         pdf.set_font('DejaVu', 'B', 12)
         pdf.cell(0, 10, "Priorités stratégiques du client:", ln=True)
         pdf.set_font('DejaVu', '', 12)
-
         try:
             if total_priorites > 0:
                 pdf.cell(0, 10, f"Réduction consommation énergétique : {poids_energie:.0%}", ln=True)
@@ -946,9 +945,16 @@ if st.button(translations[lang]['bouton_generer_pdf']):
 
         for nom, liste in equipements_dict.items():
             if liste:
-                pdf.multi_cell(0, 10, f"- {nom} : {', '.join([str(eq) for eq in liste])}")
+                pdf.multi_cell(0, 10, f"- {nom} : {', '.join(liste)}")
             else:
                 pdf.cell(0, 10, f"- {nom} : Aucun équipement saisi", ln=True)
+
+        # === Pied de page (coordonnées entreprise) ===
+        pdf.ln(10)
+        pdf.set_font('DejaVu', '', 10)
+        pdf.cell(0, 10, "1171, rue Notre-Dame Ouest, suite 200 – Victoriaville (Québec) G6P 7L1", ln=True, align="C")
+        pdf.cell(0, 10, "Tél : 819 758-0313 – info@soteck.com", ln=True, align="C")
+        pdf.cell(0, 10, "Créateur de valeur depuis 1993", ln=True, align="C")
 
         # === Export PDF ===
         pdf_buffer = io.BytesIO()
@@ -963,6 +969,7 @@ if st.button(translations[lang]['bouton_generer_pdf']):
             mime="application/pdf"
         )
         st.success(translations[lang]['msg_succes_pdf'])
+        
         
 # ===========================
 # 🔁 Récupération des données
@@ -1178,6 +1185,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
