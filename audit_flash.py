@@ -925,8 +925,30 @@ if st.button(translations[lang]['bouton_generer_pdf']):
                 pdf.cell(0, 10, f"Maintenance et fiabilité : {poids_maintenance:.0%}", ln=True)
             else:
                 pdf.cell(0, 10, "Les priorités stratégiques n'ont pas été renseignées.", ln=True)
-        except Exception as e:
+        except Exception:
             pdf.cell(0, 10, "Erreur lors du calcul des priorités stratégiques.", ln=True)
+
+        # === Liste des équipements ===
+        pdf.ln(5)
+        pdf.set_font('DejaVu', 'B', 12)
+        pdf.cell(0, 10, "Équipements identifiés lors de l’audit :", ln=True)
+        pdf.set_font('DejaVu', '', 12)
+
+        equipements_dict = {
+            "Chaudières": liste_chaudieres,
+            "Systèmes frigorifiques": liste_frigo,
+            "Compresseurs": liste_compresseurs,
+            "Pompes": liste_pompes,
+            "Ventilation": liste_ventilation,
+            "Machines de production": liste_machines,
+            "Éclairage": liste_eclairage
+        }
+
+        for nom, liste in equipements_dict.items():
+            if liste:
+                pdf.multi_cell(0, 10, f"- {nom} : {', '.join([str(eq) for eq in liste])}")
+            else:
+                pdf.cell(0, 10, f"- {nom} : Aucun équipement saisi", ln=True)
 
         # === Export PDF ===
         pdf_buffer = io.BytesIO()
@@ -1156,6 +1178,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
