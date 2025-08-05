@@ -845,14 +845,13 @@ st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
 st.markdown(f"<div class='section-title'>{translations[lang]['titre_pdf']}</div>", unsafe_allow_html=True)
 
 #############################
-def extraire_noms_depuis_editor(data_key):
-    lignes = st.session_state.get(data_key, None)
+def extraire_noms_depuis_editor(cle):
+    lignes = st.session_state.get(cle, [])
     noms = []
 
     if not lignes:
         return noms
 
-    # Cas Streamlit 1.25+ avec 'edited_rows' et 'added_rows'
     if isinstance(lignes, dict) and any(k in lignes for k in ['edited_rows', 'added_rows']):
         for section in ['edited_rows', 'added_rows']:
             if section in lignes:
@@ -861,21 +860,16 @@ def extraire_noms_depuis_editor(data_key):
                     source = source.values()
                 for row in source:
                     if isinstance(row, dict):
-                        nom = str(row.get("Nom", "")).strip()
-                        if nom:
-                            noms.append(nom)
+                        nom = row.get("Nom", "")
+                        if isinstance(nom, str) and nom.strip():
+                            noms.append(nom.strip())
 
-    # Cas classique : liste de dictionnaires
     elif isinstance(lignes, list):
         for row in lignes:
             if isinstance(row, dict):
-                nom = str(row.get("Nom", "")).strip()
-                if nom:
-                    noms.append(nom)
-
-    # Cas exceptionnel : un seul nom sous forme de string
-    elif isinstance(lignes, str):
-        noms.append(lignes.strip())
+                nom = row.get("Nom", "")
+                if isinstance(nom, str) and nom.strip():
+                    noms.append(nom.strip())
 
     return noms
 # === Bouton Générer PDF ===
@@ -894,11 +888,6 @@ if st.button(translations[lang]['bouton_generer_pdf']):
     if erreurs:
         st.error(f"{translations[lang]['msg_erreur_champs']} {', '.join(erreurs)}")
     else:
-        # 🔹 Extraction des équipements
-        def extraire_noms_depuis_editor(cle):
-            lignes = st.session_state.get(cle, [])
-            return [str(eq.get("Nom", "")).strip() for eq in lignes if eq.get("Nom")]
-
         liste_chaudieres = extraire_noms_depuis_editor("chaudieres")
         liste_frigo = extraire_noms_depuis_editor("frigo")
         liste_compresseurs = extraire_noms_depuis_editor("compresseur")
@@ -1220,6 +1209,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
