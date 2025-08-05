@@ -852,7 +852,7 @@ def extraire_noms_depuis_editor(data_key):
     if not lignes:
         return noms
 
-    # Cas avec 'edited_rows', 'added_rows' (structure Streamlit >= 1.25)
+    # Cas Streamlit 1.25+ avec 'edited_rows' et 'added_rows'
     if isinstance(lignes, dict) and any(k in lignes for k in ['edited_rows', 'added_rows']):
         for section in ['edited_rows', 'added_rows']:
             if section in lignes:
@@ -861,7 +861,7 @@ def extraire_noms_depuis_editor(data_key):
                     source = source.values()
                 for row in source:
                     if isinstance(row, dict):
-                        nom = row.get("Nom", "").strip()
+                        nom = str(row.get("Nom", "")).strip()
                         if nom:
                             noms.append(nom)
 
@@ -869,15 +869,13 @@ def extraire_noms_depuis_editor(data_key):
     elif isinstance(lignes, list):
         for row in lignes:
             if isinstance(row, dict):
-                nom = row.get("Nom", "").strip()
+                nom = str(row.get("Nom", "")).strip()
                 if nom:
                     noms.append(nom)
 
-    # Cas anormal : une chaîne unique
+    # Cas exceptionnel : un seul nom sous forme de string
     elif isinstance(lignes, str):
         noms.append(lignes.strip())
-
-    # Sinon : ne rien faire
 
     return noms
 # === Bouton Générer PDF ===
@@ -1222,6 +1220,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
