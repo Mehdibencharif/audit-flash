@@ -525,6 +525,7 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     # 🔥 Section Chaudières
     st.markdown(f"#### {translations[lang]['sous_titre_chaudieres']}")
     columns_chaudieres = [
+        "Nom",
     translations[lang]['label_type_chaudiere'],
     translations[lang]['label_rendement_chaudiere'],
     translations[lang]['label_taille_chaudiere'],
@@ -543,6 +544,7 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     # ❄️ Section Équipements frigorifiques
     st.markdown(f"#### {translations[lang]['sous_titre_frigo']}")
     columns_frigo = [
+        "Nom",
     translations[lang]['label_capacite_frigo'],
     translations[lang]['label_nom_frigorigenes']  
     ]
@@ -557,6 +559,7 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     # 💨 Section Compresseur d’air
     st.markdown(f"#### {translations[lang]['sous_titre_compresseur']}")
     columns_compresseur = [
+         "Nom",
         translations[lang]['label_puissance_comp'],
         translations[lang]['label_variation_vitesse']
     ]
@@ -571,11 +574,12 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     # 🚰 Section Pompes industrielles
     st.markdown(f"#### {translations[lang]['sous_titre_pompes']}")
     columns_pompes = [
+         "Nom",
         translations[lang]['label_type_pompe'],
         translations[lang]['label_puissance_pompe'],
         translations[lang]['label_rendement_pompe'],
-        translations[lang]['label_vitesse_variable_pompe']
     ]
+        translations[lang]['label_vitesse_variable_pompe']
     df_pompes = st.data_editor(
         pd.DataFrame(columns=columns_pompes),
         num_rows="dynamic",
@@ -587,6 +591,7 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     # 🌬️ Section Ventilation
     st.markdown(f"#### {translations[lang]['sous_titre_ventilation']}")
     columns_ventilation = [
+         "Nom",
         translations[lang]['label_type_ventilation'],
         translations[lang]['label_puissance_ventilation']
     ]
@@ -601,6 +606,7 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     # 🛠️ Section Autres machines de production
     st.markdown(f"#### {translations[lang]['sous_titre_machines']}")
     columns_machines = [
+        "Nom",
         translations[lang]['label_nom_machine'],
         translations[lang]['label_puissance_machine'],
         translations[lang]['label_taux_utilisation'],
@@ -618,6 +624,7 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     # 💡 Section Éclairage
     st.markdown(f"#### {translations[lang]['sous_titre_eclairage']}")
     columns_eclairage = [
+        "Nom",
         translations[lang]['label_type_eclairage'],
         translations[lang]['label_puissance_totale_eclairage'],
         translations[lang]['label_heures_utilisation']
@@ -1209,6 +1216,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
