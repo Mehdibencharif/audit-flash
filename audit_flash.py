@@ -595,7 +595,7 @@ columns_ventilation = [
         translations[lang]['label_type_ventilation'],
         translations[lang]['label_puissance_ventilation']
     ]
-    df_ventilation = st.data_editor(
+df_ventilation = st.data_editor(
         pd.DataFrame(columns=columns_ventilation),
         num_rows="dynamic",
         key="ventilation"
@@ -613,7 +613,7 @@ columns_machines = [
         translations[lang]['label_rendement_machine'],
         translations[lang]['label_source_energie_machine']
     ]
-    df_machines = st.data_editor(
+df_machines = st.data_editor(
         pd.DataFrame(columns=columns_machines),
         num_rows="dynamic",
         key="machines"
@@ -629,7 +629,7 @@ columns_eclairage = [
         translations[lang]['label_puissance_totale_eclairage'],
         translations[lang]['label_heures_utilisation']
     ]
-    df_eclairage = st.data_editor(
+df_eclairage = st.data_editor(
         pd.DataFrame(columns=columns_eclairage),
         num_rows="dynamic",
         key="eclairage"
@@ -1217,6 +1217,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
