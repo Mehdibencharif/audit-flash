@@ -883,7 +883,11 @@ if st.button(translations[lang]['bouton_generer_pdf']):
     if erreurs:
         st.error(f"{translations[lang]['msg_erreur_champs']} {', '.join(erreurs)}")
     else:
-        # 🔹 Extraction propre des équipements
+        # 🔹 Extraction des équipements
+        def extraire_noms_depuis_editor(cle):
+            lignes = st.session_state.get(cle, [])
+            return [str(eq.get("Nom", "")).strip() for eq in lignes if eq.get("Nom")]
+
         liste_chaudieres = extraire_noms_depuis_editor("chaudieres")
         liste_frigo = extraire_noms_depuis_editor("frigo")
         liste_compresseurs = extraire_noms_depuis_editor("compresseur")
@@ -892,40 +896,27 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         liste_machines = extraire_noms_depuis_editor("machines")
         liste_eclairage = extraire_noms_depuis_editor("eclairage")
 
-        # === Création PDF ===
+        # 📄 Création du PDF
         pdf = FPDF()
         pdf.add_page()
         pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
         pdf.add_font('DejaVu', 'B', 'fonts/DejaVuSans-Bold.ttf', uni=True)
-        pdf.set_font('DejaVu', 'B', 16)
 
-        # Titre
+        # === Logo principal en haut ===
+        try:
+            pdf.image("Image/Logo Soteck.jpg", x=170, y=10, w=30)
+        except Exception:
+            pass
+
+        # === Titre et infos client ===
+        pdf.set_font('DejaVu', 'B', 16)
         pdf.cell(0, 10, "Résumé - Audit Flash", ln=True, align="C")
         pdf.ln(10)
         pdf.set_font('DejaVu', '', 12)
-
-# === Logo principal (haut de page) ===
-try:
-    pdf.image("Image/Logo Soteck.jpg", x=170, y=10, w=30)  # ajuste si besoin
-except Exception as e:
-    print(f"Erreur logo haut de page : {e}")
-
-# === Informations client ===
-pdf.cell(0, 10, f"Client: {client_nom}", ln=True)
-pdf.cell(0, 10, f"Site: {site_nom}", ln=True)
-pdf.cell(0, 10, f"Date: {date.today().strftime('%d/%m/%Y')}", ln=True)
-pdf.ln(5)
-
-# (... le reste de ton contenu ici, puis à la toute fin du PDF ...)
-
-# === Logo en bas de page ===
-try:
-    pdf.image("Image/sous-page.jpg", x=10, y=265, w=190)  # pleine largeur bas de page
-except Exception as e:
-    print(f"Erreur logo bas de page : {e}")
-        
-
-
+        pdf.cell(0, 10, f"Client: {client_nom}", ln=True)
+        pdf.cell(0, 10, f"Site: {site_nom}", ln=True)
+        pdf.cell(0, 10, f"Date: {date.today().strftime('%d/%m/%Y')}", ln=True)
+        pdf.ln(5)
 
         # === Objectifs client ===
         pdf.set_font('DejaVu', 'B', 12)
@@ -953,25 +944,20 @@ except Exception as e:
         pdf.set_font('DejaVu', 'B', 12)
         pdf.cell(0, 10, "Priorités stratégiques du client:", ln=True)
         pdf.set_font('DejaVu', '', 12)
-
-        try:
-            if total_priorites > 0:
-                pdf.cell(0, 10, f"Réduction consommation énergétique : {poids_energie:.0%}", ln=True)
-                pdf.cell(0, 10, f"Retour sur investissement : {poids_roi:.0%}", ln=True)
-                pdf.cell(0, 10, f"Réduction émissions GES : {poids_ges:.0%}", ln=True)
-                pdf.cell(0, 10, f"Productivité et fiabilité : {poids_prod:.0%}", ln=True)
-                pdf.cell(0, 10, f"Maintenance et fiabilité : {poids_maintenance:.0%}", ln=True)
-            else:
-                pdf.cell(0, 10, "Les priorités stratégiques n'ont pas été renseignées.", ln=True)
-        except Exception:
-            pdf.cell(0, 10, "Erreur lors du calcul des priorités stratégiques.", ln=True)
+        if total_priorites > 0:
+            pdf.cell(0, 10, f"Réduction consommation énergétique : {poids_energie:.0%}", ln=True)
+            pdf.cell(0, 10, f"Retour sur investissement : {poids_roi:.0%}", ln=True)
+            pdf.cell(0, 10, f"Réduction émissions GES : {poids_ges:.0%}", ln=True)
+            pdf.cell(0, 10, f"Productivité et fiabilité : {poids_prod:.0%}", ln=True)
+            pdf.cell(0, 10, f"Maintenance et fiabilité : {poids_maintenance:.0%}", ln=True)
+        else:
+            pdf.cell(0, 10, "Les priorités stratégiques n'ont pas été renseignées.", ln=True)
 
         # === Liste des équipements ===
         pdf.ln(5)
         pdf.set_font('DejaVu', 'B', 12)
         pdf.cell(0, 10, "Équipements identifiés lors de l’audit :", ln=True)
         pdf.set_font('DejaVu', '', 12)
-
         equipements_dict = {
             "Chaudières": liste_chaudieres,
             "Systèmes frigorifiques": liste_frigo,
@@ -981,21 +967,19 @@ except Exception as e:
             "Machines de production": liste_machines,
             "Éclairage": liste_eclairage
         }
-
         for nom, liste in equipements_dict.items():
             if liste:
                 pdf.multi_cell(0, 10, f"- {nom} : {', '.join(liste)}")
             else:
                 pdf.cell(0, 10, f"- {nom} : Aucun équipement saisi", ln=True)
 
-        # === Pied de page : logo entreprise ===
-        pdf.ln(10)
+        # === Logo bas de page ===
         try:
-            pdf.image("assets/footer-soteck.png", x=10, w=190)
+            pdf.image("Image/sous-page.jpg", x=10, y=265, w=190)
         except Exception:
             pass
 
-        # === Export PDF ===
+        # === Génération PDF
         pdf_buffer = io.BytesIO()
         pdf_bytes = pdf.output(dest='S').encode('latin1')
         pdf_buffer.write(pdf_bytes)
@@ -1008,6 +992,7 @@ except Exception as e:
             mime="application/pdf"
         )
         st.success(translations[lang]['msg_succes_pdf'])
+
 
         
 # ===========================
@@ -1224,6 +1209,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
