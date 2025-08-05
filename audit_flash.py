@@ -588,10 +588,10 @@ df_pompes = st.data_editor(
 st.write("Aperçu des données des pompes industrielles :")
 st.dataframe(df_pompes)
 
-    # 🌬️ Section Ventilation
+        # 🌬️ Section Ventilation
     st.markdown(f"#### {translations[lang]['sous_titre_ventilation']}")
     columns_ventilation = [
-         "Nom",
+        "Nom",
         translations[lang]['label_type_ventilation'],
         translations[lang]['label_puissance_ventilation']
     ]
@@ -636,6 +636,7 @@ st.dataframe(df_pompes)
     )
     st.write("Aperçu des données des systèmes d’éclairage :")
     st.dataframe(df_eclairage)
+
     
 # ==========================
 # 6. VOS PRIORITÉS STRATÉGIQUES
@@ -1216,6 +1217,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
