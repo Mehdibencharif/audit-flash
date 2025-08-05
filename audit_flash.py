@@ -893,16 +893,16 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         liste_eclairage = extraire_noms_depuis_editor("eclairage")
 
         # === Création PDF ===
-pdf = FPDF()
-pdf.add_page()
-pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
-pdf.add_font('DejaVu', 'B', 'fonts/DejaVuSans-Bold.ttf', uni=True)
-pdf.set_font('DejaVu', 'B', 16)
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
+        pdf.add_font('DejaVu', 'B', 'fonts/DejaVuSans-Bold.ttf', uni=True)
+        pdf.set_font('DejaVu', 'B', 16)
 
-# Titre
-pdf.cell(0, 10, "Résumé - Audit Flash", ln=True, align="C")
-pdf.ln(10)
-pdf.set_font('DejaVu', '', 12)
+        # Titre
+        pdf.cell(0, 10, "Résumé - Audit Flash", ln=True, align="C")
+        pdf.ln(10)
+        pdf.set_font('DejaVu', '', 12)
 
 # === Logo principal (haut de page) ===
 try:
@@ -1224,6 +1224,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
