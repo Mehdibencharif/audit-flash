@@ -109,7 +109,38 @@ def repondre_a_question(question: str, langue: str = "fr") -> str:
         return f"⚠️ Erreur réseau Groq : {e}"
     except Exception as e:
         return f"⚠️ Erreur inattendue : {e}"
-        
+# ================================
+# Interface Streamlit (UI Chatbot)
+# ================================
+import streamlit as st
+
+with st.sidebar:
+    st.markdown("## 🤖 Assistant Audit Flash (gratuit – Groq)")
+    user_question = st.text_area(
+        "💬 Posez votre question ici :",
+        key="chatbot_input",
+        placeholder="Ex : C’est quoi un VFD ? Comment calculer le ROI ?"
+    )
+
+    if st.button("📤 Envoyer ma question", key="chatbot_button"):
+        if user_question.strip():
+            with st.spinner("💬 L’assistant réfléchit..."):
+                reponse = repondre_a_question(
+                    user_question,
+                    langue="fr"  # ou "en" si tu veux l’anglais
+                )
+
+            if reponse.startswith("⚠️"):
+                st.error(reponse)
+            else:
+                st.markdown("#### ✅ Réponse de l’assistant :")
+                st.markdown(
+                    f"<div style='background-color:#f0f2f6;padding:10px;border-radius:10px;margin-top:10px'>"
+                    f"🤖 <em>{reponse}</em></div>",
+                    unsafe_allow_html=True
+                )
+        else:
+            st.warning("❗ Veuillez écrire une question avant d’envoyer.")       
             
 # ==========================
 # COULEURS ET STYLE PERSONNALISÉ
