@@ -42,134 +42,74 @@ translations = {
 # Sélection de la langue
 lang = "fr" if langue == "Français" else "en"
 
-# =====================================================
-# Fonction pour obtenir le client OpenAI
-# =====================================================
-def _get_openai_client():
-    api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        return None
-    return OpenAI(api_key=api_key)
+# ================================
+# Assistant IA gratuit via Groq
+# ================================
+import os
+import requests
 
-# =====================================================
-# Fonction principale pour répondre aux questions
-# =====================================================
-# === Compatibilité SDK OpenAI v1.x ET v0.x ===
-_SDK = None
-try:
-    # Nouveau SDK (>=1.0)
-    from openai import OpenAI
-    _SDK = "v1"
-except Exception:
-    try:
-        # Ancien SDK (<1.0)
-        import openai  # type: ignore
-        _SDK = "v0"
-    except Exception:
-        _SDK = None
-
-
-def _get_openai_client():
-    """Retourne un client OpenAI compatible v1.x ou v0.x, ou None si pas de clé."""
-    api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_APIKEY")
-    # Optionnel : lecture depuis st.secrets si dispo
-    try:
-        import streamlit as st  # pour accéder à st.secrets si présent
-        api_key = api_key or st.secrets.get("OPENAI_API_KEY", "")
-    except Exception:
-        pass
-
-    if not api_key or _SDK is None:
-        return None
-
-    if _SDK == "v1":
-        # Nouveau SDK
-        return OpenAI(api_key=api_key)
-    else:
-        # Ancien SDK
-        openai.api_key = api_key  # type: ignore
-        return openai             # type: ignore
-
+def _get_groq_key() -> str | None:
+    """Récupère la clé GROQ_API_KEY depuis l'env ou st.secrets."""
+    key = os.getenv("GROQ_API_KEY")
+    if not key:
+        try:
+            import streamlit as st  # dispo dans ton app
+            key = st.secrets.get("GROQ_API_KEY", "")
+        except Exception:
+            pass
+    return key or None
 
 def repondre_a_question(question: str, langue: str = "fr") -> str:
     """
-    Répond via GPT-3.5, compatible avec les deux SDK OpenAI.
+    Répond via l'API gratuite Groq (modèle Llama 3.1 8B Instant).
+    Remplace totalement l'usage d'OpenAI.
     """
-    question = (question or "").strip()
-    if not question:
+    q = (question or "").strip()
+    if not q:
         return "⚠️ Aucune question fournie."
 
-    client = _get_openai_client()
-    if client is None:
-        return ("⚠️ Clé API OpenAI manquante ou SDK non installé. "
-                "Définis OPENAI_API_KEY (ou ajoute-la dans st.secrets).")
+    api_key = _get_groq_key()
+    if not api_key:
+        return ("⚠️ Clé GROQ_API_KEY manquante. Ajoute-la dans Settings → Secrets "
+                "ou comme variable d’environnement.")
 
     system_msg = (
         "Tu es un assistant concis en efficacité énergétique. "
-        "Donne des définitions claires, formules simples et mini-exemples."
-    )
-    user_msg = f"[Langue: {langue}] {question}"
+        "Réponds en {langue} avec définitions claires, formules simples, "
+        "règles de pouce et un mini-exemple si utile."
+    ).format(langue="fr" if langue.lower().startswith("fr") else "en")
+
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": "llama-3.1-8b-instant",
+        "messages": [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": q},
+        ],
+        "temperature": 0.2,
+        "max_tokens": 400,
+    }
 
     try:
-        if _SDK == "v1":
-            # Nouveau SDK
-            resp = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": system_msg},
-                    {"role": "user", "content": user_msg},
-                ],
-                temperature=0.2,
-                max_tokens=300,
-            )
-            return resp.choices[0].message.content.strip()
-
-        else:
-            # Ancien SDK
-            resp = client.ChatCompletion.create(  # type: ignore
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": system_msg},
-                    {"role": "user", "content": user_msg},
-                ],
-                temperature=0.2,
-                max_tokens=300,
-            )
-            return resp["choices"][0]["message"]["content"].strip()
-
+        r = requests.post(url, headers=headers, json=payload, timeout=45)
+        if r.status_code != 200:
+            # Renvoyer une erreur lisible
+            try:
+                info = r.json()
+            except Exception:
+                info = {"error": r.text}
+            return f"⚠️ Erreur Groq ({r.status_code}) : {info}"
+        data = r.json()
+        return (data["choices"][0]["message"]["content"] or "").strip()
+    except requests.exceptions.RequestException as e:
+        return f"⚠️ Erreur réseau Groq : {e}"
     except Exception as e:
-        return f"⚠️ Erreur d'appel OpenAI : {e}"
+        return f"⚠️ Erreur inattendue : {e}"
         
-# ==========================
-# Chatbot intelligent
-# ==========================
-with st.sidebar:
-    st.markdown("## 🤖 Assistant Audit Flash")
-    user_question = st.text_area(
-        "💬 Posez votre question ici :",
-        key="chatbot_input",
-        placeholder="Ex: Quelle est la priorité énergie ?"
-    )
-
-    if st.button("📤 Envoyer ma question", key="chatbot_button"):
-        if user_question.strip():
-            with st.spinner("💬 L’assistant réfléchit..."):
-                reponse = repondre_a_question(
-                    user_question,
-                    langue="en" if st.session_state.get("langue") == "English" else "fr"
-                )
-
-            if reponse.startswith("⚠️"):
-                st.error(reponse)
-            else:
-                st.markdown("#### ✅ Réponse de l’assistant :")
-                st.markdown(f"""
-                <div style='background-color:#f0f2f6;padding:10px;border-radius:10px;margin-top:10px'>
-                    🤖 <em>{reponse}</em>
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.warning("❗ Veuillez écrire une question avant d’envoyer.")
             
 # ==========================
 # COULEURS ET STYLE PERSONNALISÉ
@@ -1320,6 +1260,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
