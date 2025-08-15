@@ -545,12 +545,11 @@ translations = {
         "sous_titre_eclairage": "Systèmes d’éclairage",
         "label_type_eclairage": "Type d’éclairage (LED, fluorescent, etc.)",
         "label_puissance_totale_eclairage": "Puissance totale installée (kW)",
-        "label_heures_utilisation": "Nombre d’heures d’utilisation par jour"
+        "label_heures_utilisation": "Nombre d’heures d’utilisation par jour",
         "sous_titre_depoussiereur": "Dépoussiéreur",
         "label_puissance_dep_hp": "Puissance (HP)",
         "label_vfd_dep": "Variateur de vitesse (VFD)",
         "label_marque_dep": "Marque",
-        
     },
     "en": {
         # ... autres clés ...
@@ -590,7 +589,7 @@ translations = {
         "sous_titre_eclairage": "Lighting systems",
         "label_type_eclairage": "Type of lighting (LED, fluorescent, etc.)",
         "label_puissance_totale_eclairage": "Total installed power (kW)",
-        "label_heures_utilisation": "Number of hours of use per day"
+        "label_heures_utilisation": "Number of hours of use per day",
         "sous_titre_depoussiereur": "Dust collector",
         "label_puissance_dep_hp": "Power (HP)",
         "label_vfd_dep": "Variable Frequency Drive (VFD)",
@@ -1315,6 +1314,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
