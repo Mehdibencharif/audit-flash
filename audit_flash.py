@@ -959,6 +959,7 @@ st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
 st.markdown(f"<div class='section-title'>{translations[lang]['titre_pdf']}</div>", unsafe_allow_html=True)
 
 #############################
+    
 def extraire_noms_depuis_editor(cle):
     lignes = st.session_state.get(cle, [])
     noms = []
@@ -1009,6 +1010,7 @@ if st.button(translations[lang]['bouton_generer_pdf']):
         liste_ventilation = extraire_noms_depuis_editor("ventilation")
         liste_machines = extraire_noms_depuis_editor("machines")
         liste_eclairage = extraire_noms_depuis_editor("eclairage")
+        liste_dep = extraire_noms_depuis_editor("depoussieur")
 
         # 📄 Création du PDF
         pdf = FPDF()
@@ -1323,6 +1325,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
