@@ -931,6 +931,7 @@ with st.expander(translations[lang]['texte_expander_services']):
 from fpdf import FPDF
 import io, re
 from datetime import date
+import pandas as pd
 
 TXT = {
     "fr": {
@@ -979,15 +980,84 @@ st.info(TXT["info"])
 st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
 st.markdown(f"<div class='section-title'>{TXT['titre_pdf']}</div>", unsafe_allow_html=True)
 
-def _names_from_editor(key: str) -> list[str]:
-    """Récupère la liste des 'Nom' saisis dans un st.data_editor(key=...)."""
-    data = st.session_state.get(key)
-    out: list[str] = []
-    if isinstance(data, pd.DataFrame) and not data.empty:
-        if "Nom" in data.columns:
-            out = [str(x).strip() for x in data["Nom"].tolist() if str(x).strip()]
-    return out
+# ====== OUTILS : lecture fiable des data_editor ======
+def _df_depuis_editor(key: str) -> pd.DataFrame:
+    """
+    Récupère proprement le contenu d'un st.data_editor(key=...).
+    Retourne toujours un DataFrame (éventuellement vide).
+    """
+    val = st.session_state.get(key, None)
 
+    # Déjà un DataFrame
+    if isinstance(val, pd.DataFrame):
+        return val.copy()
+
+    # Dict 'edited_rows' / 'added_rows'
+    if isinstance(val, dict):
+        rows = []
+        if isinstance(val.get("added_rows"), list):
+            rows.extend(val["added_rows"])
+        if isinstance(val.get("edited_rows"), dict):
+            rows.extend(val["edited_rows"].values())
+        return pd.DataFrame(rows)
+
+    # Liste de dicts
+    if isinstance(val, list) and all(isinstance(x, dict) for x in val):
+        return pd.DataFrame(val)
+
+    return pd.DataFrame()  # vide par défaut
+
+
+def _noms_depuis_editor(key: str, col_nom: str = "Nom") -> list[str]:
+    """Renvoie la liste des 'Nom' saisis dans l'éditeur `key`."""
+    df = _df_depuis_editor(key)
+    if df.empty or col_nom not in df.columns:
+        return []
+    noms = (
+        df[col_nom]
+        .astype(str)
+        .map(lambda s: s.strip())
+        .loc[lambda s: s.str.len() > 0]
+        .tolist()
+    )
+    return noms
+
+
+def _depoussieurs_detaille(lang: str) -> list[str]:
+    """
+    Construit des lignes détaillées pour les dépoussiéreurs :
+    'Nom – 12 HP – VFD: Oui/Non – Marque'
+    """
+    df = _df_depuis_editor("depoussieur")
+    if df.empty:
+        return []
+
+    hp_label = translations[lang].get("label_puissance_dep_hp", "Puissance (HP)")
+    vfd_label = translations[lang].get("label_vfd_dep", "Variateur de vitesse (VFD)")
+    marque_label = translations[lang].get("label_marque_dep", "Marque")
+
+    # colonnes manquantes -> colonnes vides
+    for c in ["Nom", hp_label, vfd_label, marque_label]:
+        if c not in df.columns:
+            df[c] = ""
+
+    lignes = []
+    for _, r in df.iterrows():
+        nom = str(r["Nom"]).strip()
+        if not nom:
+            continue
+        hp = r[hp_label]
+        vfd = r[vfd_label]
+        marque = r[marque_label]
+
+        hp_txt = f"{hp} HP" if (pd.notna(hp) and str(hp).strip() != "") else "HP n/d"
+        vfd_txt = "Oui" if bool(vfd) else "Non"
+        marque_txt = f" – {marque}" if isinstance(marque, str) and marque.strip() else ""
+        lignes.append(f"{nom} – {hp_txt} – VFD: {vfd_txt}{marque_txt}")
+
+    return lignes
+
+# ====== Génération du PDF ======
 def generer_pdf(
     *,
     client_nom: str,
@@ -1006,21 +1076,21 @@ def generer_pdf(
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
-    # polices (assure-toi d'avoir ces fichiers; sinon, commente add_font et utilise set_font('Arial'))
+    # Polices (fallback sur Arial si non disponibles)
     try:
         pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
         pdf.add_font('DejaVu', 'B', 'fonts/DejaVuSans-Bold.ttf', uni=True)
         FONT_REG, FONT_B = 'DejaVu', 'DejaVu'
-    except:
+    except Exception:
         FONT_REG = FONT_B = 'Arial'
 
     # Logo optionnel
     try:
         pdf.image("Image/Logo Soteck.jpg", x=170, y=10, w=30)
-    except:
+    except Exception:
         pass
 
-    # Titre
+    # Titre + infos
     pdf.set_font(FONT_B, 'B', 16)
     pdf.cell(0, 10, "Résumé - Audit Flash", ln=True, align="C")
     pdf.ln(5)
@@ -1058,7 +1128,10 @@ def generer_pdf(
     pdf.set_font(FONT_REG, '', 12)
     if priorites:
         for k, v in priorites.items():
-            pdf.cell(0, 8, f"{k} : {v:.0%}", ln=True)
+            try:
+                pdf.cell(0, 8, f"{k} : {float(v):.0%}", ln=True)
+            except Exception:
+                pdf.cell(0, 8, f"{k} : {v}", ln=True)
     else:
         pdf.cell(0, 8, "Non renseignées", ln=True)
 
@@ -1068,22 +1141,28 @@ def generer_pdf(
     pdf.cell(0, 8, TXT["equipements"], ln=True)
     pdf.set_font(FONT_REG, '', 12)
     for bloc, noms in equipements.items():
-        if noms:
-            pdf.multi_cell(0, 8, f"- {bloc} : {', '.join(noms)}")
+        if isinstance(noms, list) and len(noms) > 0:
+            if bloc == "Dépoussiéreurs":
+                pdf.cell(0, 8, f"- {bloc} :", ln=True)
+                for item in noms:
+                    pdf.multi_cell(0, 8, f"    • {item}")
+            else:
+                pdf.multi_cell(0, 8, f"- {bloc} : {', '.join(noms)}")
         else:
             pdf.cell(0, 8, f"- {bloc} : {TXT['aucun_eq']}", ln=True)
 
     # Bandeau bas (optionnel)
     try:
         pdf.image("Image/sous-page.jpg", x=10, y=265, w=190)
-    except:
+    except Exception:
         pass
 
-    pdf_bytes = pdf.output(dest="S").encode("latin1")  # bytes
+    # Bytes PDF
+    pdf_bytes = pdf.output(dest="S").encode("latin1")
     return pdf_bytes
 
 
-# ---- Vérification obligatoire + Bouton "Générer le PDF" ----
+# ---- Vérification + Génération ----
 st.divider()
 email_regex = r"[^@]+@[^@]+\.[^@]+"
 
@@ -1097,20 +1176,28 @@ if st.button(TXT["btn_generate"]):
     if missing:
         st.error(f"{TXT['err_missing']} {', '.join(missing)}")
     else:
-        # listes d’équipements (selon tes éditeurs)
+        # Listes d’équipements
         equipements = {
-            "Chaudières": _names_from_editor("chaudieres"),
-            "Systèmes frigorifiques": _names_from_editor("frigo"),
-            "Compresseurs": _names_from_editor("compresseur"),
-            "Pompes": _names_from_editor("pompes"),
-            "Ventilation": _names_from_editor("ventilation"),
-            "Machines de production": _names_from_editor("machines"),
-            "Éclairage": _names_from_editor("eclairage"),
-            "Dépoussiéreurs": _names_from_editor("depoussieur"),
+            "Chaudières": _noms_depuis_editor("chaudieres"),
+            "Systèmes frigorifiques": _noms_depuis_editor("frigo"),
+            "Compresseurs": _noms_depuis_editor("compresseur"),
+            "Pompes": _noms_depuis_editor("pompes"),
+            "Ventilation": _noms_depuis_editor("ventilation"),
+            "Machines de production": _noms_depuis_editor("machines"),
+            "Éclairage": _noms_depuis_editor("eclairage"),
+            "Dépoussiéreurs": _depoussieurs_detaille(lang),
         }
-        # priorités (utilise tes variables calculées)
+
+        # Priorités (depuis session_state si dispo)
+        poids_energie      = st.session_state.get("poids_energie", 0)
+        poids_roi          = st.session_state.get("poids_roi", 0)
+        poids_ges          = st.session_state.get("poids_ges", 0)
+        poids_prod         = st.session_state.get("poids_prod", st.session_state.get("poids_productivite", 0))
+        poids_maintenance  = st.session_state.get("poids_maintenance", 0)
+
         priorites = {}
-        if 'poids_energie' in locals():
+        total = (poids_energie + poids_roi + poids_ges + poids_prod + poids_maintenance)
+        if total > 0:
             priorites = {
                 "Réduction conso énergétique": poids_energie,
                 "Retour sur investissement":   poids_roi,
@@ -1120,8 +1207,8 @@ if st.button(TXT["btn_generate"]):
             }
 
         pdf_bytes = generer_pdf(
-            client_nom=client_nom,
-            site_nom=site_nom,
+            client_nom=str(client_nom),
+            site_nom=str(site_nom),
             sauver_ges=str(sauver_ges),
             economie_energie=bool(economie_energie),
             gain_productivite=bool(gain_productivite),
@@ -1132,11 +1219,11 @@ if st.button(TXT["btn_generate"]):
             equipements=equipements,
         )
 
-        # on garde en mémoire pour l’e-mail
+        # On garde en mémoire pour l’étape e-mail
         st.session_state["pdf_bytes"] = pdf_bytes
         st.success(TXT["ok_pdf"])
 
-# ---- Bouton de téléchargement (apparaît après génération) ----
+# ---- Bouton de téléchargement (après génération) ----
 if "pdf_bytes" in st.session_state:
     st.download_button(
         label=TXT["btn_download"],
@@ -1359,6 +1446,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
