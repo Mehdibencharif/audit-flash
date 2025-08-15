@@ -929,251 +929,221 @@ with st.expander(translations[lang]['texte_expander_services']):
 # 8-PDF – génération pro & complète
 # ==========================
 from fpdf import FPDF
+import io, re
 from datetime import date
 
-def _safe(txt):
-    return (txt or "").strip()
+TXT = {
+    "fr": {
+        "titre_pdf": "📝 8. Récapitulatif et génération PDF",
+        "info": ("ℹ️ Note : Cette version d’essai ne conserve pas vos données après fermeture de la page. "
+                 "La version finale permettra d’enregistrer et de reprendre vos réponses."),
+        "btn_generate": "📥 Générer le PDF",
+        "btn_download": "📥 Télécharger le PDF",
+        "err_missing": "Veuillez remplir ou corriger les champs suivants :",
+        "ok_pdf": "✅ PDF généré avec succès !",
+        "label_client": "Nom du client",
+        "label_site": "Nom du site",
+        "label_mail": "Courriel de contact EE",
+        "objectifs": "Objectifs du client :",
+        "services": "Services complémentaires souhaités :",
+        "priorites": "Priorités stratégiques du client :",
+        "equipements": "Équipements identifiés lors de l’audit :",
+        "aucun_eq": "Aucun équipement saisi",
+        "control": "Contrôle et automatisation",
+        "maint": "Maintenance",
+        "vent": "Ventilation",
+    },
+    "en": {
+        "titre_pdf": "📝 8. Summary and PDF Generation",
+        "info": ("ℹ️ Note: This trial version does not retain your data after closing the page. "
+                 "A final version will allow you to save and resume later."),
+        "btn_generate": "📥 Generate PDF",
+        "btn_download": "📥 Download PDF",
+        "err_missing": "Please fill or correct the following fields:",
+        "ok_pdf": "✅ PDF successfully generated!",
+        "label_client": "Client Name",
+        "label_site": "Site Name",
+        "label_mail": "EE Contact Email",
+        "objectifs": "Client objectives:",
+        "services": "Additional desired services:",
+        "priorites": "Client strategic priorities:",
+        "equipements": "Equipment identified during the audit:",
+        "aucun_eq": "No equipment provided",
+        "control": "Control & automation",
+        "maint": "Maintenance",
+        "vent": "Ventilation",
+    }
+}[lang]
 
-def _oui_non(x):  # pour booléens
-    return "Oui" if bool(x) else "Non"
+st.info(TXT["info"])
+st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
+st.markdown(f"<div class='section-title'>{TXT['titre_pdf']}</div>", unsafe_allow_html=True)
 
-def _list_from_editor(key: str) -> list[str]:
-    """Récupère une liste de 'Nom' depuis un st.data_editor(key=...). Gère DataFrame / dict deltas / liste."""
-    data = st.session_state.get(key, [])
-    noms = []
-    import pandas as pd
-    # DataFrame
-    if isinstance(data, pd.DataFrame):
+def _names_from_editor(key: str) -> list[str]:
+    """Récupère la liste des 'Nom' saisis dans un st.data_editor(key=...)."""
+    data = st.session_state.get(key)
+    out: list[str] = []
+    if isinstance(data, pd.DataFrame) and not data.empty:
         if "Nom" in data.columns:
-            for v in data["Nom"].fillna("").astype(str):
-                v = v.strip()
-                if v:
-                    noms.append(v)
-        return noms
-    # dict de deltas
-    if isinstance(data, dict) and any(k in data for k in ("edited_rows", "added_rows")):
-        for section in ("edited_rows", "added_rows"):
-            src = data.get(section, None)
-            if src:
-                if isinstance(src, dict):
-                    it = src.values()
-                elif isinstance(src, list):
-                    it = src
-                else:
-                    it = []
-                for row in it:
-                    if isinstance(row, dict):
-                        nom = str(row.get("Nom", "")).strip()
-                        if nom:
-                            noms.append(nom)
-        return noms
-    # liste de dicts
-    if isinstance(data, list):
-        for row in data:
-            if isinstance(row, dict):
-                nom = str(row.get("Nom", "")).strip()
-                if nom:
-                    noms.append(nom)
-        return noms
-    return noms
+            out = [str(x).strip() for x in data["Nom"].tolist() if str(x).strip()]
+    return out
 
-def _depoussieur_rows(lang: str) -> list[dict]:
-    """Retourne des lignes détaillées pour le tableau dépoussiéreur."""
-    data = st.session_state.get("depoussieur", None)
-    import pandas as pd
-    hp_label = translations[lang].get('label_puissance_dep_hp', 'Puissance (HP)')
-    vfd_label = translations[lang].get('label_vfd_dep', 'Variateur de vitesse (VFD)')
-    marque_label = translations[lang].get('label_marque_dep', 'Marque')
-
-    rows = []
-    def _rows_from_iter(it):
-        for r in it:
-            if isinstance(r, dict):
-                nom = str(r.get("Nom", "")).strip()
-                if not nom:
-                    continue
-                hp = r.get(hp_label, "")
-                try:
-                    if hp not in (None, ""):
-                        hp_val = float(hp)
-                        hp_txt = f"{hp_val:.0f}" if abs(hp_val-round(hp_val))<1e-9 else f"{hp_val}"
-                    else:
-                        hp_txt = ""
-                except Exception:
-                    hp_txt = str(hp)
-                vfd = r.get(vfd_label, False)
-                marque = str(r.get(marque_label, "") or "").strip()
-                rows.append({"Nom": nom, "HP": hp_txt, "VFD": _oui_non(vfd), "Marque": marque})
-
-    # DataFrame
-    if isinstance(data, pd.DataFrame):
-        for _, r in data.iterrows():
-            _rows_from_iter([r.to_dict()])
-        return rows
-    # dict de deltas
-    if isinstance(data, dict):
-        for section in ("edited_rows", "added_rows"):
-            src = data.get(section)
-            if src:
-                if isinstance(src, dict):
-                    _rows_from_iter(src.values())
-                elif isinstance(src, list):
-                    _rows_from_iter(src)
-        return rows
-    # liste
-    if isinstance(data, list):
-        _rows_from_iter(data)
-        return rows
-    return rows
-
-class PDFAudit(FPDF):
-    def header(self):
-        try:
-            self.image("Image/Logo Soteck.jpg", x=170, y=8, w=30)
-        except Exception:
-            pass
-        self.set_font("DejaVu", "B", 14)
-        self.set_text_color(55, 71, 79)
-        self.cell(0, 10, "Résumé - Audit Flash", ln=True, align="L")
-        self.ln(2)
-
-    def section_title(self, txt):
-        self.set_fill_color(205, 220, 57)   # lime doux
-        self.set_text_color(55, 71, 79)
-        self.set_font("DejaVu", "B", 12)
-        self.cell(0, 8, txt, ln=True, fill=True)
-        self.set_text_color(0, 0, 0)
-        self.set_font("DejaVu", "", 11)
-        self.ln(1)
-
-def generer_pdf_audit(lang: str,
-                      client_nom: str,
-                      site_nom: str,
-                      infos_objectifs: dict,
-                      services: dict,
-                      priorites: dict,
-                      ):
-    """
-    Retourne (pdf_bytes, pdf_filename)
-    - infos_objectifs: dict avec clés 'sauver_ges', 'economie_energie', 'gain_productivite',
-                       'roi_vise', 'investissement_prevu', 'autres_objectifs'
-    - services: dict avec clés 'controle', 'maintenance', 'ventilation', 'autres_services'
-    - priorites: dict avec clés 'poids_energie', 'poids_roi', 'poids_ges', 'poids_prod', 'poids_maintenance'
-    """
-    # Équipements (listes simples)
-    liste_chaudieres   = _list_from_editor("chaudieres")
-    liste_frigo        = _list_from_editor("frigo")
-    liste_compresseurs = _list_from_editor("compresseur")
-    liste_pompes       = _list_from_editor("pompes")
-    liste_ventilation  = _list_from_editor("ventilation")
-    liste_machines     = _list_from_editor("machines")
-    liste_eclairage    = _list_from_editor("eclairage")
-    # Dépoussiéreur (tableau)
-    dep_rows = _depoussieur_rows(lang)
-
-    pdf = PDFAudit(orientation="P", unit="mm", format="A4")
+def generer_pdf(
+    *,
+    client_nom: str,
+    site_nom: str,
+    sauver_ges: str,
+    economie_energie: bool,
+    gain_productivite: bool,
+    roi_vise: str,
+    investissement_prevu: str,
+    autres_objectifs: str,
+    priorites: dict,
+    equipements: dict,
+) -> bytes:
+    """Construit le PDF et renvoie les bytes."""
+    pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-    # Polices Unicode
+
+    # polices (assure-toi d'avoir ces fichiers; sinon, commente add_font et utilise set_font('Arial'))
     try:
         pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
         pdf.add_font('DejaVu', 'B', 'fonts/DejaVuSans-Bold.ttf', uni=True)
-    except Exception:
-        pass
-    pdf.set_font("DejaVu", "", 11)
+        FONT_REG, FONT_B = 'DejaVu', 'DejaVu'
+    except:
+        FONT_REG = FONT_B = 'Arial'
 
-    # En-tête client
-    pdf.cell(0, 8, f"Client : {_safe(client_nom)}", ln=True)
-    pdf.cell(0, 8, f"Site   : {_safe(site_nom)}", ln=True)
+    # Logo optionnel
+    try:
+        pdf.image("Image/Logo Soteck.jpg", x=170, y=10, w=30)
+    except:
+        pass
+
+    # Titre
+    pdf.set_font(FONT_B, 'B', 16)
+    pdf.cell(0, 10, "Résumé - Audit Flash", ln=True, align="C")
+    pdf.ln(5)
+    pdf.set_font(FONT_REG, '', 12)
+    pdf.cell(0, 8, f"Client : {client_nom}", ln=True)
+    pdf.cell(0, 8, f"Site   : {site_nom}", ln=True)
     pdf.cell(0, 8, f"Date   : {date.today().strftime('%d/%m/%Y')}", ln=True)
-    pdf.ln(2)
 
     # Objectifs
-    pdf.section_title("Objectifs du client")
-    pdf.multi_cell(0, 6, f"- Réduction GES : {_safe(infos_objectifs.get('sauver_ges',''))}%")
-    pdf.cell(0, 6, f"- Économie d’énergie : {_oui_non(infos_objectifs.get('economie_energie', False))}", ln=True)
-    pdf.cell(0, 6, f"- Productivité accrue : {_oui_non(infos_objectifs.get('gain_productivite', False))}", ln=True)
-    pdf.cell(0, 6, f"- ROI visé : {_safe(infos_objectifs.get('roi_vise',''))}", ln=True)
-    pdf.cell(0, 6, f"- Investissement prévu : {_safe(infos_objectifs.get('investissement_prevu',''))}", ln=True)
-    autres_obj = _safe(infos_objectifs.get('autres_objectifs',''))
-    if autres_obj:
-        pdf.multi_cell(0, 6, f"- Autres objectifs : {autres_obj}")
-    pdf.ln(1)
+    pdf.ln(4)
+    pdf.set_font(FONT_B, 'B', 12)
+    pdf.cell(0, 8, TXT["objectifs"], ln=True)
+    pdf.set_font(FONT_REG, '', 12)
+    pdf.cell(0, 8, f"Réduction GES : {sauver_ges}%", ln=True)
+    pdf.cell(0, 8, f"Économie d’énergie : {'Oui' if economie_energie else 'Non'}", ln=True)
+    pdf.cell(0, 8, f"Productivité accrue : {'Oui' if gain_productivite else 'Non'}", ln=True)
+    pdf.cell(0, 8, f"ROI visé : {roi_vise}", ln=True)
+    pdf.cell(0, 8, f"Investissement prévu : {investissement_prevu}", ln=True)
+    if autres_objectifs:
+        pdf.multi_cell(0, 8, f"Autres objectifs : {autres_objectifs}")
 
     # Services
-    pdf.section_title("Services complémentaires souhaités")
-    pdf.cell(0, 6, f"- Contrôle & automatisation : {_oui_non(services.get('controle', False))}", ln=True)
-    pdf.cell(0, 6, f"- Maintenance : {_oui_non(services.get('maintenance', False))}", ln=True)
-    pdf.cell(0, 6, f"- Ventilation : {_oui_non(services.get('ventilation', False))}", ln=True)
-    autres_serv = _safe(services.get('autres_services',''))
-    if autres_serv:
-        pdf.multi_cell(0, 6, f"- Autres services : {autres_serv}")
-    pdf.ln(1)
+    pdf.ln(3)
+    pdf.set_font(FONT_B, 'B', 12)
+    pdf.cell(0, 8, TXT["services"], ln=True)
+    pdf.set_font(FONT_REG, '', 12)
+    pdf.cell(0, 8, f"- {TXT['control']} : {'Oui' if st.session_state.get('controle') else 'Non'}", ln=True)
+    pdf.cell(0, 8, f"- {TXT['maint']}   : {'Oui' if st.session_state.get('maintenance') else 'Non'}", ln=True)
+    pdf.cell(0, 8, f"- {TXT['vent']}    : {'Oui' if st.session_state.get('ventilation') else 'Non'}", ln=True)
 
     # Priorités
-    pdf.section_title("Priorités stratégiques")
-    if any(priorites.get(k, 0) for k in ("poids_energie","poids_roi","poids_ges","poids_prod","poids_maintenance")):
-        pdf.cell(0, 6, f"- Réduction conso énergétique : {priorites.get('poids_energie',0):.0%}", ln=True)
-        pdf.cell(0, 6, f"- Retour sur investissement   : {priorites.get('poids_roi',0):.0%}", ln=True)
-        pdf.cell(0, 6, f"- Réduction GES               : {priorites.get('poids_ges',0):.0%}", ln=True)
-        pdf.cell(0, 6, f"- Productivité & fiabilité    : {priorites.get('poids_prod',0):.0%}", ln=True)
-        pdf.cell(0, 6, f"- Maintenance & fiabilité     : {priorites.get('poids_maintenance',0):.0%}", ln=True)
+    pdf.ln(3)
+    pdf.set_font(FONT_B, 'B', 12)
+    pdf.cell(0, 8, TXT["priorites"], ln=True)
+    pdf.set_font(FONT_REG, '', 12)
+    if priorites:
+        for k, v in priorites.items():
+            pdf.cell(0, 8, f"{k} : {v:.0%}", ln=True)
     else:
-        pdf.cell(0, 6, "Priorités non renseignées.", ln=True)
-    pdf.ln(1)
+        pdf.cell(0, 8, "Non renseignées", ln=True)
 
-    # Équipements – listes simples
-    pdf.section_title("Équipements identifiés")
-    def _bullets(nom_section, items):
-        if items:
-            pdf.multi_cell(0, 6, f"- {nom_section} : {', '.join(items)}")
+    # Équipements
+    pdf.ln(3)
+    pdf.set_font(FONT_B, 'B', 12)
+    pdf.cell(0, 8, TXT["equipements"], ln=True)
+    pdf.set_font(FONT_REG, '', 12)
+    for bloc, noms in equipements.items():
+        if noms:
+            pdf.multi_cell(0, 8, f"- {bloc} : {', '.join(noms)}")
         else:
-            pdf.cell(0, 6, f"- {nom_section} : Aucun équipement saisi", ln=True)
+            pdf.cell(0, 8, f"- {bloc} : {TXT['aucun_eq']}", ln=True)
 
-    _bullets("Chaudières", liste_chaudieres)
-    _bullets("Systèmes frigorifiques", liste_frigo)
-    _bullets("Compresseurs", liste_compresseurs)
-    _bullets("Pompes", liste_pompes)
-    _bullets("Ventilation / HVAC", liste_ventilation)
-    _bullets("Machines de production", liste_machines)
-    _bullets("Éclairage", liste_eclairage)
-
-    # Équipements – tableau dépoussiéreur
-    pdf.ln(2)
-    pdf.section_title("Dépoussiéreur – Détail")
-    # En-tête tableau
-    th = 7
-    pdf.set_font("DejaVu", "B", 11)
-    pdf.set_fill_color(230, 230, 230)
-    for w, head in zip((70, 25, 25, 60), ("Nom", "HP", "VFD", "Marque")):
-        pdf.cell(w, th, head, border=1, align="C", fill=True)
-    pdf.ln(th)
-    pdf.set_font("DejaVu", "", 10)
-    if dep_rows:
-        for r in dep_rows:
-            pdf.cell(70, th, r.get("Nom",""), border=1)
-            pdf.cell(25, th, str(r.get("HP","")), border=1, align="C")
-            pdf.cell(25, th, str(r.get("VFD","")), border=1, align="C")
-            pdf.cell(60, th, r.get("Marque",""), border=1)
-            pdf.ln(th)
-    else:
-        pdf.cell(180, th, "Aucun dépoussiéreur saisi", border=1, align="C")
-        pdf.ln(th)
-
-    # Pied (optionnel image bas de page)
+    # Bandeau bas (optionnel)
     try:
-        pdf.image("Image/sous-page.jpg", x=10, y=285-18, w=190)
-    except Exception:
+        pdf.image("Image/sous-page.jpg", x=10, y=265, w=190)
+    except:
         pass
 
-    # Bytes
-    try:
-        pdf_bytes = pdf.output(dest="S").encode("latin1")
-    except Exception:
-        pdf_bytes = pdf.output(dest="S").encode("utf-8", errors="ignore")
+    pdf_bytes = pdf.output(dest="S").encode("latin1")  # bytes
+    return pdf_bytes
 
-    fname = f"AuditFlash_{_safe(client_nom) or 'client'}.pdf".replace(" ", "_")
-    return pdf_bytes, fnam
+
+# ---- Vérification obligatoire + Bouton "Générer le PDF" ----
+st.divider()
+email_regex = r"[^@]+@[^@]+\.[^@]+"
+
+if st.button(TXT["btn_generate"]):
+    missing = []
+    if not client_nom: missing.append(TXT["label_client"])
+    if not site_nom:   missing.append(TXT["label_site"])
+    if contact_ee_mail and not re.match(email_regex, contact_ee_mail):
+        missing.append(TXT["label_mail"])
+
+    if missing:
+        st.error(f"{TXT['err_missing']} {', '.join(missing)}")
+    else:
+        # listes d’équipements (selon tes éditeurs)
+        equipements = {
+            "Chaudières": _names_from_editor("chaudieres"),
+            "Systèmes frigorifiques": _names_from_editor("frigo"),
+            "Compresseurs": _names_from_editor("compresseur"),
+            "Pompes": _names_from_editor("pompes"),
+            "Ventilation": _names_from_editor("ventilation"),
+            "Machines de production": _names_from_editor("machines"),
+            "Éclairage": _names_from_editor("eclairage"),
+            "Dépoussiéreurs": _names_from_editor("depoussieur"),
+        }
+        # priorités (utilise tes variables calculées)
+        priorites = {}
+        if 'poids_energie' in locals():
+            priorites = {
+                "Réduction conso énergétique": poids_energie,
+                "Retour sur investissement":   poids_roi,
+                "Réduction émissions GES":     poids_ges,
+                "Productivité & fiabilité":    poids_prod,
+                "Maintenance & fiabilité":     poids_maintenance,
+            }
+
+        pdf_bytes = generer_pdf(
+            client_nom=client_nom,
+            site_nom=site_nom,
+            sauver_ges=str(sauver_ges),
+            economie_energie=bool(economie_energie),
+            gain_productivite=bool(gain_productivite),
+            roi_vise=str(roi_vise),
+            investissement_prevu=str(investissement_prevu),
+            autres_objectifs=str(autres_objectifs),
+            priorites=priorites,
+            equipements=equipements,
+        )
+
+        # on garde en mémoire pour l’e-mail
+        st.session_state["pdf_bytes"] = pdf_bytes
+        st.success(TXT["ok_pdf"])
+
+# ---- Bouton de téléchargement (apparaît après génération) ----
+if "pdf_bytes" in st.session_state:
+    st.download_button(
+        label=TXT["btn_download"],
+        data=st.session_state["pdf_bytes"],
+        file_name=f"audit_flash_{client_nom or 'client'}.pdf",
+        mime="application/pdf",
+    )
 
 # ===========================
 # 🔁 Récupération des données
@@ -1389,6 +1359,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
