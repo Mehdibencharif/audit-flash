@@ -42,19 +42,66 @@ translations = {
 # Sélection de la langue
 lang = "fr" if langue == "Français" else "en"
 
+# =====================================================
+# Fonction pour obtenir le client OpenAI
+# =====================================================
+def _get_openai_client():
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        return None
+    return OpenAI(api_key=api_key)
+
+# =====================================================
+# Fonction principale pour répondre aux questions
+# =====================================================
+def repondre_a_question(question: str, langue: str = "fr") -> str:
+    """
+    Pose une question simple au modèle GPT-3.5 et retourne la réponse.
+    """
+    client = _get_openai_client()
+    if client is None:
+        return "⚠️ Clé API OpenAI manquante. Configurez la variable OPENAI_API_KEY."
+
+    try:
+        # Appel à GPT-3.5
+        completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Tu es un assistant spécialisé en efficacité énergétique. "
+                        "Réponds de façon claire, concise et précise."
+                    )
+                },
+                {"role": "user", "content": question}
+            ],
+            temperature=0.2,
+            max_tokens=300
+        )
+
+        return completion.choices[0].message.content.strip()
+
+    except Exception as e:
+        return f"⚠️ Erreur lors de la génération : {e}"
+        
 # ==========================
 # Chatbot intelligent
 # ==========================
 with st.sidebar:
     st.markdown("## 🤖 Assistant Audit Flash")
-    user_question = st.text_area("💬 Posez votre question ici :", key="chatbot_input", placeholder="Ex: Quelle est la priorité énergie ?")
+    user_question = st.text_area(
+        "💬 Posez votre question ici :",
+        key="chatbot_input",
+        placeholder="Ex: Quelle est la priorité énergie ?"
+    )
 
     if st.button("📤 Envoyer ma question", key="chatbot_button"):
         if user_question.strip():
             with st.spinner("💬 L’assistant réfléchit..."):
                 reponse = repondre_a_question(
                     user_question,
-                    langue="en" if langue == "English" else "fr"
+                    langue="en" if st.session_state.get("langue") == "English" else "fr"
                 )
 
             if reponse.startswith("⚠️"):
@@ -68,9 +115,10 @@ with st.sidebar:
                 """, unsafe_allow_html=True)
         else:
             st.warning("❗ Veuillez écrire une question avant d’envoyer.")
-
-
+            
+# ==========================
 # COULEURS ET STYLE PERSONNALISÉ
+# ==========================
 couleur_primaire = "#cddc39"  # Lime doux inspiré de ton branding
 couleur_fond = "#f5f5f5"      # Gris clair plus doux et agréable
 
@@ -1217,6 +1265,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
