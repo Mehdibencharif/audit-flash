@@ -562,11 +562,11 @@ translations = {
         "label_taille_chaudiere": "Boiler size (BHP or BTU)",
         "label_appoint_eau": "Water make-up (volume)",
         "label_micro_modulation": "Boiler with micro modulation?",
-        "label_economiseur_chaudiere": "Economizer installed?",  # ✅ corrigé
+        "label_economiseur_chaudiere": "Economizer installed?",  
         "sous_titre_frigo": "Refrigeration equipment",
         "label_nb_frigo": "Number of refrigeration systems",
         "label_capacite_frigo": "Refrigeration capacity",
-        "label_nom_frigorigenes": "Refrigerant name",  # ✅ corrigé
+        "label_nom_frigorigenes": "Refrigerant name",  
         "sous_titre_compresseur": "Air compressor",
         "label_puissance_comp": "Compressor power (HP)",
         "label_variation_vitesse": "Variable speed compressor",
@@ -596,6 +596,15 @@ translations = {
         "label_marque_dep": "Brand",
     }
 }
+
+st.markdown(
+    f"""
+<div class='section-title'>
+    {translations[lang]['titre_equipements']}
+</div>
+""",
+    unsafe_allow_html=True,
+)
 
 with st.expander(translations[lang]['texte_expander_equipements']):
     # 🔥 Chaudières
@@ -1314,6 +1323,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
