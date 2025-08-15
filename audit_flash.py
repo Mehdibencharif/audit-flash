@@ -115,7 +115,7 @@ def repondre_a_question(question: str, langue: str = "fr") -> str:
 import streamlit as st
 
 with st.sidebar:
-    st.markdown("## 🤖 Assistant Audit Flash (gratuit – Groq)")
+    st.markdown("## 🤖 Assistant Audit Flash ")
     user_question = st.text_area(
         "💬 Posez votre question ici :",
         key="chatbot_input",
@@ -1387,6 +1387,7 @@ if st.button("Soumettre le formulaire"):
 
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
