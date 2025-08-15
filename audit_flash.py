@@ -546,6 +546,11 @@ translations = {
         "label_type_eclairage": "Type d’éclairage (LED, fluorescent, etc.)",
         "label_puissance_totale_eclairage": "Puissance totale installée (kW)",
         "label_heures_utilisation": "Nombre d’heures d’utilisation par jour"
+        "sous_titre_depoussiereur": "Dépoussiéreur",
+        "label_puissance_dep_hp": "Puissance (HP)",
+        "label_vfd_dep": "Variateur de vitesse (VFD)",
+        "label_marque_dep": "Marque",
+        
     },
     "en": {
         # ... autres clés ...
@@ -586,132 +591,151 @@ translations = {
         "label_type_eclairage": "Type of lighting (LED, fluorescent, etc.)",
         "label_puissance_totale_eclairage": "Total installed power (kW)",
         "label_heures_utilisation": "Number of hours of use per day"
+        "sous_titre_depoussiereur": "Dust collector",
+        "label_puissance_dep_hp": "Power (HP)",
+        "label_vfd_dep": "Variable Frequency Drive (VFD)",
+        "label_marque_dep": "Brand",
     }
 }
 
-st.markdown(f"""
-<div class='section-title'>
-    {translations[lang]['titre_equipements']}
-</div>
-""", unsafe_allow_html=True)
-
 with st.expander(translations[lang]['texte_expander_equipements']):
-    # 🔥 Section Chaudières
+    # 🔥 Chaudières
     st.markdown(f"#### {translations[lang]['sous_titre_chaudieres']}")
     columns_chaudieres = [
         "Nom",
-    translations[lang]['label_type_chaudiere'],
-    translations[lang]['label_rendement_chaudiere'],
-    translations[lang]['label_taille_chaudiere'],
-    translations[lang]['label_appoint_eau'],
-    translations[lang]['label_micro_modulation'],
-    translations[lang]['label_economiseur_chaudiere']  
+        translations[lang]['label_type_chaudiere'],
+        translations[lang]['label_rendement_chaudiere'],
+        translations[lang]['label_taille_chaudiere'],
+        translations[lang]['label_appoint_eau'],
+        translations[lang]['label_micro_modulation'],
+        translations[lang]['label_economiseur_chaudiere'],
     ]
     df_chaudieres = st.data_editor(
         pd.DataFrame(columns=columns_chaudieres),
         num_rows="dynamic",
-        key="chaudieres"
+        key="chaudieres",
     )
     st.write("Aperçu des données des chaudières :")
     st.dataframe(df_chaudieres)
 
-    # ❄️ Section Équipements frigorifiques
+    # ❄️ Équipements frigorifiques
     st.markdown(f"#### {translations[lang]['sous_titre_frigo']}")
     columns_frigo = [
         "Nom",
-    translations[lang]['label_capacite_frigo'],
-    translations[lang]['label_nom_frigorigenes']  
+        translations[lang]['label_capacite_frigo'],
+        translations[lang]['label_nom_frigorigenes'],
     ]
     df_frigo = st.data_editor(
         pd.DataFrame(columns=columns_frigo),
         num_rows="dynamic",
-        key="frigo"
+        key="frigo",
     )
     st.write("Aperçu des données des équipements frigorifiques :")
     st.dataframe(df_frigo)
 
-    # 💨 Section Compresseur d’air
+    # 💨 Compresseur d’air
     st.markdown(f"#### {translations[lang]['sous_titre_compresseur']}")
     columns_compresseur = [
-         "Nom",
+        "Nom",
         translations[lang]['label_puissance_comp'],
-        translations[lang]['label_variation_vitesse']
+        translations[lang]['label_variation_vitesse'],
     ]
     df_compresseur = st.data_editor(
         pd.DataFrame(columns=columns_compresseur),
         num_rows="dynamic",
-        key="compresseur"
+        key="compresseur",
     )
     st.write("Aperçu des données des compresseurs d’air :")
     st.dataframe(df_compresseur)
 
-    # 🚰 Section Pompes industrielles
-st.markdown(f"#### {translations[lang]['sous_titre_pompes']}")
-columns_pompes = [
-    "Nom",  # ✅ Ajout du champ 'Nom'
-    translations[lang]['label_type_pompe'],
-    translations[lang]['label_puissance_pompe'],
-    translations[lang]['label_rendement_pompe'],
-    translations[lang]['label_vitesse_variable_pompe']  # ✅ 🛠️ Ajout corrigé avec bonne virgule
-]
-df_pompes = st.data_editor(
-    pd.DataFrame(columns=columns_pompes),
-    num_rows="dynamic",
-    key="pompes"
-)
-st.write("Aperçu des données des pompes industrielles :")
-st.dataframe(df_pompes)
+    # 🧹 Dépoussiéreur 
+    st.markdown(f"#### {translations[lang]['sous_titre_depoussiereur']}")
+    columns_dep = [
+        "Nom",
+        translations[lang]['label_puissance_dep_hp'],
+        translations[lang]['label_vfd_dep'],
+        translations[lang]['label_marque_dep'],
+    ]
+    df_dep = st.data_editor(
+        pd.DataFrame(columns=columns_dep),
+        num_rows="dynamic",
+        key="depoussieur",
+        column_config={
+            "Nom": st.column_config.TextColumn(),
+            translations[lang]['label_puissance_dep_hp']: st.column_config.NumberColumn(step=0.5, min_value=0.0),
+            translations[lang]['label_vfd_dep']: st.column_config.CheckboxColumn(default=False),
+            translations[lang]['label_marque_dep']: st.column_config.TextColumn(),
+        },
+    )
+    st.write("Aperçu des données des dépoussiéreurs :")
+    st.dataframe(df_dep)
 
-        # 🌬️ Section Ventilation
-st.markdown(f"#### {translations[lang]['sous_titre_ventilation']}")
-columns_ventilation = [
+    # 🚰 Pompes industrielles
+    st.markdown(f"#### {translations[lang]['sous_titre_pompes']}")
+    columns_pompes = [
+        "Nom",
+        translations[lang]['label_type_pompe'],
+        translations[lang]['label_puissance_pompe'],
+        translations[lang]['label_rendement_pompe'],
+        translations[lang]['label_vitesse_variable_pompe'],
+    ]
+    df_pompes = st.data_editor(
+        pd.DataFrame(columns=columns_pompes),
+        num_rows="dynamic",
+        key="pompes",
+    )
+    st.write("Aperçu des données des pompes industrielles :")
+    st.dataframe(df_pompes)
+
+    # 🌬️ Ventilation / HVAC
+    st.markdown(f"#### {translations[lang]['sous_titre_ventilation']}")
+    columns_ventilation = [
         "Nom",
         translations[lang]['label_type_ventilation'],
-        translations[lang]['label_puissance_ventilation']
+        translations[lang]['label_puissance_ventilation'],
     ]
-df_ventilation = st.data_editor(
+    df_ventilation = st.data_editor(
         pd.DataFrame(columns=columns_ventilation),
         num_rows="dynamic",
-        key="ventilation"
+        key="ventilation",
     )
-st.write("Aperçu des données des systèmes de ventilation :")
-st.dataframe(df_ventilation)
+    st.write("Aperçu des données des systèmes de ventilation :")
+    st.dataframe(df_ventilation)
 
-    # 🛠️ Section Autres machines de production
-st.markdown(f"#### {translations[lang]['sous_titre_machines']}")
-columns_machines = [
+    # 🛠️ Autres machines de production
+    st.markdown(f"#### {translations[lang]['sous_titre_machines']}")
+    columns_machines = [
         "Nom",
         translations[lang]['label_nom_machine'],
         translations[lang]['label_puissance_machine'],
         translations[lang]['label_taux_utilisation'],
         translations[lang]['label_rendement_machine'],
-        translations[lang]['label_source_energie_machine']
+        translations[lang]['label_source_energie_machine'],
     ]
-df_machines = st.data_editor(
+    df_machines = st.data_editor(
         pd.DataFrame(columns=columns_machines),
         num_rows="dynamic",
-        key="machines"
+        key="machines",
     )
-st.write("Aperçu des données des autres machines de production :")
-st.dataframe(df_machines)
+    st.write("Aperçu des données des autres machines de production :")
+    st.dataframe(df_machines)
 
-    # 💡 Section Éclairage
-st.markdown(f"#### {translations[lang]['sous_titre_eclairage']}")
-columns_eclairage = [
+    # 💡 Éclairage
+    st.markdown(f"#### {translations[lang]['sous_titre_eclairage']}")
+    columns_eclairage = [
         "Nom",
         translations[lang]['label_type_eclairage'],
         translations[lang]['label_puissance_totale_eclairage'],
-        translations[lang]['label_heures_utilisation']
+        translations[lang]['label_heures_utilisation'],
     ]
-df_eclairage = st.data_editor(
+    df_eclairage = st.data_editor(
         pd.DataFrame(columns=columns_eclairage),
         num_rows="dynamic",
-        key="eclairage"
+        key="eclairage",
     )
-st.write("Aperçu des données des systèmes d’éclairage :")
-st.dataframe(df_eclairage)
+    st.write("Aperçu des données des systèmes d’éclairage :")
+    st.dataframe(df_eclairage)
 
-    
 # ==========================
 # 6. VOS PRIORITÉS STRATÉGIQUES
 # ==========================
@@ -1291,6 +1315,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
