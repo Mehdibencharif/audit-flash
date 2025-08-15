@@ -1236,35 +1236,27 @@ if "pdf_bytes" in st.session_state:
 # 🔁 Récupération des données
 # ===========================
 
-# Initialisation sécurisée des champs du formulaire
-client_nom = st.session_state.get("client_nom", "N/A")
-site_nom = st.session_state.get("site_nom", "N/A")
-contact_ee_nom = st.session_state.get("contact_ee_nom", "N/A")
-contact_ee_mail = st.session_state.get("contact_ee_mail", "N/A")
-sauver_ges = st.session_state.get("sauver_ges", "N/A")
-roi_vise = st.session_state.get("roi_vise", "N/A")
-controle = st.session_state.get("controle", False)
-maintenance = st.session_state.get("maintenance", False)
-ventilation = st.session_state.get("ventilation", False)
-poids_energie = st.session_state.get("poids_energie", 0)
-poids_roi = st.session_state.get("poids_roi", 0)
-poids_ges = st.session_state.get("poids_ges", 0)
-poids_productivite = st.session_state.get("poids_productivite", 0)
-poids_maintenance = st.session_state.get("poids_maintenance", 0)
+# Champs saisis (avec valeurs par défaut sûres)
+client_nom          = st.session_state.get("client_nom", "").strip()
+site_nom            = st.session_state.get("site_nom", "").strip()
+contact_ee_nom      = st.session_state.get("contact_ee_nom", "").strip()
+contact_ee_mail     = st.session_state.get("contact_ee_mail", "").strip()
+sauver_ges          = st.session_state.get("sauver_ges", "")
+roi_vise            = st.session_state.get("roi_vise", "")
+controle            = bool(st.session_state.get("controle", False))
+maintenance         = bool(st.session_state.get("maintenance", False))
+ventilation         = bool(st.session_state.get("ventilation", False))
 
-# Sécurisation des équipements sous forme de listes
-equipements = ["chaudieres", "frigo", "compresseur", "pompes", "ventilation", "machines", "eclairage"]
-for key in equipements:
+poids_energie       = float(st.session_state.get("poids_energie", 0))
+poids_roi           = float(st.session_state.get("poids_roi", 0))
+poids_ges           = float(st.session_state.get("poids_ges", 0))
+poids_productivite  = float(st.session_state.get("poids_productivite", 0))
+poids_maintenance   = float(st.session_state.get("poids_maintenance", 0))
+
+# Sécuriser l’existence des clés d’éditeurs
+for key in ["chaudieres", "frigo", "compresseur", "pompes", "ventilation", "machines", "eclairage", "depoussieur"]:
     if key not in st.session_state or st.session_state[key] is None:
         st.session_state[key] = []
-
-liste_chaudieres = st.session_state["chaudieres"]
-liste_frigo = st.session_state["frigo"]
-liste_compresseurs = st.session_state["compresseur"]
-liste_pompes = st.session_state["pompes"]
-liste_ventilation = st.session_state["ventilation"]
-liste_machines = st.session_state["machines"]
-liste_eclairage = st.session_state["eclairage"]
 
 # ===========================
 # 📤 EXPORT EXCEL
@@ -1283,16 +1275,15 @@ translations_excel = {
     }
 }
 
-# Langue par défaut si non définie
 if 'lang' not in locals() or lang not in translations_excel:
     lang = "fr"
 
 if st.checkbox(translations_excel[lang]['msg_checkbox_excel']):
     data = {
-        translations_excel[lang]['label_client_nom']: [client_nom],
-        "Site": [site_nom],
-        "GES (%)": [sauver_ges],
-        "ROI visé": [roi_vise],
+        translations_excel[lang]['label_client_nom']: [client_nom or "N/A"],
+        "Site": [site_nom or "N/A"],
+        "GES (%)": [sauver_ges if sauver_ges != "" else "N/A"],
+        "ROI visé": [roi_vise if roi_vise != "" else "N/A"],
         "Contrôle": ['Oui' if controle else 'Non'],
         "Maintenance": ['Oui' if maintenance else 'Non'],
         "Ventilation": ['Oui' if ventilation else 'Non'],
@@ -1316,137 +1307,86 @@ if st.checkbox(translations_excel[lang]['msg_checkbox_excel']):
         file_name="audit_flash.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-# =============================
-# 🧪 Debug simple
-# =============================
-#try:
-  #  st.write(" Chaudières :", liste_chaudieres)
-  #  st.write("Frigo :", liste_frigo)
-  #  st.write("Compresseurs :", liste_compresseurs)
- #   st.write("Pompes :", liste_pompes)
-#    st.write("Ventilation :", liste_ventilation)
-#    st.write("Machines :", liste_machines)
-#    st.write("Éclairage :", liste_eclairage)
-#except Exception as e:
- #   st.error(f" Erreur d'affichage d'une des listes : {e}")
+
+# ===========================
+# 📧 Soumission (avec PDF déjà généré)
+# ===========================
 
 if st.button("Soumettre le formulaire"):
-    resume = (
-        f"Bonjour,\n\n"
-        f"Ci-joint le résumé de l'Audit Flash pour le client {client_nom}.\n\n"
-        f"Informations saisies :\n"
-        f"- Site : {site_nom}\n"
-        f"- Contact : {contact_ee_nom}\n"
-        f"- Email : {contact_ee_mail}\n"
-        f"- Réduction GES : {sauver_ges if sauver_ges is not None else 'N/A'}%"
-    )
+    # 1) Vérifier que le PDF existe (créé via le bouton 'Générer le PDF')
+    pdf_bytes = st.session_state.get("pdf_bytes")
+    if not pdf_bytes:
+        st.error("⚠️ Veuillez d’abord cliquer sur **« Générer le PDF »** dans la section précédente.")
+    else:
+        # --- Résumé texte pour l’e-mail ---
+        resume = (
+            f"Bonjour,\n\n"
+            f"Ci-joint le résumé de l'Audit Flash pour le client {client_nom or 'N/A'}.\n\n"
+            f"Informations saisies :\n"
+            f"- Site : {site_nom or 'N/A'}\n"
+            f"- Contact : {contact_ee_nom or 'N/A'}\n"
+            f"- Email : {contact_ee_mail or 'N/A'}\n"
+            f"- Réduction GES : {sauver_ges if sauver_ges != '' else 'N/A'}%\n"
+        )
 
-    # 📄 Génération du PDF
-    pdf = FPDF()
-    pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.add_page()
-    pdf.set_font("DejaVu", '', 12)
-    pdf.cell(0, 10, f"Résumé Audit Flash - {client_nom}", ln=True, align='C')
-    pdf.ln(10)
-    pdf.multi_cell(0, 10, resume)
+        # 2) Préparer le fichier PDF joint (nom)
+        pdf_filename = f"Resume_AuditFlash_{(client_nom or 'client').replace(' ', '_')}.pdf"
 
-    # 📊 Page des priorités stratégiques
-    pdf.add_page()
-    pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
-    pdf.add_font('DejaVu', 'B', 'fonts/DejaVuSans-Bold.ttf', uni=True)
-    pdf.set_font("DejaVu", 'B', 14)
-    pdf.cell(0, 10, " Graphique des priorités stratégiques", ln=True)
+        # 3) (Optionnel) – Attachements des fichiers téléversés si tu les as :
+        # Assure-toi que ces variables existent plus haut dans ton script :
+        facture_elec = locals().get("facture_elec", [])
+        facture_combustibles = locals().get("facture_combustibles", [])
+        facture_autres = locals().get("facture_autres", [])
+        plans_pid = locals().get("plans_pid", [])
 
-    fig, ax = plt.subplots()
-    priorites = ["Conso énergétique", "ROI", "GES", "Productivité", "Maintenance"]
-    valeurs = [poids_energie, poids_roi, poids_ges, poids_productivite, poids_maintenance]
-    ax.bar(priorites, valeurs)
-    ax.set_title("Priorités stratégiques du client")
-    ax.set_xlabel("Critères")
-    ax.set_ylabel("Priorité (%)")
-    plt.tight_layout()
+        # 4) ENVOI PAR EMAIL (on peut l’activer plus tard si tu veux)
+        try:
+            SMTP_SERVER = "smtp.gmail.com"
+            SMTP_PORT = 587  # STARTTLS
+            EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
+            EMAIL_PASSWORD = st.secrets["email_password"]
 
-    graph_filename = "priorites.png"
-    fig.savefig(graph_filename, bbox_inches='tight')
-    plt.close(fig)
+            # ✅ Destinataires (modifie si besoin)
+            EMAIL_DESTINATAIRES = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
 
-    try:
-        pdf.image(graph_filename, x=10, y=30, w=pdf.w - 20)
-    except Exception as e:
-        st.warning(f"⚠️ Graphique non intégré : {e}")
+            msg = EmailMessage()
+            msg['Subject'] = f"Audit Flash - Client {client_nom or 'N/A'}"
+            msg['From'] = EMAIL_SENDER
+            msg['To'] = ", ".join(EMAIL_DESTINATAIRES)
+            msg.set_content(resume)
 
-    # 🔁 Encodage UTF-8
-    try:
-        pdf_bytes = pdf.output(dest='S').encode('utf-8')
-    except Exception as e:
-        st.error(f"Erreur d'encodage PDF : {e}")
-        raise
+            # Pièce jointe principale : PDF généré
+            msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
 
-    pdf_filename = f"Resume_AuditFlash_{client_nom}.pdf"
+            # Autres pièces jointes (si présentes)
+            uploads_dir = "uploads"
+            os.makedirs(uploads_dir, exist_ok=True)
+            for file_group in [facture_elec, facture_combustibles, facture_autres, plans_pid]:
+                for file in file_group or []:
+                    try:
+                        file_path = os.path.join(uploads_dir, file.name)
+                        with open(file_path, "wb") as f:
+                            f.write(file.read())
+                        with open(file_path, "rb") as f:
+                            msg.add_attachment(
+                                f.read(),
+                                maintype='application',
+                                subtype='pdf',
+                                filename=file.name
+                            )
+                    except Exception as e:
+                        st.warning(f"⚠️ Fichier {getattr(file, 'name', 'inconnu')} non attaché : {e}")
 
-import os
-import smtplib
-from email.message import EmailMessage
+            # Envoi
+            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+                server.starttls()
+                server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+                server.send_message(msg)
 
-# 📧 Envoi par courriel
-try:
-    SMTP_SERVER = "smtp.gmail.com"
-    SMTP_PORT = 587  # STARTTLS
-    EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
-    EMAIL_PASSWORD = st.secrets["email_password"]
+            st.success("✅ Formulaire soumis et envoyé par e-mail avec succès !")
 
-    # ✅ Ajout des destinataires ici
-    EMAIL_DESTINATAIRE = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
-
-    # Création du message
-    resume = f"""Résumé de l'audit pour le client {client_nom} - Site {site_nom}
-    Date : {date.today().strftime('%d/%m/%Y')}
-    Objectifs :
-    - Réduction GES : {sauver_ges}%
-    - Économie d’énergie : {'Oui' if economie_energie else 'Non'}
-    - Productivité accrue : {'Oui' if gain_productivite else 'Non'}
-    - ROI visé : {roi_vise}
-    - Investissement prévu : {investissement_prevu}
-    """
-
-    msg = EmailMessage()
-    msg['Subject'] = f"Audit Flash - Client {client_nom}"
-    msg['From'] = EMAIL_SENDER
-    msg['To'] = ", ".join(EMAIL_DESTINATAIRE)
-    msg.set_content(resume)
-
-    # Pièce jointe principale (PDF du résumé)
-    msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
-
-    # 📎 Ajout des autres pièces jointes (factures et plans)
-    uploads_dir = "uploads"
-    os.makedirs(uploads_dir, exist_ok=True)
-
-    for file_group in [facture_elec, facture_combustibles, facture_autres, plans_pid]:
-        for file in file_group or []:
-            try:
-                file_path = os.path.join(uploads_dir, file.name)
-                # Enregistrement local temporaire
-                with open(file_path, "wb") as f:
-                    f.write(file.read())
-                # Relecture pour l'attachement
-                with open(file_path, "rb") as f:
-                    msg.add_attachment(f.read(), maintype='application', subtype='pdf', filename=file.name)
-            except Exception as e:
-                st.warning(f"⚠️ Fichier {file.name} non attaché : {e}")
-
-    # Connexion et envoi
-    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-        server.starttls()
-        server.login(EMAIL_SENDER, EMAIL_PASSWORD)
-        server.send_message(msg)
-
-    st.success("✅ Formulaire soumis et envoyé par e-mail avec succès !")
-
-except Exception as e:
-    st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
-
+        except Exception as e:
+            st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
 
 
 
