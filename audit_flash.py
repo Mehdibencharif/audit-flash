@@ -54,36 +54,91 @@ def _get_openai_client():
 # =====================================================
 # Fonction principale pour répondre aux questions
 # =====================================================
+# === Compatibilité SDK OpenAI v1.x ET v0.x ===
+_SDK = None
+try:
+    # Nouveau SDK (>=1.0)
+    from openai import OpenAI
+    _SDK = "v1"
+except Exception:
+    try:
+        # Ancien SDK (<1.0)
+        import openai  # type: ignore
+        _SDK = "v0"
+    except Exception:
+        _SDK = None
+
+
+def _get_openai_client():
+    """Retourne un client OpenAI compatible v1.x ou v0.x, ou None si pas de clé."""
+    api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_APIKEY")
+    # Optionnel : lecture depuis st.secrets si dispo
+    try:
+        import streamlit as st  # pour accéder à st.secrets si présent
+        api_key = api_key or st.secrets.get("OPENAI_API_KEY", "")
+    except Exception:
+        pass
+
+    if not api_key or _SDK is None:
+        return None
+
+    if _SDK == "v1":
+        # Nouveau SDK
+        return OpenAI(api_key=api_key)
+    else:
+        # Ancien SDK
+        openai.api_key = api_key  # type: ignore
+        return openai             # type: ignore
+
+
 def repondre_a_question(question: str, langue: str = "fr") -> str:
     """
-    Pose une question simple au modèle GPT-3.5 et retourne la réponse.
+    Répond via GPT-3.5, compatible avec les deux SDK OpenAI.
     """
+    question = (question or "").strip()
+    if not question:
+        return "⚠️ Aucune question fournie."
+
     client = _get_openai_client()
     if client is None:
-        return "⚠️ Clé API OpenAI manquante. Configurez la variable OPENAI_API_KEY."
+        return ("⚠️ Clé API OpenAI manquante ou SDK non installé. "
+                "Définis OPENAI_API_KEY (ou ajoute-la dans st.secrets).")
+
+    system_msg = (
+        "Tu es un assistant concis en efficacité énergétique. "
+        "Donne des définitions claires, formules simples et mini-exemples."
+    )
+    user_msg = f"[Langue: {langue}] {question}"
 
     try:
-        # Appel à GPT-3.5
-        completion = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "Tu es un assistant spécialisé en efficacité énergétique. "
-                        "Réponds de façon claire, concise et précise."
-                    )
-                },
-                {"role": "user", "content": question}
-            ],
-            temperature=0.2,
-            max_tokens=300
-        )
+        if _SDK == "v1":
+            # Nouveau SDK
+            resp = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": user_msg},
+                ],
+                temperature=0.2,
+                max_tokens=300,
+            )
+            return resp.choices[0].message.content.strip()
 
-        return completion.choices[0].message.content.strip()
+        else:
+            # Ancien SDK
+            resp = client.ChatCompletion.create(  # type: ignore
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": user_msg},
+                ],
+                temperature=0.2,
+                max_tokens=300,
+            )
+            return resp["choices"][0]["message"]["content"].strip()
 
     except Exception as e:
-        return f"⚠️ Erreur lors de la génération : {e}"
+        return f"⚠️ Erreur d'appel OpenAI : {e}"
         
 # ==========================
 # Chatbot intelligent
@@ -1265,6 +1320,7 @@ try:
 
 except Exception as e:
     st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
