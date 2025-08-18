@@ -114,37 +114,31 @@ def repondre_a_question(question: str, langue: str = "fr") -> str:
 # ================================
 import streamlit as st
 
-st.markdown("### 🤖 Assistant Audit Flash")
-
-# champ + bouton côte à côte
-col_q, col_btn = st.columns([4, 1])
-with col_q:
+with st.expander("🤖 Assistant Audit Flash", expanded=True):
     user_question = st.text_input(
         "💬 Posez votre question ici :",
         key="chatbot_input",
         placeholder="Ex : C’est quoi un VFD ? Comment calculer le ROI ?"
     )
-with col_btn:
-    envoyer = st.button("📤 Envoyer", key="chatbot_button")
-
-if envoyer:
-    if user_question.strip():
-        with st.spinner("💬 L’assistant réfléchit..."):
-            reponse = repondre_a_question(
-                user_question,
-                langue="en" if langue == "English" else "fr"
-            )
-        if reponse.startswith("⚠️"):
-            st.error(reponse)
+    if st.button("📤 Envoyer", key="chatbot_button"):
+        if user_question.strip():
+            with st.spinner("💬 L’assistant réfléchit..."):
+                reponse = repondre_a_question(
+                    user_question,
+                    langue="en" if langue == "English" else "fr"
+                )
+            if reponse.startswith("⚠️"):
+                st.error(reponse)
+            else:
+                st.markdown("#### ✅ Réponse de l’assistant :")
+                st.markdown(
+                    f"<div style='background-color:#f0f2f6;padding:10px;border-radius:10px;margin-top:10px'>"
+                    f"🤖 <em>{reponse}</em></div>",
+                    unsafe_allow_html=True
+                )
         else:
-            st.markdown("#### ✅ Réponse de l’assistant :")
-            st.markdown(
-                f"<div style='background-color:#f0f2f6;padding:10px;border-radius:10px;margin-top:10px'>"
-                f"🤖 <em>{reponse}</em></div>",
-                unsafe_allow_html=True
-            )
-    else:
-        st.warning("❗ Veuillez écrire une question avant d’envoyer.")
+            st.warning("❗ Veuillez écrire une question avant d’envoyer.")
+
             
 # ==========================
 # COULEURS ET STYLE PERSONNALISÉ
@@ -1391,6 +1385,7 @@ if st.button("Soumettre le formulaire"):
 
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
