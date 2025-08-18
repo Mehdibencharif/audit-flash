@@ -112,34 +112,83 @@ def repondre_a_question(question: str, langue: str = "fr") -> str:
 # ================================
 # Interface Streamlit (UI Chatbot)
 # ================================
-import streamlit as st
+# ================================
+# UI Chatbot – Sidebar mise en valeur
+# ================================
+# 💄 CSS : élargir la sidebar + style du bandeau
+st.markdown("""
+<style>
+/* élargit la barre latérale */
+section[data-testid="stSidebar"] { 
+  width: 420px !important; 
+}
+@media (max-width: 1200px){
+  section[data-testid="stSidebar"] { width: 360px !important; }
+}
+/* bandeau titre dans la sidebar */
+.chat-hero {
+  background: #cddc39;            /* ta couleur primaire */
+  color: #37474f;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 18px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+/* carte contenant question/réponse */
+.chat-card {
+  background: #f6f8fa;
+  border: 1px solid #e3e7ea;
+  border-radius: 10px;
+  padding: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-with st.expander("🤖 Assistant Audit Flash", expanded=True):
-    user_question = st.text_input(
-        "💬 Posez votre question ici :",
-        key="chatbot_input",
-        placeholder="Ex : C’est quoi un VFD ? Comment calculer le ROI ?"
-    )
-    if st.button("📤 Envoyer", key="chatbot_button"):
-        if user_question.strip():
-            with st.spinner("💬 L’assistant réfléchit..."):
-                reponse = repondre_a_question(
-                    user_question,
-                    langue="en" if langue == "English" else "fr"
-                )
-            if reponse.startswith("⚠️"):
-                st.error(reponse)
+with st.sidebar:
+    # Bandeau très visible
+    st.markdown("<div class='chat-hero'>🤖 Assistant Audit Flash</div>", unsafe_allow_html=True)
+
+    # Carte du chatbot
+    with st.container(border=False):
+        st.markdown("<div class='chat-card'>", unsafe_allow_html=True)
+
+        user_question = st.text_area(
+            "💬 Posez votre question ici :",
+            key="chatbot_input",
+            placeholder="Ex : C’est quoi un VFD ? Comment calculer le ROI ?",
+            height=90
+        )
+
+        col_send, col_lang = st.columns([1, 1])
+        with col_send:
+            envoyer = st.button("📤 Envoyer", key="chatbot_button")
+        with col_lang:
+            st.caption("Langue : " + ("Français" if langue == "Français" else "English"))
+
+        if envoyer:
+            if user_question.strip():
+                with st.spinner("💬 L’assistant réfléchit..."):
+                    reponse = repondre_a_question(
+                        user_question,
+                        langue="en" if langue == "English" else "fr"
+                    )
+
+                if reponse.startswith("⚠️"):
+                    st.error(reponse)
+                else:
+                    st.markdown("#### ✅ Réponse")
+                    st.markdown(
+                        f"<div style='background:#ffffff;padding:10px;border-radius:8px;"
+                        f"border:1px solid #e3e7ea;'>🤖 {reponse}</div>",
+                        unsafe_allow_html=True
+                    )
             else:
-                st.markdown("#### ✅ Réponse de l’assistant :")
-                st.markdown(
-                    f"<div style='background-color:#f0f2f6;padding:10px;border-radius:10px;margin-top:10px'>"
-                    f"🤖 <em>{reponse}</em></div>",
-                    unsafe_allow_html=True
-                )
-        else:
-            st.warning("❗ Veuillez écrire une question avant d’envoyer.")
+                st.warning("❗ Veuillez écrire une question avant d’envoyer.")
 
-            
+        st.markdown("</div>", unsafe_allow_html=True)  # /chat-card
+        
 # ==========================
 # COULEURS ET STYLE PERSONNALISÉ
 # ==========================
@@ -1385,6 +1434,7 @@ if st.button("Soumettre le formulaire"):
 
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
