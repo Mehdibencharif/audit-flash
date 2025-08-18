@@ -49,15 +49,18 @@ import os
 import requests
 
 def _get_groq_key() -> str | None:
-    """Récupère la clé GROQ_API_KEY depuis l'env ou st.secrets."""
-    key = os.getenv("GROQ_API_KEY")
+    """Récupère la clé GROQ_API_KEY depuis l'environnement ou st.secrets,
+    en tolérant GROQ_APIKEY et en nettoyant les guillemets/espaces."""
+    key = os.getenv("GROQ_API_KEY") or os.getenv("GROQ_APIKEY")
+    try:
+        import streamlit as st
+        key = key or st.secrets.get("GROQ_API_KEY") or st.secrets.get("GROQ_APIKEY")
+    except Exception:
+        pass
     if not key:
-        try:
-            import streamlit as st  # dispo dans ton app
-            key = st.secrets.get("GROQ_API_KEY", "")
-        except Exception:
-            pass
-    return key or None
+        return None
+    # Nettoyage simple (au cas où la clé aurait été collée avec des guillemets)
+    return str(key).strip().strip('"').strip("'")
 
 def repondre_a_question(question: str, langue: str = "fr") -> str:
     """
@@ -109,13 +112,11 @@ def repondre_a_question(question: str, langue: str = "fr") -> str:
         return f"⚠️ Erreur réseau Groq : {e}"
     except Exception as e:
         return f"⚠️ Erreur inattendue : {e}"
+        
 # ================================
-# Interface Streamlit (UI Chatbot)
+# Interface Streamlit (UI Chatbot) Sidebar mise en valeur
 # ================================
-# ================================
-# UI Chatbot – Sidebar mise en valeur
-# ================================
-# 💄 CSS : élargir la sidebar + style du bandeau
+
 st.markdown("""
 <style>
 /* élargit la barre latérale */
@@ -1434,6 +1435,7 @@ if st.button("Soumettre le formulaire"):
 
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
