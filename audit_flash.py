@@ -118,136 +118,37 @@ def repondre_a_question(question: str, langue: str = "fr") -> str:
 # ================================
 st.markdown("""
 <style>
-/* =========================
-   Thème "Soteck – Audit Flash"
-   (drop-in : remplace ton bloc CSS actuel)
-   ========================= */
-
-/* Palette (ajuste si besoin) */
-:root{
-  --brand:#0F8A5B;         /* vert efficacité (action) */
-  --brand-2:#3DD6A0;       /* accent vert clair */
-  --ink:#1F2933;           /* texte sombre */
-  --ink-soft:#5A6B7A;      /* texte secondaire */
-  --bg:#F6F8FA;            /* fond cartes */
-  --stroke:#E3E7EA;        /* bordures */
-  --sidebar-grad-1:#101827;/* dégradé sidebar */
-  --sidebar-grad-2:#0B1320;/* dégradé sidebar */
-  --hero-bg:#EAF6EF;       /* hero lime doux */
-}
-
-/* Élargit la sidebar (responsive) */
-section[data-testid="stSidebar"]{
-  width:420px !important;
-  background:
-    radial-gradient(800px circle at 10% 0%, rgba(61,214,160,0.12), transparent 35%),
-    linear-gradient(180deg,var(--sidebar-grad-1),var(--sidebar-grad-2));
-  color:#EAF3EE;
-  border-right:1px solid rgba(255,255,255,0.08);
+/* élargit la barre latérale */
+section[data-testid="stSidebar"] { 
+  width: 420px !important; 
 }
 @media (max-width: 1200px){
-  section[data-testid="stSidebar"]{ width:360px !important; }
+  section[data-testid="stSidebar"] { width: 360px !important; }
 }
-
-/* Contenu sidebar : espace & scroll doux */
-section[data-testid="stSidebar"] .block-container{
-  padding-top: 1rem;
-  padding-bottom: 2rem;
+/* bandeau titre dans la sidebar */
+.chat-hero {
+  background: #cddc39;            /* ta couleur primaire */
+  color: #37474f;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 18px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
 }
-
-/* Bandeau titre dans la sidebar (hero compact) */
-.chat-hero{
-  background: linear-gradient(180deg, #cddc39, var(--hero-bg));
-  color:#37474f;
-  padding:14px 16px;
-  border-radius:14px;
-  font-weight:800;
-  font-size:18px;
-  margin-bottom:12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.18);
-  border:1px solid rgba(0,0,0,.06);
-  letter-spacing:.2px;
-}
-
-/* Carte Q/R modernisée */
-.chat-card{
-  background: var(--bg);
-  border:1px solid var(--stroke);
-  border-radius:16px;
-  padding:12px;
-  box-shadow: 0 6px 20px rgba(0,0,0,.06);
-}
-
-/* Champ texte : meilleure lisibilité & focus accessible */
-div[data-baseweb="textarea"] textarea{
-  background:#fff;
-  border:1px solid var(--stroke);
-  border-radius:12px !important;
-  padding:10px 12px !important;
-  font-size:0.95rem;
-  line-height:1.35;
-  outline:none;
-  transition: box-shadow .15s ease, border-color .15s ease;
-}
-div[data-baseweb="textarea"] textarea:focus{
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(15,138,91,.18);
-}
-
-/* Bouton envoyer : solide & cohérent marque */
-.stButton > button{
-  width:100%;
-  background: var(--brand);
-  color:#09261D;
-  border-radius:12px;
-  padding:.55rem .9rem;
-  border:1px solid rgba(0,0,0,.06);
-  font-weight:800;
-  letter-spacing:.2px;
-  transition: transform .06s ease, filter .15s ease, box-shadow .15s ease;
-}
-.stButton > button:hover{
-  filter: brightness(1.07);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(15,138,91,.25);
-}
-.stButton > button:focus:not(:active){
-  outline:2px solid var(--brand-2);
-}
-
-/* Légende langue : plus propre en muted */
-.sidebar-lang caption, .sidebar-lang .stMarkdown p, .sidebar-lang{
-  color: rgba(255,255,255,.85) !important;
-  font-size: 0.9rem;
-}
-
-/* Encadré de réponse assistant dans la carte */
-.af-answer{
-  background: #111A2B;               /* panel sombre */
-  color: #EAF3EE;                    /* texte clair */
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.06);
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
-/* Petit séparateur énergétique */
-.energy-divider{
-  height:2px; margin:10px 0;
-  background: linear-gradient(90deg, transparent, var(--brand), var(--brand-2), transparent);
-}
-
-/* Accessibilité : réduit animations si demandé */
-@media (prefers-reduced-motion: reduce){
-  *{ transition:none !important; }
+/* carte contenant question/réponse */
+.chat-card {
+  background: #f6f8fa;
+  border: 1px solid #e3e7ea;
+  border-radius: 10px;
+  padding: 10px;
 }
 </style>
 """, unsafe_allow_html=True)
 
 with st.sidebar:
     # Bandeau très visible
-    st.markdown("<div class='chat-hero'>⚡ Assistant Audit Flash</div>", unsafe_allow_html=True)
+    st.markdown("<div class='chat-hero'>🤖 Assistant Audit Flash</div>", unsafe_allow_html=True)
 
     # Carte du chatbot
     with st.container(border=False):
@@ -264,13 +165,7 @@ with st.sidebar:
         with col_send:
             envoyer = st.button("📤 Envoyer", key="chatbot_button")
         with col_lang:
-            # petite classe pour teinter la légende
-            st.caption(
-                "Langue : " + ("Français" if langue == "Français" else "English"),
-                help=None
-            )
-            st.markdown("<div class='energy-divider'></div>", unsafe_allow_html=True)
-            st.markdown("<div class='sidebar-lang'></div>", unsafe_allow_html=True)
+            st.caption("Langue : " + ("Français" if langue == "Français" else "English"))
 
         if envoyer:
             if user_question.strip():
@@ -285,7 +180,8 @@ with st.sidebar:
                 else:
                     st.markdown("#### ✅ Réponse")
                     st.markdown(
-                        f"<div class='af-answer'>🤖 {reponse}</div>",
+                        f"<div style='background:#ffffff;padding:10px;border-radius:8px;"
+                        f"border:1px solid #e3e7ea;'>🤖 {reponse}</div>",
                         unsafe_allow_html=True
                     )
             else:
@@ -1537,6 +1433,7 @@ if st.button("Soumettre le formulaire"):
 
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
