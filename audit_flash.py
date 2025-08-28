@@ -223,10 +223,13 @@ div[data-baseweb="textarea"] textarea:focus{
 
 /* Encadré de réponse assistant dans la carte */
 .af-answer{
-  background:#fff;
-  padding:10px;
-  border-radius:12px;
-  border:1px solid var(--stroke);
+  background: #111A2B;               /* panel sombre */
+  color: #EAF3EE;                    /* texte clair */
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.06);
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
 
 /* Petit séparateur énergétique */
@@ -1534,6 +1537,7 @@ if st.button("Soumettre le formulaire"):
 
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
