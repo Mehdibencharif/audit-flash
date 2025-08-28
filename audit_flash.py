@@ -241,6 +241,54 @@ div[data-baseweb="textarea"] textarea:focus{
 }
 </style>
 """, unsafe_allow_html=True)
+
+with st.sidebar:
+    # Bandeau très visible
+    st.markdown("<div class='chat-hero'>⚡ Assistant Audit Flash</div>", unsafe_allow_html=True)
+
+    # Carte du chatbot
+    with st.container(border=False):
+        st.markdown("<div class='chat-card'>", unsafe_allow_html=True)
+
+        user_question = st.text_area(
+            "💬 Posez votre question ici :",
+            key="chatbot_input",
+            placeholder="Ex : C’est quoi un VFD ? Comment calculer le ROI ?",
+            height=90
+        )
+
+        col_send, col_lang = st.columns([1, 1])
+        with col_send:
+            envoyer = st.button("📤 Envoyer", key="chatbot_button")
+        with col_lang:
+            # petite classe pour teinter la légende
+            st.caption(
+                "Langue : " + ("Français" if langue == "Français" else "English"),
+                help=None
+            )
+            st.markdown("<div class='energy-divider'></div>", unsafe_allow_html=True)
+            st.markdown("<div class='sidebar-lang'></div>", unsafe_allow_html=True)
+
+        if envoyer:
+            if user_question.strip():
+                with st.spinner("💬 L’assistant réfléchit..."):
+                    reponse = repondre_a_question(
+                        user_question,
+                        langue="en" if langue == "English" else "fr"
+                    )
+
+                if reponse.startswith("⚠️"):
+                    st.error(reponse)
+                else:
+                    st.markdown("#### ✅ Réponse")
+                    st.markdown(
+                        f"<div class='af-answer'>🤖 {reponse}</div>",
+                        unsafe_allow_html=True
+                    )
+            else:
+                st.warning("❗ Veuillez écrire une question avant d’envoyer.")
+
+        st.markdown("</div>", unsafe_allow_html=True)  # /chat-card
         
 # ==========================
 # COULEURS ET STYLE PERSONNALISÉ
@@ -1487,6 +1535,7 @@ if st.button("Soumettre le formulaire"):
 
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
