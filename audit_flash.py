@@ -1362,17 +1362,20 @@ if st.checkbox(translations_excel[lang]['msg_checkbox_excel']):
 # ===========================
 # 📧 Soumission (avec PDF déjà généré)
 # ===========================
-import smtplib, re, io, os
+import smtplib, re, os
 from email.message import EmailMessage
 
-EMAIL_SENDER = "elmehdi.bencharif@gmail.com"      # ou st.secrets["email_sender"]
 SMTP_SERVER  = "smtp.gmail.com"
-SMTP_PORT    = 587
-EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
-EMAIL_PASS   = st.secrets["email_password"]
-EMAIL_RGX    = r"[^@]+@[^@]+\.[^@]+"
+SMTP_PORT    = 587  # STARTTLS
+EMAIL_SENDER = "elmehdi.bencharif@gmail.com"   # DOIT être le même compte que celui qui s’authentifie
 
-def _is_mail(x:str) -> bool:
+# Mot de passe d'application Gmail (PAS le mot de passe normal)
+EMAIL_PASS = str(
+    (st.secrets.get("email_password") if "email_password" in st.secrets else os.getenv("EMAIL_PASSWORD", ""))
+).strip()
+
+EMAIL_RGX = r"[^@]+@[^@]+\.[^@]+"
+def _is_mail(x: str) -> bool:
     return bool(x) and re.match(EMAIL_RGX, x)
 
 def _attachment_bytes(uploaded_file) -> tuple[str, bytes]:
@@ -1384,32 +1387,48 @@ def _attachment_bytes(uploaded_file) -> tuple[str, bytes]:
         content = uploaded_file.read()
     return uploaded_file.name, content
 
-def envoyer_mail_avec_pj(*, sujet:str, corps:str, to:list[str], pdf_bytes:bytes, pdf_name:str, autres_pj:list[tuple[str, bytes]]):
-    # filtre et dédoublonnage
+def envoyer_mail_avec_pj(*, sujet: str, corps: str, to: list[str],
+                         pdf_bytes: bytes, pdf_name: str,
+                         autres_pj: list[tuple[str, bytes]]):
+    # Filtrer / dédoublonner / valider les destinataires
     dest = []
     for m in to:
         if _is_mail(m) and m not in dest:
             dest.append(m)
     if not dest:
         raise RuntimeError("Aucun destinataire valide.")
+    if not EMAIL_PASS:
+        raise RuntimeError("Mot de passe d’application Gmail manquant (email_password).")
 
+    # Construire le message
     msg = EmailMessage()
     msg["Subject"] = sujet
     msg["From"]    = EMAIL_SENDER
     msg["To"]      = ", ".join(dest)
     msg.set_content(corps)
 
-    # PJ principale : PDF
+    # PJ principale (PDF)
     msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename=pdf_name)
 
     # Autres pièces jointes (factures, plans…)
-    for nom, blob in autres_pj:
+    for nom, blob in (autres_pj or []):
         msg.add_attachment(blob, maintype="application", subtype="octet-stream", filename=nom)
 
-    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as s:
-        s.starttls()
-        s.login(EMAIL_SENDER, EMAIL_PASS)
-        s.send_message(msg)
+    # Envoi (STARTTLS)
+    try:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as s:
+            s.ehlo()
+            s.starttls()
+            s.ehlo()
+            s.login(EMAIL_SENDER, EMAIL_PASS)   # 535 ici si identifiants invalides/inadéquats
+            s.send_message(msg)
+    except smtplib.SMTPAuthenticationError as e:
+        # Message plus clair pour les cas 535
+        raise RuntimeError(
+            f"Authentification SMTP refusée ({e.smtp_code}): {e.smtp_error}. "
+            "Vérifie que tu utilises un MOT DE PASSE D’APPLICATION Gmail, "
+            "et que le champ From correspond au même compte."
+        )
 
 st.divider()
 st.checkbox("✅ J’autorise l’envoi d’un résumé avec PDF et pièces jointes.", key="consent_mail", value=True)
@@ -1458,8 +1477,7 @@ if st.button("Soumettre le formulaire"):
 
     pdf_name = f"Resume_AuditFlash_{(client_nom or 'client').replace(' ','_')}.pdf"
 
-    # 2) Récupérer toutes les infos pour le corps du mail
-    # (y compris la personne qui a rempli)
+    # 2) Récupérer toutes les infos pour le corps du mail (y compris la personne qui a rempli)
     resume = []
     resume.append("Bonjour,\n")
     resume.append("Voici le résumé de la soumission du formulaire Audit Flash :\n")
@@ -1492,7 +1510,7 @@ if st.button("Soumettre le formulaire"):
 
     # Fichiers téléversés (liste)
     resume.append("\nPièces jointes fournies :")
-    def _names(lst): 
+    def _names(lst):
         return ", ".join([f.name for f in (lst or [])]) or "—"
     resume.append(f"- Factures électricité : {_names(st.session_state.get('facture_elec_files'))}")
     resume.append(f"- Factures combustibles : {_names(st.session_state.get('facture_combustibles_files'))}")
@@ -1504,8 +1522,8 @@ if st.button("Soumettre le formulaire"):
 
     # 3) Construire la liste de destinataires : toi + remplisseur + contact EE
     dests = ["mbencharif@soteck.com"]
-    if _is_mail(rempli_mail):      dests.append(rempli_mail)
-    if _is_mail(contact_ee_mail):  dests.append(contact_ee_mail)
+    if _is_mail(rempli_mail):     dests.append(rempli_mail)
+    if _is_mail(contact_ee_mail): dests.append(contact_ee_mail)
 
     # 4) Collecter toutes les pièces jointes (en bytes)
     autres_pj = []
@@ -1535,7 +1553,6 @@ if st.button("Soumettre le formulaire"):
         st.success("✅ Soumission envoyée : résumé + PDF + toutes les pièces jointes.")
     except Exception as e:
         st.error(f"⛔ Erreur d’envoi du courriel : {e}")
-
 
 
 
