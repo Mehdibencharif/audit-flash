@@ -497,6 +497,11 @@ with st.expander(translations[lang]['texte_expander_documents']):
         for fichier in plans_pid:
             st.write(f"➡️ {fichier.name}")
 
+# --- À AJOUTER à la fin du bloc "Documents à fournir"
+st.session_state["facture_elec_files"] = facture_elec or []
+st.session_state["facture_combustibles_files"] = facture_combustibles or []
+st.session_state["facture_autres_files"] = facture_autres or []
+st.session_state["plans_pid_files"] = plans_pid or []
 
 # ==========================
 # 4. OBJECTIF CLIENT
@@ -1357,80 +1362,177 @@ if st.checkbox(translations_excel[lang]['msg_checkbox_excel']):
 # ===========================
 # 📧 Soumission (avec PDF déjà généré)
 # ===========================
+import smtplib, re, io, os
+from email.message import EmailMessage
+
+EMAIL_SENDER = "elmehdi.bencharif@gmail.com"      # ou st.secrets["email_sender"]
+SMTP_SERVER  = "smtp.gmail.com"
+SMTP_PORT    = 587
+EMAIL_PASS   = st.secrets["email_password"]
+EMAIL_RGX    = r"[^@]+@[^@]+\.[^@]+"
+
+def _is_mail(x:str) -> bool:
+    return bool(x) and re.match(EMAIL_RGX, x)
+
+def _attachment_bytes(uploaded_file) -> tuple[str, bytes]:
+    """Retourne (nom, bytes) pour un st.uploaded_file ; robuste aux lectures multiples."""
+    try:
+        content = uploaded_file.getvalue()
+    except Exception:
+        uploaded_file.seek(0)
+        content = uploaded_file.read()
+    return uploaded_file.name, content
+
+def envoyer_mail_avec_pj(*, sujet:str, corps:str, to:list[str], pdf_bytes:bytes, pdf_name:str, autres_pj:list[tuple[str, bytes]]):
+    # filtre et dédoublonnage
+    dest = []
+    for m in to:
+        if _is_mail(m) and m not in dest:
+            dest.append(m)
+    if not dest:
+        raise RuntimeError("Aucun destinataire valide.")
+
+    msg = EmailMessage()
+    msg["Subject"] = sujet
+    msg["From"]    = EMAIL_SENDER
+    msg["To"]      = ", ".join(dest)
+    msg.set_content(corps)
+
+    # PJ principale : PDF
+    msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename=pdf_name)
+
+    # Autres pièces jointes (factures, plans…)
+    for nom, blob in autres_pj:
+        msg.add_attachment(blob, maintype="application", subtype="octet-stream", filename=nom)
+
+    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as s:
+        s.starttls()
+        s.login(EMAIL_SENDER, EMAIL_PASS)
+        s.send_message(msg)
+
+st.divider()
+st.checkbox("✅ J’autorise l’envoi d’un résumé avec PDF et pièces jointes.", key="consent_mail", value=True)
 
 if st.button("Soumettre le formulaire"):
-    # 1) Vérifier que le PDF existe (créé via le bouton 'Générer le PDF')
+    if not st.session_state.get("consent_mail", False):
+        st.error("⚠️ Merci de cocher l’autorisation d’envoi par courriel.")
+        st.stop()
+
+    # 1) PDF : regénérer si besoin
     pdf_bytes = st.session_state.get("pdf_bytes")
     if not pdf_bytes:
-        st.error("⚠️ Veuillez d’abord cliquer sur **« Générer le PDF »** dans la section précédente.")
-    else:
-        # --- Résumé texte pour l’e-mail ---
-        resume = (
-            f"Bonjour,\n\n"
-            f"Ci-joint le résumé de l'Audit Flash pour le client {client_nom or 'N/A'}.\n\n"
-            f"Informations saisies :\n"
-            f"- Site : {site_nom or 'N/A'}\n"
-            f"- Contact : {contact_ee_nom or 'N/A'}\n"
-            f"- Email : {contact_ee_mail or 'N/A'}\n"
-            f"- Réduction GES : {sauver_ges if sauver_ges != '' else 'N/A'}%\n"
+        equipements = {
+            "Chaudières": _noms_depuis_editor("chaudieres"),
+            "Systèmes frigorifiques": _noms_depuis_editor("frigo"),
+            "Compresseurs": _noms_depuis_editor("compresseur"),
+            "Pompes": _noms_depuis_editor("pompes"),
+            "Ventilation": _noms_depuis_editor("ventilation"),
+            "Machines de production": _noms_depuis_editor("machines"),
+            "Éclairage": _noms_depuis_editor("eclairage"),
+            "Dépoussiéreurs": _depoussieurs_detaille(lang),
+        }
+        total = (poids_energie + poids_roi + poids_ges + poids_productivite + poids_maintenance)
+        priorites = {}
+        if total > 0:
+            priorites = {
+                "Réduction conso énergétique": poids_energie,
+                "Retour sur investissement":   poids_roi,
+                "Réduction émissions GES":     poids_ges,
+                "Productivité & fiabilité":    poids_productivite,
+                "Maintenance & fiabilité":     poids_maintenance,
+            }
+        pdf_bytes = generer_pdf(
+            client_nom=str(client_nom or ""),
+            site_nom=str(site_nom or ""),
+            sauver_ges=str(sauver_ges or ""),
+            economie_energie=bool(economie_energie),
+            gain_productivite=bool(gain_productivite),
+            roi_vise=str(roi_vise or ""),
+            investissement_prevu=str(investissement_prevu or ""),
+            autres_objectifs=str(autres_objectifs or ""),
+            priorites=priorites,
+            equipements=equipements,
         )
+        st.session_state["pdf_bytes"] = pdf_bytes
 
-        # 2) Préparer le fichier PDF joint (nom)
-        pdf_filename = f"Resume_AuditFlash_{(client_nom or 'client').replace(' ', '_')}.pdf"
+    pdf_name = f"Resume_AuditFlash_{(client_nom or 'client').replace(' ','_')}.pdf"
 
-        # 3) (Optionnel) – Attachements des fichiers téléversés si tu les as :
-        # Assure-toi que ces variables existent plus haut dans ton script :
-        facture_elec = locals().get("facture_elec", [])
-        facture_combustibles = locals().get("facture_combustibles", [])
-        facture_autres = locals().get("facture_autres", [])
-        plans_pid = locals().get("plans_pid", [])
+    # 2) Récupérer toutes les infos pour le corps du mail
+    # (y compris la personne qui a rempli)
+    resume = []
+    resume.append("Bonjour,\n")
+    resume.append("Voici le résumé de la soumission du formulaire Audit Flash :\n")
+    resume.append(f"- Client : {client_nom or 'N/A'}")
+    resume.append(f"- Site : {site_nom or 'N/A'}")
+    resume.append(f"- Contact EE : {contact_ee_nom or 'N/A'} – {contact_ee_mail or 'N/A'}")
+    resume.append(f"- Remplisseur : {rempli_nom or 'N/A'} – {rempli_mail or 'N/A'} – {rempli_tel or 'N/A'}")
+    resume.append(f"- Réduction GES visée : {sauver_ges or 'N/A'}%")
+    resume.append(f"- ROI visé : {roi_vise or 'N/A'}")
+    resume.append(f"- Services cochés : "
+                  f"{'Contrôle ' if controle else ''}"
+                  f"{'Maintenance ' if maintenance else ''}"
+                  f"{'Ventilation ' if ventilation else ''}".strip() or "—")
+    resume.append("\nObjectifs (texte libre) :")
+    resume.append(f"- Investissement prévu : {investissement_prevu or 'N/A'}")
+    if autres_objectifs:
+        resume.append(f"- Autres objectifs : {autres_objectifs}")
 
-        # 4) ENVOI PAR EMAIL (on peut l’activer plus tard si tu veux)
-        try:
-            SMTP_SERVER = "smtp.gmail.com"
-            SMTP_PORT = 587  # STARTTLS
-            EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
-            EMAIL_PASSWORD = st.secrets["email_password"]
+    # Aperçu équipements (noms)
+    resume.append("\nÉquipements saisis (aperçu) :")
+    resume.append(f"• Chaudières : {', '.join(_noms_depuis_editor('chaudieres')) or '—'}")
+    resume.append(f"• Frigorifiques : {', '.join(_noms_depuis_editor('frigo')) or '—'}")
+    resume.append(f"• Compresseurs : {', '.join(_noms_depuis_editor('compresseur')) or '—'}")
+    resume.append(f"• Pompes : {', '.join(_noms_depuis_editor('pompes')) or '—'}")
+    resume.append(f"• Ventilation : {', '.join(_noms_depuis_editor('ventilation')) or '—'}")
+    resume.append(f"• Machines : {', '.join(_noms_depuis_editor('machines')) or '—'}")
+    resume.append(f"• Éclairage : {', '.join(_noms_depuis_editor('eclairage')) or '—'}")
+    dep_lignes = _depoussieurs_detaille(lang)
+    resume.append(f"• Dépoussiéreurs : {', '.join(dep_lignes) if dep_lignes else '—'}")
 
-            # ✅ Destinataires (modifie si besoin)
-            EMAIL_DESTINATAIRES = ["mbencharif@soteck.com"]
-             #, "pdelorme@soteck.com"                   
-            msg = EmailMessage()
-            msg['Subject'] = f"Audit Flash - Client {client_nom or 'N/A'}"
-            msg['From'] = EMAIL_SENDER
-            msg['To'] = ", ".join(EMAIL_DESTINATAIRES)
-            msg.set_content(resume)
+    # Fichiers téléversés (liste)
+    resume.append("\nPièces jointes fournies :")
+    def _names(lst): 
+        return ", ".join([f.name for f in (lst or [])]) or "—"
+    resume.append(f"- Factures électricité : {_names(st.session_state.get('facture_elec_files'))}")
+    resume.append(f"- Factures combustibles : {_names(st.session_state.get('facture_combustibles_files'))}")
+    resume.append(f"- Autres consommables : {_names(st.session_state.get('facture_autres_files'))}")
+    resume.append(f"- Plans & P&ID : {_names(st.session_state.get('plans_pid_files'))}")
+    resume.append("\nLe PDF récapitulatif est joint.\nCordialement,\nSoteck\n")
 
-            # Pièce jointe principale : PDF généré
-            msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
+    corps_mail = "\n".join(resume)
 
-            # Autres pièces jointes (si présentes)
-            uploads_dir = "uploads"
-            os.makedirs(uploads_dir, exist_ok=True)
-            for file_group in [facture_elec, facture_combustibles, facture_autres, plans_pid]:
-                for file in file_group or []:
-                    try:
-                        file_path = os.path.join(uploads_dir, file.name)
-                        with open(file_path, "wb") as f:
-                            f.write(file.read())
-                        with open(file_path, "rb") as f:
-                            msg.add_attachment(
-                                f.read(),
-                                maintype='application',
-                                subtype='pdf',
-                                filename=file.name
-                            )
-                    except Exception as e:
-                        st.warning(f"⚠️ Fichier {getattr(file, 'name', 'inconnu')} non attaché : {e}")
+    # 3) Construire la liste de destinataires : toi + remplisseur + contact EE
+    dests = ["mbencharif@soteck.com"]
+    if _is_mail(rempli_mail):      dests.append(rempli_mail)
+    if _is_mail(contact_ee_mail):  dests.append(contact_ee_mail)
 
-            # Envoi
-            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-                server.starttls()
-                server.login(EMAIL_SENDER, EMAIL_PASSWORD)
-                server.send_message(msg)
+    # 4) Collecter toutes les pièces jointes (en bytes)
+    autres_pj = []
+    for group in [
+        st.session_state.get("facture_elec_files"),
+        st.session_state.get("facture_combustibles_files"),
+        st.session_state.get("facture_autres_files"),
+        st.session_state.get("plans_pid_files"),
+    ]:
+        for up in (group or []):
+            try:
+                nom, blob = _attachment_bytes(up)
+                autres_pj.append((nom, blob))
+            except Exception as e:
+                st.warning(f"⚠️ Impossible d’attacher {getattr(up,'name','(nom inconnu)')} : {e}")
 
-            st.success("✅ Formulaire soumis et envoyé par e-mail avec succès !")
+    # 5) ENVOI
+    try:
+        envoyer_mail_avec_pj(
+            sujet=f"Audit Flash – {client_nom or 'Client'} – {site_nom or ''}",
+            corps=corps_mail,
+            to=dests,
+            pdf_bytes=pdf_bytes,
+            pdf_name=pdf_name,
+            autres_pj=autres_pj,
+        )
+        st.success("✅ Soumission envoyée : résumé + PDF + toutes les pièces jointes.")
+    except Exception as e:
+        st.error(f"⛔ Erreur d’envoi du courriel : {e}"
 
-        except Exception as e:
-            st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
 
