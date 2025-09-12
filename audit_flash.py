@@ -1533,6 +1533,7 @@ if st.button("Soumettre le formulaire"):
         )
         st.success("✅ Soumission envoyée : résumé + PDF + toutes les pièces jointes.")
     except Exception as e:
-        st.error(f"⛔ Erreur d’envoi du courriel : {e}"
+        st.error(f"⛔ Erreur d’envoi du courriel : {e}")
+
 
 
