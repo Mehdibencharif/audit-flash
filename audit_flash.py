@@ -1362,197 +1362,151 @@ if st.checkbox(translations_excel[lang]['msg_checkbox_excel']):
 # ===========================
 # 📧 Soumission (avec PDF déjà généré)
 # ===========================
-import smtplib, re, os
-from email.message import EmailMessage
-
-SMTP_SERVER  = "smtp.gmail.com"
-SMTP_PORT    = 587  # STARTTLS
-EMAIL_SENDER = "elmehdi.bencharif@gmail.com"   # DOIT être le même compte que celui qui s’authentifie
-
-# Mot de passe d'application Gmail (PAS le mot de passe normal)
-EMAIL_PASS = str(
-    (st.secrets.get("email_password") if "email_password" in st.secrets else os.getenv("EMAIL_PASSWORD", ""))
-).strip()
-
-EMAIL_RGX = r"[^@]+@[^@]+\.[^@]+"
-def _is_mail(x: str) -> bool:
-    return bool(x) and re.match(EMAIL_RGX, x)
-
-def _attachment_bytes(uploaded_file) -> tuple[str, bytes]:
-    """Retourne (nom, bytes) pour un st.uploaded_file ; robuste aux lectures multiples."""
-    try:
-        content = uploaded_file.getvalue()
-    except Exception:
-        uploaded_file.seek(0)
-        content = uploaded_file.read()
-    return uploaded_file.name, content
-
-def envoyer_mail_avec_pj(*, sujet: str, corps: str, to: list[str],
-                         pdf_bytes: bytes, pdf_name: str,
-                         autres_pj: list[tuple[str, bytes]]):
-    # Filtrer / dédoublonner / valider les destinataires
-    dest = []
-    for m in to:
-        if _is_mail(m) and m not in dest:
-            dest.append(m)
-    if not dest:
-        raise RuntimeError("Aucun destinataire valide.")
-    if not EMAIL_PASS:
-        raise RuntimeError("Mot de passe d’application Gmail manquant (email_password).")
-
-    # Construire le message
-    msg = EmailMessage()
-    msg["Subject"] = sujet
-    msg["From"]    = EMAIL_SENDER
-    msg["To"]      = ", ".join(dest)
-    msg.set_content(corps)
-
-    # PJ principale (PDF)
-    msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename=pdf_name)
-
-    # Autres pièces jointes (factures, plans…)
-    for nom, blob in (autres_pj or []):
-        msg.add_attachment(blob, maintype="application", subtype="octet-stream", filename=nom)
-
-    # Envoi (STARTTLS)
-    try:
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as s:
-            s.ehlo()
-            s.starttls()
-            s.ehlo()
-            s.login(EMAIL_SENDER, EMAIL_PASS)   # 535 ici si identifiants invalides/inadéquats
-            s.send_message(msg)
-    except smtplib.SMTPAuthenticationError as e:
-        # Message plus clair pour les cas 535
-        raise RuntimeError(
-            f"Authentification SMTP refusée ({e.smtp_code}): {e.smtp_error}. "
-            "Vérifie que tu utilises un MOT DE PASSE D’APPLICATION Gmail, "
-            "et que le champ From correspond au même compte."
-        )
-
-st.divider()
-st.checkbox("✅ J’autorise l’envoi d’un résumé avec PDF et pièces jointes.", key="consent_mail", value=True)
-
 if st.button("Soumettre le formulaire"):
-    if not st.session_state.get("consent_mail", False):
-        st.error("⚠️ Merci de cocher l’autorisation d’envoi par courriel.")
-        st.stop()
-
-    # 1) PDF : regénérer si besoin
+    # 1) Vérifier que le PDF existe (créé via le bouton 'Générer le PDF')
     pdf_bytes = st.session_state.get("pdf_bytes")
     if not pdf_bytes:
-        equipements = {
-            "Chaudières": _noms_depuis_editor("chaudieres"),
-            "Systèmes frigorifiques": _noms_depuis_editor("frigo"),
-            "Compresseurs": _noms_depuis_editor("compresseur"),
-            "Pompes": _noms_depuis_editor("pompes"),
-            "Ventilation": _noms_depuis_editor("ventilation"),
-            "Machines de production": _noms_depuis_editor("machines"),
-            "Éclairage": _noms_depuis_editor("eclairage"),
-            "Dépoussiéreurs": _depoussieurs_detaille(lang),
-        }
-        total = (poids_energie + poids_roi + poids_ges + poids_productivite + poids_maintenance)
-        priorites = {}
-        if total > 0:
-            priorites = {
-                "Réduction conso énergétique": poids_energie,
-                "Retour sur investissement":   poids_roi,
-                "Réduction émissions GES":     poids_ges,
-                "Productivité & fiabilité":    poids_productivite,
-                "Maintenance & fiabilité":     poids_maintenance,
-            }
-        pdf_bytes = generer_pdf(
-            client_nom=str(client_nom or ""),
-            site_nom=str(site_nom or ""),
-            sauver_ges=str(sauver_ges or ""),
-            economie_energie=bool(economie_energie),
-            gain_productivite=bool(gain_productivite),
-            roi_vise=str(roi_vise or ""),
-            investissement_prevu=str(investissement_prevu or ""),
-            autres_objectifs=str(autres_objectifs or ""),
-            priorites=priorites,
-            equipements=equipements,
-        )
-        st.session_state["pdf_bytes"] = pdf_bytes
+        st.error("⚠️ Veuillez d’abord cliquer sur « Générer le PDF » dans la section précédente.")
+    else:
+        # --- Récup fichiers téléversés : on prend d'abord les variables locales (ton modèle),
+        # puis on tombe sur session_state si besoin.
+        facture_elec          = locals().get("facture_elec", []) or st.session_state.get("facture_elec_files", [])
+        facture_combustibles  = locals().get("facture_combustibles", []) or st.session_state.get("facture_combustibles_files", [])
+        facture_autres        = locals().get("facture_autres", []) or st.session_state.get("facture_autres_files", [])
+        plans_pid             = locals().get("plans_pid", []) or st.session_state.get("plans_pid_files", [])
 
-    pdf_name = f"Resume_AuditFlash_{(client_nom or 'client').replace(' ','_')}.pdf"
-
-    # 2) Récupérer toutes les infos pour le corps du mail (y compris la personne qui a rempli)
-    resume = []
-    resume.append("Bonjour,\n")
-    resume.append("Voici le résumé de la soumission du formulaire Audit Flash :\n")
-    resume.append(f"- Client : {client_nom or 'N/A'}")
-    resume.append(f"- Site : {site_nom or 'N/A'}")
-    resume.append(f"- Contact EE : {contact_ee_nom or 'N/A'} – {contact_ee_mail or 'N/A'}")
-    resume.append(f"- Remplisseur : {rempli_nom or 'N/A'} – {rempli_mail or 'N/A'} – {rempli_tel or 'N/A'}")
-    resume.append(f"- Réduction GES visée : {sauver_ges or 'N/A'}%")
-    resume.append(f"- ROI visé : {roi_vise or 'N/A'}")
-    resume.append(f"- Services cochés : "
-                  f"{'Contrôle ' if controle else ''}"
-                  f"{'Maintenance ' if maintenance else ''}"
-                  f"{'Ventilation ' if ventilation else ''}".strip() or "—")
-    resume.append("\nObjectifs (texte libre) :")
-    resume.append(f"- Investissement prévu : {investissement_prevu or 'N/A'}")
-    if autres_objectifs:
-        resume.append(f"- Autres objectifs : {autres_objectifs}")
-
-    # Aperçu équipements (noms)
-    resume.append("\nÉquipements saisis (aperçu) :")
-    resume.append(f"• Chaudières : {', '.join(_noms_depuis_editor('chaudieres')) or '—'}")
-    resume.append(f"• Frigorifiques : {', '.join(_noms_depuis_editor('frigo')) or '—'}")
-    resume.append(f"• Compresseurs : {', '.join(_noms_depuis_editor('compresseur')) or '—'}")
-    resume.append(f"• Pompes : {', '.join(_noms_depuis_editor('pompes')) or '—'}")
-    resume.append(f"• Ventilation : {', '.join(_noms_depuis_editor('ventilation')) or '—'}")
-    resume.append(f"• Machines : {', '.join(_noms_depuis_editor('machines')) or '—'}")
-    resume.append(f"• Éclairage : {', '.join(_noms_depuis_editor('eclairage')) or '—'}")
-    dep_lignes = _depoussieurs_detaille(lang)
-    resume.append(f"• Dépoussiéreurs : {', '.join(dep_lignes) if dep_lignes else '—'}")
-
-    # Fichiers téléversés (liste)
-    resume.append("\nPièces jointes fournies :")
-    def _names(lst):
-        return ", ".join([f.name for f in (lst or [])]) or "—"
-    resume.append(f"- Factures électricité : {_names(st.session_state.get('facture_elec_files'))}")
-    resume.append(f"- Factures combustibles : {_names(st.session_state.get('facture_combustibles_files'))}")
-    resume.append(f"- Autres consommables : {_names(st.session_state.get('facture_autres_files'))}")
-    resume.append(f"- Plans & P&ID : {_names(st.session_state.get('plans_pid_files'))}")
-    resume.append("\nLe PDF récapitulatif est joint.\nCordialement,\nSoteck\n")
-
-    corps_mail = "\n".join(resume)
-
-    # 3) Construire la liste de destinataires : toi + remplisseur + contact EE
-    dests = ["mbencharif@soteck.com"]
-    if _is_mail(rempli_mail):     dests.append(rempli_mail)
-    if _is_mail(contact_ee_mail): dests.append(contact_ee_mail)
-
-    # 4) Collecter toutes les pièces jointes (en bytes)
-    autres_pj = []
-    for group in [
-        st.session_state.get("facture_elec_files"),
-        st.session_state.get("facture_combustibles_files"),
-        st.session_state.get("facture_autres_files"),
-        st.session_state.get("plans_pid_files"),
-    ]:
-        for up in (group or []):
+        # --- Résumé texte pour l’e-mail (COMPLET)
+        def _pct(x):
             try:
-                nom, blob = _attachment_bytes(up)
-                autres_pj.append((nom, blob))
-            except Exception as e:
-                st.warning(f"⚠️ Impossible d’attacher {getattr(up,'name','(nom inconnu)')} : {e}")
+                return f"{float(x):g}%"
+            except Exception:
+                return f"{x if x not in [None, ''] else 'N/A'}"
 
-    # 5) ENVOI
-    try:
-        envoyer_mail_avec_pj(
-            sujet=f"Audit Flash – {client_nom or 'Client'} – {site_nom or ''}",
-            corps=corps_mail,
-            to=dests,
-            pdf_bytes=pdf_bytes,
-            pdf_name=pdf_name,
-            autres_pj=autres_pj,
-        )
-        st.success("✅ Soumission envoyée : résumé + PDF + toutes les pièces jointes.")
-    except Exception as e:
-        st.error(f"⛔ Erreur d’envoi du courriel : {e}")
+        resume_lignes = [
+            "Bonjour,\n",
+            "Ci-joint le résumé de l'Audit Flash (PDF), ainsi que les documents fournis.\n",
+            "——— INFORMATIONS GÉNÉRALES ———",
+            f"- Client : {client_nom or 'N/A'}",
+            f"- Site : {site_nom or 'N/A'}",
+            f"- Adresse : {adresse or 'N/A'}, {ville or 'N/A'}, {province or 'N/A'} {code_postal or ''}".strip(),
+            "",
+            "——— CONTACTS ———",
+            f"- Contact EE : {contact_ee_nom or 'N/A'} – {contact_ee_mail or 'N/A'} – {contact_ee_tel or 'N/A'} ext {contact_ee_ext or ''}".rstrip(),
+            f"- Maintenance (ext.) : {contact_maint_nom or 'N/A'} – {contact_maint_mail or 'N/A'} – {contact_maint_tel or 'N/A'} ext {contact_maint_ext or ''}".rstrip(),
+            f"- Formulaire rempli par : {rempli_nom or 'N/A'} – {rempli_mail or 'N/A'} – {rempli_tel or 'N/A'} (le {str(rempli_date) if rempli_date else 'N/A'})",
+            "",
+            "——— OBJECTIFS ———",
+            f"- Cible de réduction GES : {_pct(sauver_ges)}",
+            f"- Économie d’énergie : {'Oui' if economie_energie else 'Non'}",
+            f"- Productivité accrue : {'Oui' if gain_productivite else 'Non'}",
+            f"- ROI visé : {roi_vise or 'N/A'}",
+            f"- Investissement prévu : {investissement_prevu or 'N/A'}",
+            f"- Autres objectifs : {autres_objectifs or '—'}",
+            "",
+            "——— PRIORITÉS STRATÉGIQUES (poids normalisés si calculés) ———",
+            f"- Énergie : {st.session_state.get('poids_energie', 0):.0%}" if st.session_state.get('poids_energie') else "- Énergie : N/A",
+            f"- ROI : {st.session_state.get('poids_roi', 0):.0%}" if st.session_state.get('poids_roi') else "- ROI : N/A",
+            f"- GES : {st.session_state.get('poids_ges', 0):.0%}" if st.session_state.get('poids_ges') else "- GES : N/A",
+            f"- Productivité/fiabilité : {st.session_state.get('poids_productivite', 0):.0%}" if st.session_state.get('poids_productivite') else "- Productivité/fiabilité : N/A",
+            f"- Maintenance/fiabilité : {st.session_state.get('poids_maintenance', 0):.0%}" if st.session_state.get('poids_maintenance') else "- Maintenance/fiabilité : N/A",
+            "",
+            "——— LISTE D’ÉQUIPEMENTS (aperçu) ———",
+            f"- Chaudières : {', '.join(_noms_depuis_editor('chaudieres')) or '—'}",
+            f"- Systèmes frigorifiques : {', '.join(_noms_depuis_editor('frigo')) or '—'}",
+            f"- Compresseurs d’air : {', '.join(_noms_depuis_editor('compresseur')) or '—'}",
+            f"- Pompes : {', '.join(_noms_depuis_editor('pompes')) or '—'}",
+            f"- Ventilation : {', '.join(_noms_depuis_editor('ventilation')) or '—'}",
+            f"- Machines de production : {', '.join(_noms_depuis_editor('machines')) or '—'}",
+            f"- Éclairage : {', '.join(_noms_depuis_editor('eclairage')) or '—'}",
+        ]
+
+        # Dépoussiéreurs détaillés si présents
+        _dep = _depoussieurs_detaille(lang)
+        resume_lignes.append(f"- Dépoussiéreurs : {', '.join(_dep) if _dep else '—'}")
+
+        # Fichiers fournis (liste des noms)
+        def _names(lst): 
+            return ", ".join([f.name for f in (lst or [])]) or "—"
+        resume_lignes += [
+            "",
+            "——— PIÈCES JOINTES FOURNIES ———",
+            f"- Factures électricité : {_names(facture_elec)}",
+            f"- Factures combustibles : {_names(facture_combustibles)}",
+            f"- Autres consommables : {_names(facture_autres)}",
+            f"- Plans & P&ID : {_names(plans_pid)}",
+            "",
+            "Le PDF récapitulatif est joint.",
+            "Cordialement,",
+            "Soteck",
+        ]
+
+        resume = "\n".join(resume_lignes)
+
+        # 2) Préparer le fichier PDF joint (nom)
+        pdf_filename = f"Resume_AuditFlash_{(client_nom or 'client').replace(' ', '_')}.pdf"
+
+        # 3) ENVOI PAR EMAIL — même destinataires que ton modèle
+        try:
+            import os
+            SMTP_SERVER = "smtp.gmail.com"
+            SMTP_PORT   = 587  # STARTTLS
+            EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
+            EMAIL_PASSWORD = str(st.secrets["email_password"]).strip()  # mot de passe d'application
+
+            # ✅ Destinataires (inchangés)
+            EMAIL_DESTINATAIRES = ["mbencharif@soteck.com"]
+            # , "pdelorme@soteck.com"
+
+            msg = EmailMessage()
+            msg['Subject'] = f"Audit Flash - Client {client_nom or 'N/A'}"
+            msg['From'] = EMAIL_SENDER
+            msg['To'] = ", ".join(EMAIL_DESTINATAIRES)
+            msg.set_content(resume)
+
+            # Pièce jointe principale : PDF généré
+            msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
+
+            # Autres pièces jointes (si présentes) — lecture directe en mémoire
+            def _attach_uploaded(group):
+                for file in (group or []):
+                    try:
+                        try:
+                            blob = file.getvalue()
+                        except Exception:
+                            file.seek(0)
+                            blob = file.read()
+                        msg.add_attachment(
+                            blob,
+                            maintype='application',
+                            subtype='octet-stream',
+                            filename=file.name
+                        )
+                    except Exception as e:
+                        st.warning(f"⚠️ Fichier {getattr(file, 'name', 'inconnu')} non attaché : {e}")
+
+            _attach_uploaded(facture_elec)
+            _attach_uploaded(facture_combustibles)
+            _attach_uploaded(facture_autres)
+            _attach_uploaded(plans_pid)
+
+            # Envoi
+            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                server.login(EMAIL_SENDER, EMAIL_PASSWORD)  # nécessite mot de passe d'application (16 caractères)
+                server.send_message(msg)
+
+            st.success("✅ Formulaire soumis et envoyé par e-mail avec succès (résumé complet + PDF + pièces jointes).")
+
+        except smtplib.SMTPAuthenticationError as e:
+            st.error(
+                f"⛔ Auth SMTP refusée ({e.smtp_code}): {e.smtp_error}. "
+                "Utiliser un MOT DE PASSE D’APPLICATION Gmail (et From = même compte)."
+            )
+        except Exception as e:
+            st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
