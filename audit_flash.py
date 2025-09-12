@@ -1368,6 +1368,7 @@ from email.message import EmailMessage
 EMAIL_SENDER = "elmehdi.bencharif@gmail.com"      # ou st.secrets["email_sender"]
 SMTP_SERVER  = "smtp.gmail.com"
 SMTP_PORT    = 587
+EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
 EMAIL_PASS   = st.secrets["email_password"]
 EMAIL_RGX    = r"[^@]+@[^@]+\.[^@]+"
 
@@ -1534,6 +1535,7 @@ if st.button("Soumettre le formulaire"):
         st.success("✅ Soumission envoyée : résumé + PDF + toutes les pièces jointes.")
     except Exception as e:
         st.error(f"⛔ Erreur d’envoi du courriel : {e}")
+
 
 
 
