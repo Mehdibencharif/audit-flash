@@ -1452,8 +1452,8 @@ if st.button("Soumettre le formulaire"):
             EMAIL_PASSWORD = str(st.secrets["email_password"]).strip()  # mot de passe d'application
 
             # ✅ Destinataires fixes (inchangés)
-            EMAIL_DESTINATAIRES = ["mbencharif@soteck.com"]
-            # , "pdelorme@soteck.com"
+            EMAIL_DESTINATAIRES = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
+            
 
             msg = EmailMessage()
             msg["Subject"] = f"Audit Flash - Client {client_nom or 'N/A'}"
@@ -1516,6 +1516,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
