@@ -1368,8 +1368,7 @@ if st.button("Soumettre le formulaire"):
     if not pdf_bytes:
         st.error("⚠️ Veuillez d’abord cliquer sur « Générer le PDF » dans la section précédente.")
     else:
-        # --- Récup fichiers téléversés : on prend d'abord les variables locales (ton modèle),
-        # puis on tombe sur session_state si besoin.
+        # --- Récup fichiers téléversés : variables locales, puis session_state si besoin
         facture_elec          = locals().get("facture_elec", []) or st.session_state.get("facture_elec_files", [])
         facture_combustibles  = locals().get("facture_combustibles", []) or st.session_state.get("facture_combustibles_files", [])
         facture_autres        = locals().get("facture_autres", []) or st.session_state.get("facture_autres_files", [])
@@ -1420,12 +1419,10 @@ if st.button("Soumettre le formulaire"):
             f"- Éclairage : {', '.join(_noms_depuis_editor('eclairage')) or '—'}",
         ]
 
-        # Dépoussiéreurs détaillés si présents
         _dep = _depoussieurs_detaille(lang)
         resume_lignes.append(f"- Dépoussiéreurs : {', '.join(_dep) if _dep else '—'}")
 
-        # Fichiers fournis (liste des noms)
-        def _names(lst): 
+        def _names(lst):
             return ", ".join([f.name for f in (lst or [])]) or "—"
         resume_lignes += [
             "",
@@ -1439,34 +1436,32 @@ if st.button("Soumettre le formulaire"):
             "Cordialement,",
             "Soteck",
         ]
-
         resume = "\n".join(resume_lignes)
 
-        # 2) Préparer le fichier PDF joint (nom)
+        # 2) Nom du PDF
         pdf_filename = f"Resume_AuditFlash_{(client_nom or 'client').replace(' ', '_')}.pdf"
 
-        # 3) ENVOI PAR EMAIL — même destinataires que ton modèle
+        # 3) ENVOI PAR EMAIL (destinataires fixes + remplisseur/contact EE en CC)
         try:
-            import os
-            SMTP_SERVER = "smtp.gmail.com"
-            SMTP_PORT   = 587  # STARTTLS
-            EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
+            import os, re, ssl, smtplib
+            from email.message import EmailMessage
+
+            SMTP_SERVER   = "smtp.gmail.com"
+            SMTP_PORT     = 587
+            EMAIL_SENDER  = "elmehdi.bencharif@gmail.com"
             EMAIL_PASSWORD = str(st.secrets["email_password"]).strip()  # mot de passe d'application
 
-            # ✅ Destinataires (inchangés)
+            # ✅ Destinataires fixes (inchangés)
             EMAIL_DESTINATAIRES = ["mbencharif@soteck.com"]
             # , "pdelorme@soteck.com"
 
             msg = EmailMessage()
-            msg['Subject'] = f"Audit Flash - Client {client_nom or 'N/A'}"
-            msg['From'] = EMAIL_SENDER
-            msg['To'] = ", ".join(EMAIL_DESTINATAIRES)
+            msg["Subject"] = f"Audit Flash - Client {client_nom or 'N/A'}"
+            msg["From"]    = EMAIL_SENDER
+            # pièces jointes
             msg.set_content(resume)
+            msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename=pdf_filename)
 
-            # Pièce jointe principale : PDF généré
-            msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename=pdf_filename)
-
-            # Autres pièces jointes (si présentes) — lecture directe en mémoire
             def _attach_uploaded(group):
                 for file in (group or []):
                     try:
@@ -1475,29 +1470,44 @@ if st.button("Soumettre le formulaire"):
                         except Exception:
                             file.seek(0)
                             blob = file.read()
-                        msg.add_attachment(
-                            blob,
-                            maintype='application',
-                            subtype='octet-stream',
-                            filename=file.name
-                        )
+                        msg.add_attachment(blob, maintype="application",
+                                           subtype="octet-stream", filename=file.name)
                     except Exception as e:
-                        st.warning(f"⚠️ Fichier {getattr(file, 'name', 'inconnu')} non attaché : {e}")
+                        st.warning(f"⚠️ Fichier {getattr(file,'name','inconnu')} non attaché : {e}")
 
             _attach_uploaded(facture_elec)
             _attach_uploaded(facture_combustibles)
             _attach_uploaded(facture_autres)
             _attach_uploaded(plans_pid)
 
-            # Envoi
+            # === Option 1 : ajouter automatiquement remplisseur (et contact EE) en CC ===
+            EMAIL_RGX = r"[^@]+@[^@]+\.[^@]+"
+            def _is_mail(x: str) -> bool:
+                return isinstance(x, str) and re.match(EMAIL_RGX, x.strip())
+
+            to_list = EMAIL_DESTINATAIRES[:]  # To : liste fixe
+            remplisseur_email = (rempli_mail or st.session_state.get("rempli_mail", "")).strip()
+            contact_ee_email  = (contact_ee_mail or st.session_state.get("contact_ee_mail", "")).strip()
+
+            cc_list = []
+            if _is_mail(remplisseur_email) and remplisseur_email not in to_list:
+                cc_list.append(remplisseur_email)
+            if _is_mail(contact_ee_email) and contact_ee_email not in to_list and contact_ee_email not in cc_list:
+                cc_list.append(contact_ee_email)
+
+            msg["To"] = ", ".join(to_list)
+            if cc_list:
+                msg["Cc"] = ", ".join(cc_list)
+            if _is_mail(remplisseur_email):
+                msg["Reply-To"] = remplisseur_email
+
+            # Envoi (STARTTLS)
             with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-                server.ehlo()
-                server.starttls()
-                server.ehlo()
-                server.login(EMAIL_SENDER, EMAIL_PASSWORD)  # nécessite mot de passe d'application (16 caractères)
+                server.ehlo(); server.starttls(); server.ehlo()
+                server.login(EMAIL_SENDER, EMAIL_PASSWORD)
                 server.send_message(msg)
 
-            st.success("✅ Formulaire soumis et envoyé par e-mail avec succès (résumé complet + PDF + pièces jointes).")
+            st.success("✅ Soumission envoyée : résumé complet + PDF + pièces jointes (copie auto au remplisseur).")
 
         except smtplib.SMTPAuthenticationError as e:
             st.error(
@@ -1506,6 +1516,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
