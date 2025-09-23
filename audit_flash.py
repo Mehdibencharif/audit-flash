@@ -663,6 +663,8 @@ st.markdown(
 )
 
 with st.expander(translations[lang]['texte_expander_equipements']):
+    # ✅ mémorise tous les libellés de la section pour les helpers _xxx_detaille()
+    st.session_state["_EQ"] = translations[lang].copy()
     # 🔥 Chaudières
     st.markdown(f"#### {translations[lang]['sous_titre_chaudieres']}")
     columns_chaudieres = [
@@ -799,6 +801,136 @@ with st.expander(translations[lang]['texte_expander_equipements']):
     )
     st.write("Aperçu des données des systèmes d’éclairage :")
     st.dataframe(df_eclairage)
+
+# --- Helpers génériques (globaux) ---
+def _one_line(s: str) -> str:
+    import re
+    return re.sub(r'[\r\n]+', ' ', (s or '').strip())
+
+def _slug(x: str) -> str:
+    import re
+    return re.sub(r'[^A-Za-z0-9_-]+', '_', (x or '').strip())
+
+def _val(x, suffix: str = "") -> str:
+    import pandas as pd
+    if isinstance(x, (int, float)) and not pd.isna(x):
+        return f"{x:g}{suffix}"
+    s = (str(x) if x is not None else "").strip()
+    return s + suffix if s else "n/d"
+
+def _yn(x) -> str:
+    if isinstance(x, bool):
+        return "Oui" if x else "Non"
+    s = (str(x) if x is not None else "").strip().lower()
+    if s in {"oui","yes","y","true","vrai","1"}: return "Oui"
+    if s in {"non","no","n","false","faux","0"}: return "Non"
+    return "n/d"
+
+# --- Raccourci pour récupérer les libellés “Équipements” (FR/EN) ---
+def _EQ():
+    """Retourne le dict de libellés de la section Équipements stocké dans session_state."""
+    import streamlit as st
+    return st.session_state.get("_EQ", {})  # dict vide si pas encore défini
+
+# --- Détails par catégorie (s’appuie sur _EQ() pour les noms de colonnes) ---
+def _chaudieres_detaille() -> list[str]:
+    import streamlit as st
+    df = _df_depuis_editor("chaudieres")
+    if df.empty: return []
+    t = _EQ()
+    c_type   = t.get("label_type_chaudiere", "Type de chaudière")
+    c_rend   = t.get("label_rendement_chaudiere", "Rendement chaudière (%)")
+    c_taille = t.get("label_taille_chaudiere", "Taille de la chaudière (BHP ou BTU)")
+    c_app    = t.get("label_appoint_eau", "Appoint d’eau (volume)")
+    c_micro  = t.get("label_micro_modulation", "Chaudière équipée de micro modulation ?")
+    c_eco    = t.get("label_economiseur_chaudiere", "Économiseur installé ?")
+    L=[]
+    for _, r in df.iterrows():
+        nom = str(r.get("Nom","")).strip() or "Sans nom"
+        L.append(
+            f"{nom} – { _val(r.get(c_type)) } – {c_rend}: { _val(r.get(c_rend),'%') } – "
+            f"{c_taille}: { _val(r.get(c_taille)) } – {c_app}: { _val(r.get(c_app)) } – "
+            f"{c_micro}: { _yn(r.get(c_micro)) } – {c_eco}: { _yn(r.get(c_eco)) }"
+        )
+    return L
+
+def _frigo_detaille() -> list[str]:
+    df = _df_depuis_editor("frigo")
+    if df.empty: return []
+    t = _EQ()
+    c_cap = t.get("label_capacite_frigo", "Capacité frigorifique")
+    c_ref = t.get("label_nom_frigorigenes", "Nom du frigorigène")
+    L=[]
+    for _, r in df.iterrows():
+        nom = str(r.get("Nom","")).strip() or "Sans nom"
+        L.append(f"{nom} – {c_cap}: { _val(r.get(c_cap)) } – {c_ref}: { _val(r.get(c_ref)) }")
+    return L
+
+def _compresseurs_detaille() -> list[str]:
+    df = _df_depuis_editor("compresseur")
+    if df.empty: return []
+    t = _EQ()
+    c_hp  = t.get("label_puissance_comp", "Puissance compresseur (HP)")
+    c_vfd = t.get("label_variation_vitesse", "Variation de vitesse compresseur")
+    L=[]
+    for _, r in df.iterrows():
+        nom = str(r.get("Nom","")).strip() or "Sans nom"
+        L.append(f"{nom} – { _val(r.get(c_hp),' HP') } – {c_vfd}: { _yn(r.get(c_vfd)) }")
+    return L
+
+def _pompes_detaille() -> list[str]:
+    df = _df_depuis_editor("pompes")
+    if df.empty: return []
+    t = _EQ()
+    c_type = t.get("label_type_pompe", "Type de pompe (centrifuge, volumétrique, etc.)")
+    c_pow  = t.get("label_puissance_pompe", "Puissance pompe (kW ou HP)")
+    c_rend = t.get("label_rendement_pompe", "Rendement pompe (%)")
+    c_vfd  = t.get("label_vitesse_variable_pompe", "Variateur de vitesse pompe")
+    L=[]
+    for _, r in df.iterrows():
+        nom = str(r.get("Nom","")).strip() or "Sans nom"
+        L.append(f"{nom} – { _val(r.get(c_type)) } – { _val(r.get(c_pow)) } – {c_rend}: { _val(r.get(c_rend),'%') } – VFD: { _yn(r.get(c_vfd)) }")
+    return L
+
+def _ventilation_detaille() -> list[str]:
+    df = _df_depuis_editor("ventilation")
+    if df.empty: return []
+    t = _EQ()
+    c_type = t.get("label_type_ventilation", "Type de ventilation (naturelle, mécanique, etc.)")
+    c_pow  = t.get("label_puissance_ventilation", "Puissance ventilation (kWh)")
+    L=[]
+    for _, r in df.iterrows():
+        nom = str(r.get("Nom","")).strip() or "Sans nom"
+        L.append(f"{nom} – {c_type}: { _val(r.get(c_type)) } – {c_pow}: { _val(r.get(c_pow)) }")
+    return L
+
+def _machines_detaille() -> list[str]:
+    df = _df_depuis_editor("machines")
+    if df.empty: return []
+    t = _EQ()
+    c_nom2 = t.get("label_nom_machine", "Nom de la machine")
+    c_pow  = t.get("label_puissance_machine", "Puissance machine (kW)")
+    c_tu   = t.get("label_taux_utilisation", "Taux d’utilisation machine (%)")
+    c_rend = t.get("label_rendement_machine", "Rendement machine (%)")
+    c_src  = t.get("label_source_energie_machine", "Source d’énergie (fossile, électricité, etc.)")
+    L=[]
+    for _, r in df.iterrows():
+        nom = str(r.get("Nom","")).strip() or str(r.get(c_nom2,"")).strip() or "Sans nom"
+        L.append(f"{nom} – {c_pow}: { _val(r.get(c_pow)) } – {c_tu}: { _val(r.get(c_tu),'%') } – {c_rend}: { _val(r.get(c_rend),'%') } – {c_src}: { _val(r.get(c_src)) }")
+    return L
+
+def _eclairage_detaille() -> list[str]:
+    df = _df_depuis_editor("eclairage")
+    if df.empty: return []
+    t = _EQ()
+    c_type = t.get("label_type_eclairage", "Type d’éclairage (LED, fluorescent, etc.)")
+    c_pow  = t.get("label_puissance_totale_eclairage", "Puissance totale installée (kW)")
+    c_h    = t.get("label_heures_utilisation", "Nombre d’heures d’utilisation par jour")
+    L=[]
+    for _, r in df.iterrows():
+        nom = str(r.get("Nom","")).strip() or "Sans nom"
+        L.append(f"{nom} – {c_type}: { _val(r.get(c_type)) } – {c_pow}: { _val(r.get(c_pow)) } – {c_h}: { _val(r.get(c_h)) }")
+    return L
 
 # ==========================
 # 6. VOS PRIORITÉS STRATÉGIQUES
@@ -1140,6 +1272,9 @@ def generer_pdf(
     except Exception:
         FONT_REG = FONT_B = 'Arial'
 
+    # Choix de la puce selon la police dispo
+    BULLET = "•" if FONT_REG == "DejaVu" else "-"
+
     # Logo optionnel
     try:
         pdf.image("Image/Logo Soteck.jpg", x=170, y=10, w=30)
@@ -1191,19 +1326,17 @@ def generer_pdf(
     else:
         pdf.cell(0, 8, "Non renseignées", ln=True)
 
-    # Équipements
+    # Équipements (format détaillé pour TOUTES les familles)
     pdf.ln(3)
     pdf.set_font(FONT_B, 'B', 12)
     pdf.cell(0, 8, TXT["equipements"], ln=True)
     pdf.set_font(FONT_REG, '', 12)
-    for bloc, noms in equipements.items():
-        if isinstance(noms, list) and len(noms) > 0:
-            if bloc == "Dépoussiéreurs":
-                pdf.cell(0, 8, f"- {bloc} :", ln=True)
-                for item in noms:
-                    pdf.multi_cell(0, 8, f"    • {item}")
-            else:
-                pdf.multi_cell(0, 8, f"- {bloc} : {', '.join(noms)}")
+
+    for bloc, items in equipements.items():
+        if isinstance(items, list) and len(items) > 0:
+            pdf.cell(0, 8, f"- {bloc} :", ln=True)
+            for it in items:
+                pdf.multi_cell(0, 8, f"    {BULLET} {it}")
         else:
             pdf.cell(0, 8, f"- {bloc} : {TXT['aucun_eq']}", ln=True)
 
@@ -1213,8 +1346,9 @@ def generer_pdf(
     except Exception:
         pass
 
-    # Bytes PDF
-    pdf_bytes = pdf.output(dest="S").encode("latin1")
+    # Bytes PDF (fpdf2 -> 'S' renvoie str à encoder en latin-1 ; si bytes, on garde)
+    out = pdf.output(dest="S")
+    pdf_bytes = out if isinstance(out, (bytes, bytearray)) else out.encode("latin-1")
     return pdf_bytes
 
 
@@ -1232,16 +1366,16 @@ if st.button(TXT["btn_generate"]):
     if missing:
         st.error(f"{TXT['err_missing']} {', '.join(missing)}")
     else:
-        # Listes d’équipements
+        # ⚙️ Listes d’équipements (version DÉTAILLÉE)
         equipements = {
-            "Chaudières": _noms_depuis_editor("chaudieres"),
-            "Systèmes frigorifiques": _noms_depuis_editor("frigo"),
-            "Compresseurs": _noms_depuis_editor("compresseur"),
-            "Pompes": _noms_depuis_editor("pompes"),
-            "Ventilation": _noms_depuis_editor("ventilation"),
-            "Machines de production": _noms_depuis_editor("machines"),
-            "Éclairage": _noms_depuis_editor("eclairage"),
-            "Dépoussiéreurs": _depoussieurs_detaille(lang),
+            "Chaudières":              _chaudieres_detaille(),
+            "Systèmes frigorifiques":  _frigo_detaille(),
+            "Compresseurs":            _compresseurs_detaille(),
+            "Pompes":                  _pompes_detaille(),
+            "Ventilation":             _ventilation_detaille(),
+            "Machines de production":  _machines_detaille(),
+            "Éclairage":               _eclairage_detaille(),
+            "Dépoussiéreurs":          _depoussieurs_detaille(lang),
         }
 
         # Priorités (depuis session_state si dispo)
@@ -1284,9 +1418,10 @@ if "pdf_bytes" in st.session_state:
     st.download_button(
         label=TXT["btn_download"],
         data=st.session_state["pdf_bytes"],
-        file_name=f"audit_flash_{client_nom or 'client'}.pdf",
+        file_name=f"audit_flash_{(site_nom or 'site').replace(' ', '_')}_{(client_nom or 'client').replace(' ', '_')}.pdf",
         mime="application/pdf",
     )
+
 
 # ===========================
 # 🔁 Récupération des données
@@ -1407,26 +1542,28 @@ if st.button("Soumettre le formulaire"):
             f"- Investissement prévu : {investissement_prevu or 'N/A'}",
             f"- Autres objectifs : {autres_objectifs or '—'}",
             "",
-            "——— PRIORITÉS STRATÉGIQUES (poids normalisés si calculés) ———",
-            f"- Énergie : {st.session_state.get('poids_energie', 0):.0%}" if st.session_state.get('poids_energie') else "- Énergie : N/A",
-            f"- ROI : {st.session_state.get('poids_roi', 0):.0%}" if st.session_state.get('poids_roi') else "- ROI : N/A",
-            f"- GES : {st.session_state.get('poids_ges', 0):.0%}" if st.session_state.get('poids_ges') else "- GES : N/A",
-            f"- Productivité/fiabilité : {st.session_state.get('poids_productivite', 0):.0%}" if st.session_state.get('poids_productivite') else "- Productivité/fiabilité : N/A",
-            f"- Maintenance/fiabilité : {st.session_state.get('poids_maintenance', 0):.0%}" if st.session_state.get('poids_maintenance') else "- Maintenance/fiabilité : N/A",
-            "",
-            "——— LISTE D’ÉQUIPEMENTS (aperçu) ———",
-            f"- Chaudières : {', '.join(_noms_depuis_editor('chaudieres')) or '—'}",
-            f"- Systèmes frigorifiques : {', '.join(_noms_depuis_editor('frigo')) or '—'}",
-            f"- Compresseurs d’air : {', '.join(_noms_depuis_editor('compresseur')) or '—'}",
-            f"- Pompes : {', '.join(_noms_depuis_editor('pompes')) or '—'}",
-            f"- Ventilation : {', '.join(_noms_depuis_editor('ventilation')) or '—'}",
-            f"- Machines de production : {', '.join(_noms_depuis_editor('machines')) or '—'}",
-            f"- Éclairage : {', '.join(_noms_depuis_editor('eclairage')) or '—'}",
+            "——— LISTE D’ÉQUIPEMENTS (aperçu détaillé) ———",
         ]
 
-        _dep = _depoussieurs_detaille(lang)
-        resume_lignes.append(f"- Dépoussiéreurs : {', '.join(_dep) if _dep else '—'}")
+        # --- Détails par catégorie (mêmes fonctions que pour le PDF)
+        def _dump_lines(titre, L):
+            if L:
+                resume_lignes.append(f"- {titre} :")
+                for s in L:
+                    resume_lignes.append(f"    • {s}")
+            else:
+                resume_lignes.append(f"- {titre} : —")
 
+        _dump_lines("Chaudières",              _chaudieres_detaille(lang))
+        _dump_lines("Systèmes frigorifiques",  _frigo_detaille(lang))
+        _dump_lines("Compresseurs d’air",      _compresseurs_detaille(lang))
+        _dump_lines("Pompes",                  _pompes_detaille(lang))
+        _dump_lines("Ventilation",             _ventilation_detaille(lang))
+        _dump_lines("Machines de production",  _machines_detaille(lang))
+        _dump_lines("Éclairage",               _eclairage_detaille(lang))
+        _dump_lines("Dépoussiéreurs",          _depoussieurs_detaille(lang))
+
+        # --- Pièces jointes listées
         def _names(lst):
             return ", ".join([f.name for f in (lst or [])]) or "—"
         resume_lignes += [
@@ -1443,31 +1580,27 @@ if st.button("Soumettre le formulaire"):
         ]
         resume = "\n".join(resume_lignes)
 
-        # 2) Nom du PDF (option : inclure le site pour mieux classer)
-        pdf_filename = f"Resume_AuditFlash_{(site_nom or 'site').replace(' ', '_')}_{(client_nom or 'client').replace(' ', '_')}.pdf"
+        # 2) Nom du PDF (inclure le site pour mieux classer)
+        pdf_filename = f"Resume_AuditFlash_{_slug(site_nom or 'site')}_{_slug(client_nom or 'client')}.pdf"
 
         # 3) ENVOI PAR EMAIL (destinataires fixes + remplisseur/contact EE en CC)
         try:
-            import os, re, ssl, smtplib
+            import re, smtplib
             from email.message import EmailMessage
-
-            # --- Sécurité : éviter des retours ligne dans l'objet
-            def _one_line(s: str) -> str:
-                return re.sub(r'[\r\n]+', ' ', (s or '').strip())
 
             SMTP_SERVER   = "smtp.gmail.com"
             SMTP_PORT     = 587
             EMAIL_SENDER  = "elmehdi.bencharif@gmail.com"
             EMAIL_PASSWORD = str(st.secrets["email_password"]).strip()  # mot de passe d'application
 
-            # ✅ Destinataires fixes (inchangés)
+            # ✅ Destinataires fixes
             EMAIL_DESTINATAIRES = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
 
             # ✅ Objet : inclure le nom du site (et du client), FR/EN selon l’UI
             subject_label  = "Audit Flash" if lang == "fr" else "Flash Audit"
             subject_site   = _one_line(st.session_state.get("site_nom")   or site_nom   or "N/A")
             subject_client = _one_line(st.session_state.get("client_nom") or client_nom or "N/A")
-            # 👉 Si tu veux seulement le site, utilise la ligne suivante :
+            # 👉 Si tu veux seulement le site, prends la ligne suivante :
             # msg_subject = f"{subject_label} – {subject_site}"
             msg_subject    = f"{subject_label} – {subject_site} – {subject_client}"
 
@@ -1477,6 +1610,7 @@ if st.button("Soumettre le formulaire"):
             msg.set_content(resume)
             msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename=pdf_filename)
 
+            # Attache tous les fichiers uploadés
             def _attach_uploaded(group):
                 for file in (group or []):
                     try:
@@ -1531,6 +1665,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
