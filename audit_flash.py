@@ -1569,7 +1569,7 @@ if st.button("Soumettre le formulaire"):
             "——— LISTE D’ÉQUIPEMENTS (aperçu détaillé) ———",
         ]
 
-        # --- Détails par catégorie (mêmes fonctions que pour le PDF)
+        # --- Détails par catégorie (helpers SANS argument)
         def _dump_lines(titre, L):
             if L:
                 resume_lignes.append(f"- {titre} :")
@@ -1578,14 +1578,14 @@ if st.button("Soumettre le formulaire"):
             else:
                 resume_lignes.append(f"- {titre} : —")
 
-        _dump_lines("Chaudières",              _chaudieres_detaille(lang))
-        _dump_lines("Systèmes frigorifiques",  _frigo_detaille(lang))
-        _dump_lines("Compresseurs d’air",      _compresseurs_detaille(lang))
-        _dump_lines("Pompes",                  _pompes_detaille(lang))
-        _dump_lines("Ventilation",             _ventilation_detaille(lang))
-        _dump_lines("Machines de production",  _machines_detaille(lang))
-        _dump_lines("Éclairage",               _eclairage_detaille(lang))
-        _dump_lines("Dépoussiéreurs",          _depoussieurs_detaille(lang))
+        _dump_lines("Chaudières",              _chaudieres_detaille())
+        _dump_lines("Systèmes frigorifiques",  _frigo_detaille())
+        _dump_lines("Compresseurs d’air",      _compresseurs_detaille())
+        _dump_lines("Pompes",                  _pompes_detaille())
+        _dump_lines("Ventilation",             _ventilation_detaille())
+        _dump_lines("Machines de production",  _machines_detaille())
+        _dump_lines("Éclairage",               _eclairage_detaille())
+        _dump_lines("Dépoussiéreurs",          _depoussieurs_detaille())
 
         # --- Pièces jointes listées
         def _names(lst):
@@ -1624,8 +1624,6 @@ if st.button("Soumettre le formulaire"):
             subject_label  = "Audit Flash" if lang == "fr" else "Flash Audit"
             subject_site   = _one_line(st.session_state.get("site_nom")   or site_nom   or "N/A")
             subject_client = _one_line(st.session_state.get("client_nom") or client_nom or "N/A")
-            # 👉 Si tu veux seulement le site, prends la ligne suivante :
-            # msg_subject = f"{subject_label} – {subject_site}"
             msg_subject    = f"{subject_label} – {subject_site} – {subject_client}"
 
             msg = EmailMessage()
@@ -1689,8 +1687,6 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
-
-
 
 
 
