@@ -956,6 +956,22 @@ def _eclairage_detaille() -> list[str]:
         L.append(f"{nom} – {c_type}: { _val(r.get(c_type)) } – {c_pow}: { _val(r.get(c_pow)) } – {c_h}: { _val(r.get(c_h)) }")
     return L
 
+def _safe_details(fn_or_val):
+    """Retourne une liste de détails que le paramètre soit:
+    - une fonction sans argument,
+    - une fonction qui prend (lang),
+    - ou déjà une liste."""
+    try:
+        if callable(fn_or_val):
+            return fn_or_val()
+        return fn_or_val
+    except TypeError:
+        # Si la fonction attend encore (lang), on réessaie proprement
+        try:
+            return fn_or_val(lang)
+        except Exception:
+            return []
+
 # ==========================
 # 6. VOS PRIORITÉS STRATÉGIQUES
 # ==========================
@@ -1578,14 +1594,14 @@ if st.button("Soumettre le formulaire"):
             else:
                 resume_lignes.append(f"- {titre} : —")
 
-        _dump_lines("Chaudières",              _chaudieres_detaille())
-        _dump_lines("Systèmes frigorifiques",  _frigo_detaille())
-        _dump_lines("Compresseurs d’air",      _compresseurs_detaille())
-        _dump_lines("Pompes",                  _pompes_detaille())
-        _dump_lines("Ventilation",             _ventilation_detaille())
-        _dump_lines("Machines de production",  _machines_detaille())
-        _dump_lines("Éclairage",               _eclairage_detaille())
-        _dump_lines("Dépoussiéreurs",          _depoussieurs_detaille())
+       _dump_lines("Chaudières",              _safe_details(_chaudieres_detaille))
+       _dump_lines("Systèmes frigorifiques",  _safe_details(_frigo_detaille))
+       _dump_lines("Compresseurs d’air",      _safe_details(_compresseurs_detaille))
+       _dump_lines("Pompes",                  _safe_details(_pompes_detaille))
+       _dump_lines("Ventilation",             _safe_details(_ventilation_detaille))
+       _dump_lines("Machines de production",  _safe_details(_machines_detaille))
+       _dump_lines("Éclairage",               _safe_details(_eclairage_detaille))
+       _dump_lines("Dépoussiéreurs",          _safe_details(_depoussieurs_detaille))
 
         # --- Pièces jointes listées
         def _names(lst):
@@ -1687,6 +1703,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
