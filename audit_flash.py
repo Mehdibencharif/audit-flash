@@ -1594,14 +1594,14 @@ if st.button("Soumettre le formulaire"):
             else:
                 resume_lignes.append(f"- {titre} : —")
                 
- _dump_lines("Chaudières",              _safe_details(_chaudieres_detaille))
-_dump_lines("Systèmes frigorifiques",  _safe_details(_frigo_detaille))
-_dump_lines("Compresseurs d’air",      _safe_details(_compresseurs_detaille))
-_dump_lines("Pompes",                  _safe_details(_pompes_detaille))
-_dump_lines("Ventilation",             _safe_details(_ventilation_detaille))
-_dump_lines("Machines de production",  _safe_details(_machines_detaille))
-_dump_lines("Éclairage",               _safe_details(_eclairage_detaille))
-_dump_lines("Dépoussiéreurs",          _safe_details(_depoussieurs_detaille))
+       _dump_lines("Chaudières",              _safe_details(_chaudieres_detaille))
+       _dump_lines("Systèmes frigorifiques",  _safe_details(_frigo_detaille))
+       _dump_lines("Compresseurs d’air",      _safe_details(_compresseurs_detaille))
+       _dump_lines("Pompes",                  _safe_details(_pompes_detaille))
+       _dump_lines("Ventilation",             _safe_details(_ventilation_detaille))
+       _dump_lines("Machines de production",  _safe_details(_machines_detaille))
+       _dump_lines("Éclairage",               _safe_details(_eclairage_detaille))
+       _dump_lines("Dépoussiéreurs",          _safe_details(_depoussieurs_detaille))
 
         # --- Pièces jointes listées
         def _names(lst):
@@ -1703,6 +1703,7 @@ _dump_lines("Dépoussiéreurs",          _safe_details(_depoussieurs_detaille))
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
