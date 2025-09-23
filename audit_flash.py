@@ -332,14 +332,19 @@ st.markdown(f"""
 
 with st.expander(translations[lang]['texte_expander_infos']):
     client_nom = st.text_input(
-        translations[lang]['label_client_nom'], 
-        help=translations[lang]['aide_client_nom']
+        translations[lang]['label_client_nom'],
+        help=translations[lang]['aide_client_nom'],
+        key="client_nom"   # ✅ mémorise
     )
-    site_nom = st.text_input(translations[lang]['label_site_nom'])
-    adresse = st.text_input(translations[lang]['label_adresse'])
-    ville = st.text_input(translations[lang]['label_ville'])
-    province = st.text_input(translations[lang]['label_province'])
-    code_postal = st.text_input(translations[lang]['label_code_postal'])
+    site_nom = st.text_input(
+        translations[lang]['label_site_nom'],
+        key="site_nom"     # ✅ mémorise
+    )
+    adresse = st.text_input(translations[lang]['label_adresse'], key="adresse")
+    ville = st.text_input(translations[lang]['label_ville'], key="ville")
+    province = st.text_input(translations[lang]['label_province'], key="province")
+    code_postal = st.text_input(translations[lang]['label_code_postal'], key="code_postal")
+    
 
 # ==========================
 # 2. PERSONNE CONTACT
@@ -1438,13 +1443,17 @@ if st.button("Soumettre le formulaire"):
         ]
         resume = "\n".join(resume_lignes)
 
-        # 2) Nom du PDF
-        pdf_filename = f"Resume_AuditFlash_{(client_nom or 'client').replace(' ', '_')}.pdf"
+        # 2) Nom du PDF (option : inclure le site pour mieux classer)
+        pdf_filename = f"Resume_AuditFlash_{(site_nom or 'site').replace(' ', '_')}_{(client_nom or 'client').replace(' ', '_')}.pdf"
 
         # 3) ENVOI PAR EMAIL (destinataires fixes + remplisseur/contact EE en CC)
         try:
             import os, re, ssl, smtplib
             from email.message import EmailMessage
+
+            # --- Sécurité : éviter des retours ligne dans l'objet
+            def _one_line(s: str) -> str:
+                return re.sub(r'[\r\n]+', ' ', (s or '').strip())
 
             SMTP_SERVER   = "smtp.gmail.com"
             SMTP_PORT     = 587
@@ -1453,12 +1462,18 @@ if st.button("Soumettre le formulaire"):
 
             # ✅ Destinataires fixes (inchangés)
             EMAIL_DESTINATAIRES = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
-            
+
+            # ✅ Objet : inclure le nom du site (et du client), FR/EN selon l’UI
+            subject_label  = "Audit Flash" if lang == "fr" else "Flash Audit"
+            subject_site   = _one_line(st.session_state.get("site_nom")   or site_nom   or "N/A")
+            subject_client = _one_line(st.session_state.get("client_nom") or client_nom or "N/A")
+            # 👉 Si tu veux seulement le site, utilise la ligne suivante :
+            # msg_subject = f"{subject_label} – {subject_site}"
+            msg_subject    = f"{subject_label} – {subject_site} – {subject_client}"
 
             msg = EmailMessage()
-            msg["Subject"] = f"Audit Flash - Client {client_nom or 'N/A'}"
+            msg["Subject"] = msg_subject
             msg["From"]    = EMAIL_SENDER
-            # pièces jointes
             msg.set_content(resume)
             msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename=pdf_filename)
 
@@ -1480,7 +1495,7 @@ if st.button("Soumettre le formulaire"):
             _attach_uploaded(facture_autres)
             _attach_uploaded(plans_pid)
 
-            # === Option 1 : ajouter automatiquement remplisseur (et contact EE) en CC ===
+            # === CC auto (remplisseur + contact EE si mails valides)
             EMAIL_RGX = r"[^@]+@[^@]+\.[^@]+"
             def _is_mail(x: str) -> bool:
                 return isinstance(x, str) and re.match(EMAIL_RGX, x.strip())
