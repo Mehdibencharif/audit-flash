@@ -878,7 +878,7 @@ def _compresseurs_detaille() -> list[str]:
         L.append(f"{nom} – { _val(r.get(c_hp),' HP') } – {c_vfd}: { _yn(r.get(c_vfd)) }")
     return L
 
-def _depoussieurs_detaille() -> list[str]:
+def _depoussieurs_detaille(lang=None) -> list[str]:
     df = _df_depuis_editor("depoussieur")
     if df.empty:
         return []
@@ -1687,6 +1687,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
