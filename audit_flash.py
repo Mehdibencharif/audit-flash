@@ -1539,6 +1539,7 @@ if st.checkbox(translations_excel[lang]['msg_checkbox_excel']):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
+
 # ===========================
 # 📧 Soumission (avec PDF déjà généré)
 # ===========================
@@ -1549,10 +1550,10 @@ if st.button("Soumettre le formulaire"):
         st.error("⚠️ Veuillez d’abord cliquer sur « Générer le PDF » dans la section précédente.")
     else:
         # --- Récup fichiers téléversés : variables locales, puis session_state si besoin
-        facture_elec          = locals().get("facture_elec", []) or st.session_state.get("facture_elec_files", [])
-        facture_combustibles  = locals().get("facture_combustibles", []) or st.session_state.get("facture_combustibles_files", [])
-        facture_autres        = locals().get("facture_autres", []) or st.session_state.get("facture_autres_files", [])
-        plans_pid             = locals().get("plans_pid", []) or st.session_state.get("plans_pid_files", [])
+        facture_elec         = locals().get("facture_elec", []) or st.session_state.get("facture_elec_files", [])
+        facture_combustibles = locals().get("facture_combustibles", []) or st.session_state.get("facture_combustibles_files", [])
+        facture_autres       = locals().get("facture_autres", []) or st.session_state.get("facture_autres_files", [])
+        plans_pid            = locals().get("plans_pid", []) or st.session_state.get("plans_pid_files", [])
 
         # --- Résumé texte pour l’e-mail (COMPLET)
         def _pct(x):
@@ -1585,7 +1586,21 @@ if st.button("Soumettre le formulaire"):
             "——— LISTE D’ÉQUIPEMENTS (aperçu détaillé) ———",
         ]
 
-        # --- Détails par catégorie (helpers SANS argument)
+        # --- Garde-fou pour appeler les helpers (tolère anciennes signatures/lang & valeurs déjà listées)
+        def _safe_details(fn_or_val):
+            try:
+                if callable(fn_or_val):
+                    return fn_or_val()
+                return fn_or_val
+            except TypeError:
+                try:
+                    return fn_or_val(lang)  # si une vieille version attend lang
+                except Exception:
+                    return []
+            except Exception:
+                return []
+
+        # --- Détails par catégorie
         def _dump_lines(titre, L):
             if L:
                 resume_lignes.append(f"- {titre} :")
@@ -1593,19 +1608,20 @@ if st.button("Soumettre le formulaire"):
                     resume_lignes.append(f"    • {s}")
             else:
                 resume_lignes.append(f"- {titre} : —")
-                
-           _dump_lines("Chaudières",              _safe_details(_chaudieres_detaille))
-           _dump_lines("Systèmes frigorifiques",  _safe_details(_frigo_detaille))
-           _dump_lines("Compresseurs d’air",      _safe_details(_compresseurs_detaille))
-           _dump_lines("Pompes",                  _safe_details(_pompes_detaille))
-           _dump_lines("Ventilation",             _safe_details(_ventilation_detaille))
-           _dump_lines("Machines de production",  _safe_details(_machines_detaille))
-           _dump_lines("Éclairage",               _safe_details(_eclairage_detaille))
-           _dump_lines("Dépoussiéreurs",          _safe_details(_depoussieurs_detaille))
+
+        _dump_lines("Chaudières",              _safe_details(_chaudieres_detaille))
+        _dump_lines("Systèmes frigorifiques",  _safe_details(_frigo_detaille))
+        _dump_lines("Compresseurs d’air",      _safe_details(_compresseurs_detaille))
+        _dump_lines("Pompes",                  _safe_details(_pompes_detaille))
+        _dump_lines("Ventilation",             _safe_details(_ventilation_detaille))
+        _dump_lines("Machines de production",  _safe_details(_machines_detaille))
+        _dump_lines("Éclairage",               _safe_details(_eclairage_detaille))
+        _dump_lines("Dépoussiéreurs",          _safe_details(_depoussieurs_detaille))
 
         # --- Pièces jointes listées
         def _names(lst):
             return ", ".join([f.name for f in (lst or [])]) or "—"
+
         resume_lignes += [
             "",
             "——— PIÈCES JOINTES FOURNIES ———",
@@ -1690,7 +1706,9 @@ if st.button("Soumettre le formulaire"):
 
             # Envoi (STARTTLS)
             with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-                server.ehlo(); server.starttls(); server.ehlo()
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
                 server.login(EMAIL_SENDER, EMAIL_PASSWORD)
                 server.send_message(msg)
 
@@ -1703,6 +1721,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
