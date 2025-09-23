@@ -878,6 +878,30 @@ def _compresseurs_detaille() -> list[str]:
         L.append(f"{nom} – { _val(r.get(c_hp),' HP') } – {c_vfd}: { _yn(r.get(c_vfd)) }")
     return L
 
+def _depoussieurs_detaille() -> list[str]:
+    df = _df_depuis_editor("depoussieur")
+    if df.empty:
+        return []
+    t = _EQ()
+    hp_label     = t.get("label_puissance_dep_hp", "Puissance (HP)")
+    vfd_label    = t.get("label_vfd_dep", "Variateur de vitesse (VFD)")
+    marque_label = t.get("label_marque_dep", "Marque")
+
+    lignes = []
+    for _, r in df.iterrows():
+        nom = str(r.get("Nom", "")).strip()
+        if not nom:
+            continue
+        hp     = r.get(hp_label)
+        vfd    = r.get(vfd_label)
+        marque = r.get(marque_label)
+
+        hp_txt     = f"{_val(hp)} HP" if _val(hp) != "n/d" else "HP n/d"
+        vfd_txt    = "Oui" if _yn(vfd) == "Oui" else "Non"
+        marque_txt = f" – {marque}" if isinstance(marque, str) and marque.strip() else ""
+        lignes.append(f"{nom} – {hp_txt} – VFD: {vfd_txt}{marque_txt}")
+    return lignes
+
 def _pompes_detaille() -> list[str]:
     df = _df_depuis_editor("pompes")
     if df.empty: return []
@@ -1665,6 +1689,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
