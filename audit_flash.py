@@ -190,108 +190,102 @@ with st.sidebar:
 # ==========================
 # COULEURS ET STYLE PERSONNALISÉ
 # ==========================
-couleur_primaire = "#cddc39"  # Lime doux inspiré de ton branding
-couleur_fond = "#f5f5f5"      # Gris clair plus doux et agréable
+# ==========================
+# APPARENCE : mode clair / sombre
+# ==========================
+theme = st.radio(
+    "Apparence",
+    ("Clair (fond blanc)", "Sombre (bleu nuit)"),
+    horizontal=True,
+    key="ui_theme"
+)
 
-# Injection CSS
+if "Clair" in theme:
+    BG = "#ffffff"       # fond blanc
+    TEXT = "#37474f"     # texte foncé
+    PRIMARY = "#cddc39"  # lime (ton branding)
+    PRIMARY_HOVER = "#afb42b"
+    CARD = "#f6f8fa"
+    BORDER = "#e3e7ea"
+else:
+    BG = "#0b1530"       # bleu nuit
+    TEXT = "#e5e7eb"     # texte clair
+    PRIMARY = "#5ac8fa"  # accent doux en sombre (bleu)
+    PRIMARY_HOVER = "#3aaee6"
+    CARD = "#121e3f"
+    BORDER = "#233055"
+
+# ==========================
+# COULEURS ET STYLE PERSONNALISÉ
+# ==========================
 st.markdown(f"""
-    <style>
-    .stApp {{
-        background-color: {couleur_fond};
-    }}
-    .section-title {{
-        background-color: {couleur_primaire};
-        color: #37474f;
-        padding: 10px;
-        border-radius: 8px;
-        font-weight: bold;
-        font-size: 24px;
-    }}
-    div.stButton > button {{
-        background-color: {couleur_primaire};
-        color: white;
-        border-radius: 8px;
-        padding: 8px 16px;
-        font-weight: bold;
-    }}
-    div.stButton > button:hover {{
-        background-color: #afb42b;
-        color: #37474f;
-    }}
-    </style>
+<style>
+/* Fond général */
+.stApp {{
+  background-color: {BG} !important;
+  color: {TEXT};
+}}
+/* Titres de section */
+.section-title {{
+  background-color: {PRIMARY};
+  color: #1f2937;               /* lisible sur fond primaire */
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 24px;
+  margin-top: 8px;
+}}
+/* Boutons */
+div.stButton > button {{
+  background-color: {PRIMARY};
+  color: white;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: bold;
+  border: 0;
+}}
+div.stButton > button:hover {{
+  background-color: {PRIMARY_HOVER};
+  color: #0b0f1a;
+}}
+/* Petites cartes/containers (si tu les utilises) */
+.chat-card {{
+  background: {CARD};
+  border: 1px solid {BORDER};
+  border-radius: 10px;
+  padding: 10px;
+}}
+/* Inputs/editeurs plus lisibles en sombre */
+[data-baseweb="input"] input, textarea, .stTextInput > div > div > input {{
+  color: {TEXT} !important;
+}}
+/* Liens */
+a, a:visited {{
+  color: {PRIMARY};
+}}
+a:hover {{
+  color: {PRIMARY_HOVER};
+}}
+</style>
 """, unsafe_allow_html=True)
 
 # LOGO
 logo_path = "Image/Logo Soteck.jpg"
-logo_image = None
-
-try:
-    logo_image = logo_path  # on prépare le chemin
-except:
-    logo_image = None
+logo_image = logo_path if os.path.exists(logo_path) else None
 
 # LOGO + TITRE alignés
 col1, col2 = st.columns([6, 1])
 with col1:
     st.markdown(f"""
-    <div style='font-size:24px; font-weight:bold; color:#37474f;'>
+    <div style='font-size:24px; font-weight:bold; color:{TEXT};'>
     📋 Formulaire de prise de besoin - Audit Flash
     </div>
     """, unsafe_allow_html=True)
 with col2:
     if logo_image:
-        st.image(logo_image, width=350)
+        st.image(logo_image, width=180)
     else:
-        st.warning("⚠️ Logo non trouvé.")
-
-        
-# MESSAGE DE BIENVENUE (multilingue)
-if langue == "Français":
-    st.markdown("""
-    **Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.  
-    Veuillez remplir toutes les sections ci-dessous pour que nous puissions préparer votre audit de manière efficace.**
-
-    ---
-    🔗 Pour en savoir plus sur notre entreprise et nos services :  
-    **[Soteck](https://www.soteck.com/fr)**
-    ---
-    """)
-else:
-    st.markdown("""
-    **Welcome to our interactive needs assessment form for the energy flash audit.  
-    Please fill out all the sections below so that we can efficiently prepare your audit.**
-
-    ---
-    🔗 Learn more about our company and services:  
-    **[Soteck](https://www.soteck.com/en)**
-    ---
-    """)
-
-# SOMMAIRE INTERACTIF (avec ancres)
-if langue == "Français":
-    st.markdown("""
-    ### 📑 Sommaire :
-    - [1. Informations générales](#infos)
-    - [2. Personnes contacts](#contacts)
-    - [3. Documents à fournir](#docs)
-    - [4. Objectifs du client](#objectifs)
-    - [5. Liste des équipements](#equipements)
-    - [6. Vos priorités stratégiques](#priorites)
-    - [7. Services complémentaires](#services)
-    - [8. Récapitulatif et génération PDF](#pdf)
-    """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-    ### 📑 Summary :
-    - [1. General Information](#infos)
-    - [2. Contact Persons](#contacts)
-    - [3. Documents to Provide](#docs)
-    - [4. Client Objectives](#objectifs)
-    - [5. List of Equipment](#equipements)
-    - [6. Strategic Priorities](#priorites)
-    - [7. Additional Services](#services)
-    - [8. Summary and PDF Generation](#pdf)
-    """, unsafe_allow_html=True)
+        st.caption("⚠️ Logo non trouvé.")
     
 # ==========================
 # 1. INFORMATIONS GÉNÉRALES
@@ -1720,6 +1714,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
