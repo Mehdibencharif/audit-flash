@@ -8,203 +8,13 @@ import os
 import smtplib
 from email.message import EmailMessage
 import matplotlib.pyplot as plt
-import requests
-import uuid
-import json
-from datetime import datetime
-import sqlite3
+import openai
 
-# ================================
-# CONFIGURATION BASE DE DONNÉES
-# ================================
-
-def init_database():
-    """Initialise la base de données SQLite"""
-    conn = sqlite3.connect('audit_flash.db', check_same_thread=False)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS formulaires (
-            form_id TEXT PRIMARY KEY,
-            data TEXT,
-            created_at TEXT,
-            updated_at TEXT,
-            email_contact TEXT,
-            statut TEXT DEFAULT 'en_cours'
-        )
-    ''')
-    conn.commit()
-    return conn
-
-def sauvegarder_formulaire(form_id, data_dict, email_contact=""):
-    """Sauvegarde les données du formulaire"""
-    try:
-        conn = sqlite3.connect('audit_flash.db', check_same_thread=False)
-        cursor = conn.cursor()
-        
-        # Vérifier si le formulaire existe déjà
-        cursor.execute("SELECT form_id FROM formulaires WHERE form_id = ?", (form_id,))
-        exists = cursor.fetchone()
-        
-        now = datetime.utcnow().isoformat()
-        data_json = json.dumps(data_dict, ensure_ascii=False)
-        
-        if exists:
-            cursor.execute("""
-                UPDATE formulaires 
-                SET data = ?, updated_at = ?, email_contact = ?
-                WHERE form_id = ?
-            """, (data_json, now, email_contact, form_id))
-        else:
-            cursor.execute("""
-                INSERT INTO formulaires (form_id, data, created_at, updated_at, email_contact, statut)
-                VALUES (?, ?, ?, ?, ?, 'en_cours')
-            """, (form_id, data_json, now, now, email_contact))
-        
-        conn.commit()
-        conn.close()
-        return True
-    except Exception as e:
-        st.error(f"Erreur lors de la sauvegarde : {e}")
-        return False
-
-def charger_formulaire(form_id):
-    """Charge un formulaire existant depuis la base de données"""
-    try:
-        conn = sqlite3.connect('audit_flash.db', check_same_thread=False)
-        cursor = conn.cursor()
-        cursor.execute("SELECT data FROM formulaires WHERE form_id = ?", (form_id,))
-        result = cursor.fetchone()
-        conn.close()
-        
-        if result:
-            return json.loads(result[0])
-        return None
-    except Exception as e:
-        st.error(f"Erreur lors du chargement : {e}")
-        return None
-
-def get_or_create_form_id():
-    """Récupère ou crée un ID de formulaire unique"""
-    # Vérifier dans les paramètres d'URL
-    query_params = st.query_params
-    form_id_from_url = query_params.get("form_id", None)
-    
-    # Si un form_id est déjà dans session_state, le garder
-    if "form_id" in st.session_state:
-        return st.session_state["form_id"]
-    
-    # Si un form_id est dans l'URL, charger les données
-    if form_id_from_url:
-        st.session_state["form_id"] = form_id_from_url
-        data = charger_formulaire(form_id_from_url)
-        if data:
-            # Charger toutes les données dans session_state
-            for key, value in data.items():
-                st.session_state[key] = value
-            st.session_state["formulaire_charge"] = True
-        return form_id_from_url
-    
-    # Créer un nouveau form_id
-    new_id = str(uuid.uuid4())
-    st.session_state["form_id"] = new_id
-    st.query_params["form_id"] = new_id
-    return new_id
-
-def collecter_donnees_formulaire():
-    """Collecte toutes les données du formulaire depuis session_state"""
-    return {
-        # Informations générales
-        "client_nom": st.session_state.get("client_nom", ""),
-        "site_nom": st.session_state.get("site_nom", ""),
-        "adresse": st.session_state.get("adresse", ""),
-        "ville": st.session_state.get("ville", ""),
-        "province": st.session_state.get("province", ""),
-        "code_postal": st.session_state.get("code_postal", ""),
-        
-        # Contacts
-        "contact_ee_nom": st.session_state.get("contact_ee_nom", ""),
-        "contact_ee_mail": st.session_state.get("contact_ee_mail", ""),
-        "contact_ee_tel": st.session_state.get("contact_ee_tel", ""),
-        "contact_ee_ext": st.session_state.get("contact_ee_ext", ""),
-        "contact_maint_nom": st.session_state.get("contact_maint_nom", ""),
-        "contact_maint_mail": st.session_state.get("contact_maint_mail", ""),
-        "contact_maint_tel": st.session_state.get("contact_maint_tel", ""),
-        "contact_maint_ext": st.session_state.get("contact_maint_ext", ""),
-        "rempli_nom": st.session_state.get("rempli_nom", ""),
-        "rempli_date": str(st.session_state.get("rempli_date", "")),
-        "rempli_mail": st.session_state.get("rempli_mail", ""),
-        "rempli_tel": st.session_state.get("rempli_tel", ""),
-        "rempli_ext": st.session_state.get("rempli_ext", ""),
-        
-        # Objectifs
-        "sauver_ges": st.session_state.get("sauver_ges", ""),
-        "economie_energie": st.session_state.get("economie_energie", False),
-        "gain_productivite": st.session_state.get("gain_productivite", False),
-        "roi_vise": st.session_state.get("roi_vise", ""),
-        "remplacement_equipement": st.session_state.get("remplacement_equipement", False),
-        "investissement_prevu": st.session_state.get("investissement_prevu", ""),
-        "autres_objectifs": st.session_state.get("autres_objectifs", ""),
-        
-        # Priorités
-        "priorite_energie": st.session_state.get("priorite_energie", 5),
-        "priorite_roi": st.session_state.get("priorite_roi", 5),
-        "priorite_ges": st.session_state.get("priorite_ges", 5),
-        "priorite_prod": st.session_state.get("priorite_prod", 5),
-        "priorite_maintenance": st.session_state.get("priorite_maintenance", 5),
-        
-        # Services
-        "controle": st.session_state.get("controle", False),
-        "maintenance": st.session_state.get("maintenance", False),
-        "ventilation": st.session_state.get("ventilation", False),
-        "autres_services": st.session_state.get("autres_services", ""),
-        
-        # Documents
-        "temps_fonctionnement": st.session_state.get("temps_fonctionnement", ""),
-        
-        # Équipements (convertir DataFrames en dict)
-        "chaudieres": _df_to_dict("chaudieres"),
-        "frigo": _df_to_dict("frigo"),
-        "compresseur": _df_to_dict("compresseur"),
-        "pompes": _df_to_dict("pompes"),
-        "ventilation_eq": _df_to_dict("ventilation"),
-        "machines": _df_to_dict("machines"),
-        "eclairage": _df_to_dict("eclairage"),
-        "depoussieur": _df_to_dict("depoussieur"),
-    }
-
-def _df_to_dict(key):
-    """Convertit un DataFrame en liste de dicts pour JSON"""
-    val = st.session_state.get(key, None)
-    if isinstance(val, pd.DataFrame):
-        return val.to_dict('records')
-    elif isinstance(val, dict):
-        if "added_rows" in val:
-            return val.get("added_rows", [])
-    elif isinstance(val, list):
-        return val
-    return []
-
-def sauvegarder_auto():
-    """Sauvegarde automatique appelée après modifications"""
-    if "form_id" not in st.session_state:
-        return
-    
-    form_id = st.session_state["form_id"]
-    data = collecter_donnees_formulaire()
-    email = data.get("contact_ee_mail", "")
-    
-    sauvegarder_formulaire(form_id, data, email)
-
-# Initialiser la DB au démarrage
-init_database()
+# ✅ Import du chatbot
+from chatbot import repondre_a_question
 
 # CONFIGURATION GLOBALE
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
-
-# ================================
-# RÉCUPÉRATION/CRÉATION FORM_ID
-# ================================
-form_id = get_or_create_form_id()
 
 # ==========================
 # Choix de la langue
@@ -212,8 +22,7 @@ form_id = get_or_create_form_id()
 langue = st.radio(
     "Langue / Language",
     ("Français", "English"),
-    horizontal=True,
-    key="langue_radio"
+    horizontal=True
 )
 
 # Dictionnaire de traduction global
@@ -221,108 +30,43 @@ translations = {
     "fr": {
         "titre_infos": "📄 1. Informations générales",
         "texte_expander": "Cliquez ici pour remplir cette section",
+        # Ajoute les autres clés ici au fur et à mesure
     },
     "en": {
         "titre_infos": "📄 1. General Information",
         "texte_expander": "Click here to fill out this section",
+        # Ajoute les autres clés ici au fur et à mesure
     }
 }
 
+# Sélection de la langue
 lang = "fr" if langue == "Français" else "en"
-
-# ================================
-# BANDEAU DE SAUVEGARDE
-# ================================
-st.markdown("""
-<style>
-.save-banner {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-.save-banner h3 {
-    margin: 0 0 10px 0;
-    font-size: 20px;
-}
-.save-banner p {
-    margin: 5px 0;
-    font-size: 14px;
-    opacity: 0.95;
-}
-.url-box {
-    background: rgba(255,255,255,0.15);
-    padding: 12px;
-    border-radius: 8px;
-    margin-top: 12px;
-    font-family: monospace;
-    word-break: break-all;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# Bandeau de sauvegarde
-url_complete = f"https://audit-flash-mgrrwuxnxiqslifj2dpwgk.streamlit.app/?form_id={form_id}"
-
-if lang == "fr":
-    st.markdown(f"""
-    <div class='save-banner'>
-        <h3>💾 Sauvegarde automatique activée</h3>
-        <p>✅ Votre progression est sauvegardée automatiquement toutes les 30 secondes.</p>
-        <p>📤 <strong>Partagez ce lien</strong> avec vos collègues pour qu'ils puissent continuer le formulaire :</p>
-        <div class='url-box'>{url_complete}</div>
-    </div>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown(f"""
-    <div class='save-banner'>
-        <h3>💾 Auto-save enabled</h3>
-        <p>✅ Your progress is automatically saved every 30 seconds.</p>
-        <p>📤 <strong>Share this link</strong> with colleagues to continue the form:</p>
-        <div class='url-box'>{url_complete}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-col1, col2, col3 = st.columns([3, 1, 1])
-with col2:
-    if st.button("💾 Sauvegarder" if lang == "fr" else "💾 Save Now"):
-        sauvegarder_auto()
-        st.success("✅ Sauvegardé!" if lang == "fr" else "✅ Saved!")
-
-with col3:
-    if st.button("🔄 Nouvelle session" if lang == "fr" else "🔄 New Session"):
-        # Effacer session_state et créer nouveau form_id
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.query_params.clear()
-        st.rerun()
-
-# Message si formulaire chargé
-if st.session_state.get("formulaire_charge"):
-    st.info("📂 Formulaire existant chargé avec succès!" if lang == "fr" else "📂 Existing form loaded successfully!")
-    st.session_state["formulaire_charge"] = False
-
-st.divider()
 
 # ================================
 # Assistant IA gratuit via Groq
 # ================================
+import os
+import requests
 
 def _get_groq_key() -> str | None:
-    """Récupère la clé GROQ_API_KEY depuis l'environnement ou st.secrets"""
+    """Récupère la clé GROQ_API_KEY depuis l'environnement ou st.secrets,
+    en tolérant GROQ_APIKEY et en nettoyant les guillemets/espaces."""
     key = os.getenv("GROQ_API_KEY") or os.getenv("GROQ_APIKEY")
     try:
+        import streamlit as st
         key = key or st.secrets.get("GROQ_API_KEY") or st.secrets.get("GROQ_APIKEY")
     except Exception:
         pass
     if not key:
         return None
+    # Nettoyage simple (au cas où la clé aurait été collée avec des guillemets)
     return str(key).strip().strip('"').strip("'")
 
 def repondre_a_question(question: str, langue: str = "fr") -> str:
-    """Répond via l'API gratuite Groq (modèle Llama 3.1 8B Instant)"""
+    """
+    Répond via l'API gratuite Groq (modèle Llama 3.1 8B Instant).
+    Remplace totalement l'usage d'OpenAI.
+    """
     q = (question or "").strip()
     if not q:
         return "⚠️ Aucune question fournie."
@@ -330,7 +74,7 @@ def repondre_a_question(question: str, langue: str = "fr") -> str:
     api_key = _get_groq_key()
     if not api_key:
         return ("⚠️ Clé GROQ_API_KEY manquante. Ajoute-la dans Settings → Secrets "
-                "ou comme variable d'environnement.")
+                "ou comme variable d’environnement.")
 
     system_msg = (
         "Tu es un assistant concis en efficacité énergétique. "
@@ -356,6 +100,7 @@ def repondre_a_question(question: str, langue: str = "fr") -> str:
     try:
         r = requests.post(url, headers=headers, json=payload, timeout=45)
         if r.status_code != 200:
+            # Renvoyer une erreur lisible
             try:
                 info = r.json()
             except Exception:
@@ -367,20 +112,22 @@ def repondre_a_question(question: str, langue: str = "fr") -> str:
         return f"⚠️ Erreur réseau Groq : {e}"
     except Exception as e:
         return f"⚠️ Erreur inattendue : {e}"
-
+        
 # ================================
-# Interface Streamlit (UI Chatbot) Sidebar
+# Interface Streamlit (UI Chatbot) Sidebar mise en valeur
 # ================================
 st.markdown("""
 <style>
+/* élargit la barre latérale */
 section[data-testid="stSidebar"] { 
   width: 420px !important; 
 }
 @media (max-width: 1200px){
   section[data-testid="stSidebar"] { width: 360px !important; }
 }
+/* bandeau titre dans la sidebar */
 .chat-hero {
-  background: #cddc39;
+  background: #cddc39;            /* ta couleur primaire */
   color: #37474f;
   padding: 12px 14px;
   border-radius: 10px;
@@ -389,6 +136,7 @@ section[data-testid="stSidebar"] {
   margin-bottom: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,.08);
 }
+/* carte contenant question/réponse */
 .chat-card {
   background: #f6f8fa;
   border: 1px solid #e3e7ea;
@@ -399,15 +147,17 @@ section[data-testid="stSidebar"] {
 """, unsafe_allow_html=True)
 
 with st.sidebar:
+    # Bandeau très visible
     st.markdown("<div class='chat-hero'>🤖 Assistant Audit Flash</div>", unsafe_allow_html=True)
 
+    # Carte du chatbot
     with st.container(border=False):
         st.markdown("<div class='chat-card'>", unsafe_allow_html=True)
 
         user_question = st.text_area(
             "💬 Posez votre question ici :",
             key="chatbot_input",
-            placeholder="Ex : C'est quoi un VFD ? Comment calculer le ROI ?",
+            placeholder="Ex : C’est quoi un VFD ? Comment calculer le ROI ?",
             height=90
         )
 
@@ -419,7 +169,7 @@ with st.sidebar:
 
         if envoyer:
             if user_question.strip():
-                with st.spinner("💬 L'assistant réfléchit..."):
+                with st.spinner("💬 L’assistant réfléchit..."):
                     reponse = repondre_a_question(
                         user_question,
                         langue="en" if langue == "English" else "fr"
@@ -435,16 +185,16 @@ with st.sidebar:
                         unsafe_allow_html=True
                     )
             else:
-                st.warning("❗ Veuillez écrire une question avant d'envoyer.")
+                st.warning("❗ Veuillez écrire une question avant d’envoyer.")
 
-        st.markdown("</div>", unsafe_allow_html=True)
-
+        st.markdown("</div>", unsafe_allow_html=True)  # /chat-card
 # ==========================
 # COULEURS ET STYLE PERSONNALISÉ
 # ==========================
-couleur_primaire = "#cddc39"
-couleur_fond = "#f5f5f5"
+couleur_primaire = "#cddc39"  # Lime doux inspiré de ton branding
+couleur_fond = "#f5f5f5"      # Gris clair plus doux et agréable
 
+# Injection CSS
 st.markdown(f"""
     <style>
     .stApp {{
@@ -477,10 +227,11 @@ logo_path = "Image/Logo Soteck.jpg"
 logo_image = None
 
 try:
-    logo_image = logo_path
+    logo_image = logo_path  # on prépare le chemin
 except:
     logo_image = None
 
+# LOGO + TITRE alignés
 col1, col2 = st.columns([6, 1])
 with col1:
     st.markdown(f"""
@@ -494,6 +245,8 @@ with col2:
     else:
         st.warning("⚠️ Logo non trouvé.")
 
+        
+# MESSAGE DE BIENVENUE (multilingue)
 if langue == "Français":
     st.markdown("""
     **Bienvenue dans notre formulaire interactif de prise de besoin pour l'audit flash énergétique.  
@@ -515,7 +268,7 @@ else:
     ---
     """)
 
-# SOMMAIRE INTERACTIF
+# SOMMAIRE INTERACTIF (avec ancres)
 if langue == "Français":
     st.markdown("""
     ### 📑 Sommaire :
@@ -540,7 +293,7 @@ else:
     - [7. Additional Services](#services)
     - [8. Summary and PDF Generation](#pdf)
     """, unsafe_allow_html=True)
-
+    
 # ==========================
 # 1. INFORMATIONS GÉNÉRALES
 # ==========================
@@ -569,7 +322,8 @@ translations = {
     }
 }
 
-st.markdown("<div id='infos'></div>", unsafe_allow_html=True)
+
+st.markdown("<div id='infos'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
     {translations[lang]['titre_infos']}
@@ -580,23 +334,22 @@ with st.expander(translations[lang]['texte_expander_infos']):
     client_nom = st.text_input(
         translations[lang]['label_client_nom'],
         help=translations[lang]['aide_client_nom'],
-        key="client_nom",
-        on_change=sauvegarder_auto
+        key="client_nom"   # ✅ mémorise
     )
     site_nom = st.text_input(
         translations[lang]['label_site_nom'],
-        key="site_nom",
-        on_change=sauvegarder_auto
+        key="site_nom"     # ✅ mémorise
     )
-    adresse = st.text_input(translations[lang]['label_adresse'], key="adresse", on_change=sauvegarder_auto)
-    ville = st.text_input(translations[lang]['label_ville'], key="ville", on_change=sauvegarder_auto)
-    province = st.text_input(translations[lang]['label_province'], key="province", on_change=sauvegarder_auto)
-    code_postal = st.text_input(translations[lang]['label_code_postal'], key="code_postal", on_change=sauvegarder_auto)
+    adresse = st.text_input(translations[lang]['label_adresse'], key="adresse")
+    ville = st.text_input(translations[lang]['label_ville'], key="ville")
+    province = st.text_input(translations[lang]['label_province'], key="province")
+    code_postal = st.text_input(translations[lang]['label_code_postal'], key="code_postal")
+    
 
 # ==========================
 # 2. PERSONNE CONTACT
 # ==========================
-translations_contacts = {
+translations = {
     "fr": {
         "titre_contacts_remplisseur": "👥 2. Personne contact et remplisseur",
         "texte_expander_contacts_remplisseur": "Cliquez ici pour remplir cette section",
@@ -643,88 +396,113 @@ translations_contacts = {
     }
 }
 
-st.markdown("<div id='contacts'></div>", unsafe_allow_html=True)
+st.markdown("<div id='contacts_remplisseur'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
-    {translations_contacts[lang]['titre_contacts_remplisseur']}
+    {translations[lang]['titre_contacts_remplisseur']}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander(translations_contacts[lang]['texte_expander_contacts_remplisseur']):
-    st.markdown(f"#### {translations_contacts[lang]['sous_titre_ee']}")
-    contact_ee_nom = st.text_input(translations_contacts[lang]['label_contact_ee_nom'], key="contact_ee_nom", on_change=sauvegarder_auto)
+with st.expander(translations[lang]['texte_expander_contacts_remplisseur']):
+    # Sous-titre efficacité énergétique
+    st.markdown(f"#### {translations[lang]['sous_titre_ee']}")
+    contact_ee_nom = st.text_input(translations[lang]['label_contact_ee_nom'])
     contact_ee_mail = st.text_input(
-        translations_contacts[lang]['label_contact_ee_mail'],
-        help=translations_contacts[lang]['help_contact_ee_mail'],
-        key="contact_ee_mail",
-        on_change=sauvegarder_auto
+        translations[lang]['label_contact_ee_mail'],
+        help=translations[lang]['help_contact_ee_mail']
     )
     contact_ee_tel = st.text_input(
-        translations_contacts[lang]['label_contact_ee_tel'],
-        help=translations_contacts[lang]['help_contact_ee_tel'],
-        key="contact_ee_tel",
-        on_change=sauvegarder_auto
+        translations[lang]['label_contact_ee_tel'],
+        help=translations[lang]['help_contact_ee_tel']
     )
-    contact_ee_ext = st.text_input(translations_contacts[lang]['label_contact_ee_ext'], key="contact_ee_ext", on_change=sauvegarder_auto)
+    contact_ee_ext = st.text_input(translations[lang]['label_contact_ee_ext'])
 
-    st.markdown(f"#### {translations_contacts[lang]['sous_titre_maint']}")
-    contact_maint_nom = st.text_input(translations_contacts[lang]['label_contact_maint_nom'], key="contact_maint_nom", on_change=sauvegarder_auto)
-    contact_maint_mail = st.text_input(translations_contacts[lang]['label_contact_maint_mail'], key="contact_maint_mail", on_change=sauvegarder_auto)
-    contact_maint_tel = st.text_input(translations_contacts[lang]['label_contact_maint_tel'], key="contact_maint_tel", on_change=sauvegarder_auto)
-    contact_maint_ext = st.text_input(translations_contacts[lang]['label_contact_maint_ext'], key="contact_maint_ext", on_change=sauvegarder_auto)
+    # Sous-titre maintenance
+    st.markdown(f"#### {translations[lang]['sous_titre_maint']}")
+    contact_maint_nom = st.text_input(translations[lang]['label_contact_maint_nom'])
+    contact_maint_mail = st.text_input(translations[lang]['label_contact_maint_mail'])
+    contact_maint_tel = st.text_input(translations[lang]['label_contact_maint_tel'])
+    contact_maint_ext = st.text_input(translations[lang]['label_contact_maint_ext'])
 
-    st.markdown(f"#### {translations_contacts[lang]['titre_remplisseur']}")
-    rempli_nom = st.text_input(translations_contacts[lang]['label_rempli_nom'], key="rempli_nom", on_change=sauvegarder_auto)
-    rempli_date = st.date_input(translations_contacts[lang]['label_rempli_date'], value=date.today(), key="rempli_date", on_change=sauvegarder_auto)
-    rempli_mail = st.text_input(translations_contacts[lang]['label_rempli_mail'], key="rempli_mail", on_change=sauvegarder_auto)
-    rempli_tel = st.text_input(translations_contacts[lang]['label_rempli_tel'], key="rempli_tel", on_change=sauvegarder_auto)
-    rempli_ext = st.text_input(translations_contacts[lang]['label_rempli_ext'], key="rempli_ext", on_change=sauvegarder_auto)
+    # Sous-titre personne ayant rempli le formulaire
+    st.markdown(f"#### {translations[lang]['titre_remplisseur']}")
+    rempli_nom = st.text_input(translations[lang]['label_rempli_nom'])
+    rempli_date = st.date_input(translations[lang]['label_rempli_date'], value=date.today())
+    rempli_mail = st.text_input(translations[lang]['label_rempli_mail'])
+    rempli_tel = st.text_input(translations[lang]['label_rempli_tel'])
+    rempli_ext = st.text_input(translations[lang]['label_rempli_ext'])
 
 # ==========================
 # 3. DOCUMENTS À FOURNIR
 # ==========================
-translations_docs = {
+translations = {
     "fr": {
+        # ... (tes clés des autres blocs)
         "titre_documents": "📑 3. Documents à fournir avant la visite",
         "texte_expander_documents": "Cliquez ici pour remplir cette section",
         "label_facture_elec": "Factures électricité (1 à 3 ans)",
         "label_facture_combustibles": "Factures Gaz / Mazout / Propane / Bois",
         "label_facture_autres": "Autres consommables (azote, eau, CO2, etc.)",
-        "label_plans_pid": "Plans d'aménagement du site et P&ID",
-        "label_temps_fonctionnement": "Temps de fonctionnement de l'usine (heures/an)",
-        "sous_titre_fichiers_televerses": "📂 Fichiers téléversés"
+        "label_plans_pid": "Plans d’aménagement du site et P&ID (schémas de tuyauterie et d’instrumentation)",
+        "label_temps_fonctionnement": "Temps de fonctionnement de l’usine (heures/an)",
+        "sous_titre_fichiers_televerses": "📂 Fichiers téléversés",
+        "label_facture_elec_uploaded": "**Factures électricité :**",
+        "label_facture_combustibles_uploaded": "**Factures Gaz/Mazout/Propane/Bois :**",
+        "label_facture_autres_uploaded": "**Autres consommables :**",
+        "label_plans_pid_uploaded": "**Plans d’aménagement du site et P&ID :**"
     },
     "en": {
+        # ... (tes clés des autres blocs)
         "titre_documents": "📑 3. Documents to Provide Before the Visit",
         "texte_expander_documents": "Click here to fill out this section",
         "label_facture_elec": "Electricity bills (1 to 3 years)",
         "label_facture_combustibles": "Gas / Fuel Oil / Propane / Wood bills",
         "label_facture_autres": "Other consumables (nitrogen, water, CO2, etc.)",
-        "label_plans_pid": "Site layout plans and P&ID",
+        "label_plans_pid": "Site layout plans and P&ID (piping and instrumentation diagrams)",
         "label_temps_fonctionnement": "Plant operating time (hours/year)",
-        "sous_titre_fichiers_televerses": "📂 Uploaded Files"
+        "sous_titre_fichiers_televerses": "📂 Uploaded Files",
+        "label_facture_elec_uploaded": "**Electricity bills:**",
+        "label_facture_combustibles_uploaded": "**Gas/Fuel Oil/Propane/Wood bills:**",
+        "label_facture_autres_uploaded": "**Other consumables:**",
+        "label_plans_pid_uploaded": "**Site layout plans and P&ID:**"
     }
 }
 
 st.markdown(f"""
 <div class='section-title'>
-    {translations_docs[lang]['titre_documents']}
+    {translations[lang]['titre_documents']}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander(translations_docs[lang]['texte_expander_documents']):
-    facture_elec = st.file_uploader(translations_docs[lang]['label_facture_elec'], type="pdf", accept_multiple_files=True, key="facture_elec_uploader")
-    facture_combustibles = st.file_uploader(translations_docs[lang]['label_facture_combustibles'], type="pdf", accept_multiple_files=True, key="facture_combustibles_uploader")
-    facture_autres = st.file_uploader(translations_docs[lang]['label_facture_autres'], type="pdf", accept_multiple_files=True, key="facture_autres_uploader")
-    plans_pid = st.file_uploader(translations_docs[lang]['label_plans_pid'], type="pdf", accept_multiple_files=True, key="plans_pid_uploader")
-    temps_fonctionnement = st.text_input(translations_docs[lang]['label_temps_fonctionnement'], key="temps_fonctionnement", on_change=sauvegarder_auto)
+with st.expander(translations[lang]['texte_expander_documents']):
+    facture_elec = st.file_uploader(translations[lang]['label_facture_elec'], type="pdf", accept_multiple_files=True)
+    facture_combustibles = st.file_uploader(translations[lang]['label_facture_combustibles'], type="pdf", accept_multiple_files=True)
+    facture_autres = st.file_uploader(translations[lang]['label_facture_autres'], type="pdf", accept_multiple_files=True)
+    plans_pid = st.file_uploader(translations[lang]['label_plans_pid'], type="pdf", accept_multiple_files=True)
+    temps_fonctionnement = st.text_input(translations[lang]['label_temps_fonctionnement'])
 
-    if facture_elec or facture_combustibles or facture_autres or plans_pid:
-        st.markdown(f"### {translations_docs[lang]['sous_titre_fichiers_televerses']}")
-        if facture_elec:
-            for fichier in facture_elec:
-                st.write(f"➡️ {fichier.name}")
+    st.markdown(f"### {translations[lang]['sous_titre_fichiers_televerses']}")
+    if facture_elec:
+        st.markdown(translations[lang]['label_facture_elec_uploaded'])
+        for fichier in facture_elec:
+            st.write(f"➡️ {fichier.name}")
 
+    if facture_combustibles:
+        st.markdown(translations[lang]['label_facture_combustibles_uploaded'])
+        for fichier in facture_combustibles:
+            st.write(f"➡️ {fichier.name}")
+
+    if facture_autres:
+        st.markdown(translations[lang]['label_facture_autres_uploaded'])
+        for fichier in facture_autres:
+            st.write(f"➡️ {fichier.name}")
+
+    if plans_pid:
+        st.markdown(translations[lang]['label_plans_pid_uploaded'])
+        for fichier in plans_pid:
+            st.write(f"➡️ {fichier.name}")
+
+# --- À AJOUTER à la fin du bloc "Documents à fournir"
 st.session_state["facture_elec_files"] = facture_elec or []
 st.session_state["facture_combustibles_files"] = facture_combustibles or []
 st.session_state["facture_autres_files"] = facture_autres or []
@@ -733,162 +511,308 @@ st.session_state["plans_pid_files"] = plans_pid or []
 # ==========================
 # 4. OBJECTIF CLIENT
 # ==========================
-translations_obj = {
+translations = {
     "fr": {
+        # ... (tes autres clés)
         "titre_objectifs": "🎯 4. Objectif client",
         "texte_expander_objectifs": "Cliquez ici pour remplir cette section",
         "label_sauver_ges": "Objectif de réduction de GES (%)",
-        "label_economie_energie": "Économie d'énergie",
-        "label_gain_productivite": "Productivité accrue",
+        "help_sauver_ges": "Exemple : 20",
+        "label_economie_energie": "Économie d’énergie",
+        "label_gain_productivite": "Productivité accrue : coûts, temps",
         "label_roi_vise": "Retour sur investissement visé",
-        "label_remplacement_equipement": "Remplacement d'équipement prévu",
-        "label_investissement_prevu": "Investissement prévu",
-        "label_autres_objectifs": "Autres objectifs"
+        "label_remplacement_equipement": "Remplacement d’équipement prévu",
+        "label_investissement_prevu": "Investissement prévu (montant et date)",
+        "label_autres_objectifs": "Autres objectifs (description)"
     },
     "en": {
+        # ... (tes autres clés)
         "titre_objectifs": "🎯 4. Client Objectives",
         "texte_expander_objectifs": "Click here to fill out this section",
         "label_sauver_ges": "GHG reduction target (%)",
+        "help_sauver_ges": "Example: 20",
         "label_economie_energie": "Energy savings",
-        "label_gain_productivite": "Increased productivity",
-        "label_roi_vise": "Target ROI",
+        "label_gain_productivite": "Increased productivity: costs, time",
+        "label_roi_vise": "Target return on investment",
         "label_remplacement_equipement": "Planned equipment replacement",
-        "label_investissement_prevu": "Planned investment",
-        "label_autres_objectifs": "Other objectives"
+        "label_investissement_prevu": "Planned investment (amount and date)",
+        "label_autres_objectifs": "Other objectives (description)"
     }
 }
 
-st.markdown("<div id='objectifs'></div>", unsafe_allow_html=True)
+st.markdown("<div id='objectifs'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
-    {translations_obj[lang]['titre_objectifs']}
+    {translations[lang]['titre_objectifs']}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander(translations_obj[lang]['texte_expander_objectifs']):
-    sauver_ges = st.text_input(translations_obj[lang]['label_sauver_ges'], key="sauver_ges", on_change=sauvegarder_auto)
-    economie_energie = st.checkbox(translations_obj[lang]['label_economie_energie'], key="economie_energie", on_change=sauvegarder_auto)
-    gain_productivite = st.checkbox(translations_obj[lang]['label_gain_productivite'], key="gain_productivite", on_change=sauvegarder_auto)
-    roi_vise = st.text_input(translations_obj[lang]['label_roi_vise'], key="roi_vise", on_change=sauvegarder_auto)
-    remplacement_equipement = st.checkbox(translations_obj[lang]['label_remplacement_equipement'], key="remplacement_equipement", on_change=sauvegarder_auto)
-    investissement_prevu = st.text_input(translations_obj[lang]['label_investissement_prevu'], key="investissement_prevu", on_change=sauvegarder_auto)
-    autres_objectifs = st.text_area(translations_obj[lang]['label_autres_objectifs'], key="autres_objectifs", on_change=sauvegarder_auto)
+with st.expander(translations[lang]['texte_expander_objectifs']):
+    sauver_ges = st.text_input(
+        translations[lang]['label_sauver_ges'], 
+        help=translations[lang]['help_sauver_ges']
+    )
+    economie_energie = st.checkbox(translations[lang]['label_economie_energie'])
+    gain_productivite = st.checkbox(translations[lang]['label_gain_productivite'])
+    roi_vise = st.text_input(translations[lang]['label_roi_vise'])
+    remplacement_equipement = st.checkbox(translations[lang]['label_remplacement_equipement'])
+    investissement_prevu = st.text_input(translations[lang]['label_investissement_prevu'])
+    autres_objectifs = st.text_area(translations[lang]['label_autres_objectifs'])
 
 # ==========================
 # 5. LISTE DES ÉQUIPEMENTS
 # ==========================
-translations_eq = {
+translations = {
     "fr": {
+        # ... autres clés ...
         "titre_equipements": "⚙️ 5. Liste des équipements",
         "texte_expander_equipements": "Cliquez ici pour remplir cette section",
         "sous_titre_chaudieres": "Chaudières",
+        "label_nb_chaudieres": "Nombre de chaudières",
+        "label_type_chaudiere": "Type de chaudière",
+        "label_rendement_chaudiere": "Rendement chaudière (%)",
+        "label_taille_chaudiere": "Taille de la chaudière (BHP ou BTU)",
+        "label_appoint_eau": "Appoint d’eau (volume)",
+        "label_micro_modulation": "Chaudière équipée de micro modulation ?",
+        "label_economiseur_chaudiere": "Économiseur installé ?",  # ✅ corrigé
         "sous_titre_frigo": "Équipements frigorifiques",
-        "sous_titre_compresseur": "Compresseur d'air",
+        "label_nb_frigo": "Nombre de systèmes frigorifiques",
+        "label_capacite_frigo": "Capacité frigorifique",
+        "label_nom_frigorigenes": "Nom du frigorigène",  # ✅ corrigé
+        "sous_titre_compresseur": "Compresseur d’air",
+        "label_puissance_comp": "Puissance compresseur (HP)",
+        "label_variation_vitesse": "Variation de vitesse compresseur",
         "sous_titre_pompes": "Pompes industrielles",
+        "label_nb_pompes": "Nombre de pompes",
+        "label_type_pompe": "Type de pompe (centrifuge, volumétrique, etc.)",
+        "label_puissance_pompe": "Puissance pompe (kW ou HP)",
+        "label_rendement_pompe": "Rendement pompe (%)",
+        "label_vitesse_variable_pompe": "Variateur de vitesse pompe",
         "sous_titre_ventilation": "Systèmes de ventilation / HVAC",
+        "label_nb_ventilation": "Nombre d’unités de ventilation",
+        "label_type_ventilation": "Type de ventilation (naturelle, mécanique, etc.)",
+        "label_puissance_ventilation": "Puissance ventilation (kWh)",
         "sous_titre_machines": "Autres machines de production",
-        "sous_titre_eclairage": "Systèmes d'éclairage",
-        "sous_titre_depoussiereur": "Dépoussiéreur"
+        "label_nom_machine": "Nom de la machine",
+        "label_puissance_machine": "Puissance machine (kW)",
+        "label_taux_utilisation": "Taux d’utilisation machine (%)",
+        "label_rendement_machine": "Rendement machine (%)",
+        "label_source_energie_machine": "Source d’énergie (fossile, électricité, etc.)",
+        "sous_titre_eclairage": "Systèmes d’éclairage",
+        "label_type_eclairage": "Type d’éclairage (LED, fluorescent, etc.)",
+        "label_puissance_totale_eclairage": "Puissance totale installée (kW)",
+        "label_heures_utilisation": "Nombre d’heures d’utilisation par jour",
+        "sous_titre_depoussiereur": "Dépoussiéreur",
+        "label_puissance_dep_hp": "Puissance (HP)",
+        "label_vfd_dep": "Variateur de vitesse (VFD)",
+        "label_marque_dep": "Marque",
     },
     "en": {
+        # ... autres clés ...
         "titre_equipements": "⚙️ 5. Equipment List",
         "texte_expander_equipements": "Click here to fill out this section",
         "sous_titre_chaudieres": "Boilers",
+        "label_nb_chaudieres": "Number of boilers",
+        "label_type_chaudiere": "Type of boiler",
+        "label_rendement_chaudiere": "Boiler efficiency (%)",
+        "label_taille_chaudiere": "Boiler size (BHP or BTU)",
+        "label_appoint_eau": "Water make-up (volume)",
+        "label_micro_modulation": "Boiler with micro modulation?",
+        "label_economiseur_chaudiere": "Economizer installed?",  
         "sous_titre_frigo": "Refrigeration equipment",
+        "label_nb_frigo": "Number of refrigeration systems",
+        "label_capacite_frigo": "Refrigeration capacity",
+        "label_nom_frigorigenes": "Refrigerant name",  
         "sous_titre_compresseur": "Air compressor",
+        "label_puissance_comp": "Compressor power (HP)",
+        "label_variation_vitesse": "Variable speed compressor",
         "sous_titre_pompes": "Industrial pumps",
+        "label_nb_pompes": "Number of pumps",
+        "label_type_pompe": "Type of pump (centrifugal, volumetric, etc.)",
+        "label_puissance_pompe": "Pump power (kW or HP)",
+        "label_rendement_pompe": "Pump efficiency (%)",
+        "label_vitesse_variable_pompe": "Pump variable speed drive",
         "sous_titre_ventilation": "Ventilation / HVAC systems",
+        "label_nb_ventilation": "Number of ventilation units",
+        "label_type_ventilation": "Type of ventilation (natural, mechanical, etc.)",
+        "label_puissance_ventilation": "Ventilation power (kWh)",
         "sous_titre_machines": "Other production machines",
+        "label_nom_machine": "Machine name",
+        "label_puissance_machine": "Machine power (kW)",
+        "label_taux_utilisation": "Machine utilization rate (%)",
+        "label_rendement_machine": "Machine efficiency (%)",
+        "label_source_energie_machine": "Energy source (fossil, electricity, etc.)",
         "sous_titre_eclairage": "Lighting systems",
-        "sous_titre_depoussiereur": "Dust collector"
+        "label_type_eclairage": "Type of lighting (LED, fluorescent, etc.)",
+        "label_puissance_totale_eclairage": "Total installed power (kW)",
+        "label_heures_utilisation": "Number of hours of use per day",
+        "sous_titre_depoussiereur": "Dust collector",
+        "label_puissance_dep_hp": "Power (HP)",
+        "label_vfd_dep": "Variable Frequency Drive (VFD)",
+        "label_marque_dep": "Brand",
     }
 }
 
-st.markdown(f"""
+st.markdown(
+    f"""
 <div class='section-title'>
-    {translations_eq[lang]['titre_equipements']}
+    {translations[lang]['titre_equipements']}
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
-with st.expander(translations_eq[lang]['texte_expander_equipements']):
-    st.session_state["_EQ"] = translations_eq[lang].copy()
-    
-    st.markdown(f"#### {translations_eq[lang]['sous_titre_chaudieres']}")
-    columns_chaudieres = ["Nom", "Type", "Rendement (%)", "Taille (BHP/BTU)", "Appoint eau", "Micro modulation", "Économiseur"]
-    
-    # Charger données existantes si disponibles
-    default_chaudieres = st.session_state.get("chaudieres", pd.DataFrame(columns=columns_chaudieres))
-    if isinstance(default_chaudieres, list):
-        default_chaudieres = pd.DataFrame(default_chaudieres)
-    
+with st.expander(translations[lang]['texte_expander_equipements']):
+    # ✅ mémorise tous les libellés de la section pour les helpers _xxx_detaille()
+    st.session_state["_EQ"] = translations[lang].copy()
+    # 🔥 Chaudières
+    st.markdown(f"#### {translations[lang]['sous_titre_chaudieres']}")
+    columns_chaudieres = [
+        "Nom",
+        translations[lang]['label_type_chaudiere'],
+        translations[lang]['label_rendement_chaudiere'],
+        translations[lang]['label_taille_chaudiere'],
+        translations[lang]['label_appoint_eau'],
+        translations[lang]['label_micro_modulation'],
+        translations[lang]['label_economiseur_chaudiere'],
+    ]
     df_chaudieres = st.data_editor(
-        default_chaudieres,
+        pd.DataFrame(columns=columns_chaudieres),
         num_rows="dynamic",
-        key="chaudieres"
+        key="chaudieres",
     )
-    
-    st.markdown(f"#### {translations_eq[lang]['sous_titre_frigo']}")
-    columns_frigo = ["Nom", "Capacité", "Frigorigène"]
-    default_frigo = st.session_state.get("frigo", pd.DataFrame(columns=columns_frigo))
-    if isinstance(default_frigo, list):
-        default_frigo = pd.DataFrame(default_frigo)
-    df_frigo = st.data_editor(default_frigo, num_rows="dynamic", key="frigo")
-    
-    st.markdown(f"#### {translations_eq[lang]['sous_titre_compresseur']}")
-    columns_compresseur = ["Nom", "Puissance (HP)", "Variation vitesse"]
-    default_comp = st.session_state.get("compresseur", pd.DataFrame(columns=columns_compresseur))
-    if isinstance(default_comp, list):
-        default_comp = pd.DataFrame(default_comp)
-    df_compresseur = st.data_editor(default_comp, num_rows="dynamic", key="compresseur")
-    
-    st.markdown(f"#### {translations_eq[lang]['sous_titre_depoussiereur']}")
-    columns_dep = ["Nom", "Puissance (HP)", "VFD", "Marque"]
-    default_dep = st.session_state.get("depoussieur", pd.DataFrame(columns=columns_dep))
-    if isinstance(default_dep, list):
-        default_dep = pd.DataFrame(default_dep)
-    df_dep = st.data_editor(default_dep, num_rows="dynamic", key="depoussieur")
-    
-    st.markdown(f"#### {translations_eq[lang]['sous_titre_pompes']}")
-    columns_pompes = ["Nom", "Type", "Puissance", "Rendement (%)", "VFD"]
-    default_pompes = st.session_state.get("pompes", pd.DataFrame(columns=columns_pompes))
-    if isinstance(default_pompes, list):
-        default_pompes = pd.DataFrame(default_pompes)
-    df_pompes = st.data_editor(default_pompes, num_rows="dynamic", key="pompes")
-    
-    st.markdown(f"#### {translations_eq[lang]['sous_titre_ventilation']}")
-    columns_ventilation = ["Nom", "Type", "Puissance (kWh)"]
-    default_vent = st.session_state.get("ventilation", pd.DataFrame(columns=columns_ventilation))
-    if isinstance(default_vent, list):
-        default_vent = pd.DataFrame(default_vent)
-    df_ventilation = st.data_editor(default_vent, num_rows="dynamic", key="ventilation")
-    
-    st.markdown(f"#### {translations_eq[lang]['sous_titre_machines']}")
-    columns_machines = ["Nom", "Machine", "Puissance (kW)", "Utilisation (%)", "Rendement (%)", "Source énergie"]
-    default_mach = st.session_state.get("machines", pd.DataFrame(columns=columns_machines))
-    if isinstance(default_mach, list):
-        default_mach = pd.DataFrame(default_mach)
-    df_machines = st.data_editor(default_mach, num_rows="dynamic", key="machines")
-    
-    st.markdown(f"#### {translations_eq[lang]['sous_titre_eclairage']}")
-    columns_eclairage = ["Nom", "Type", "Puissance (kW)", "Heures/jour"]
-    default_ecl = st.session_state.get("eclairage", pd.DataFrame(columns=columns_eclairage))
-    if isinstance(default_ecl, list):
-        default_ecl = pd.DataFrame(default_ecl)
-    df_eclairage = st.data_editor(default_ecl, num_rows="dynamic", key="eclairage")
+    st.write("Aperçu des données des chaudières :")
+    st.dataframe(df_chaudieres)
 
-    # Sauvegarder après modification d'équipements
-    if st.button("💾 Sauvegarder équipements"):
-        sauvegarder_auto()
-        st.success("✅ Équipements sauvegardés!")
+    # ❄️ Équipements frigorifiques
+    st.markdown(f"#### {translations[lang]['sous_titre_frigo']}")
+    columns_frigo = [
+        "Nom",
+        translations[lang]['label_capacite_frigo'],
+        translations[lang]['label_nom_frigorigenes'],
+    ]
+    df_frigo = st.data_editor(
+        pd.DataFrame(columns=columns_frigo),
+        num_rows="dynamic",
+        key="frigo",
+    )
+    st.write("Aperçu des données des équipements frigorifiques :")
+    st.dataframe(df_frigo)
 
-# Helpers pour génération PDF (inchangés)
+    # 💨 Compresseur d’air
+    st.markdown(f"#### {translations[lang]['sous_titre_compresseur']}")
+    columns_compresseur = [
+        "Nom",
+        translations[lang]['label_puissance_comp'],
+        translations[lang]['label_variation_vitesse'],
+    ]
+    df_compresseur = st.data_editor(
+        pd.DataFrame(columns=columns_compresseur),
+        num_rows="dynamic",
+        key="compresseur",
+    )
+    st.write("Aperçu des données des compresseurs d’air :")
+    st.dataframe(df_compresseur)
+
+    # 🧹 Dépoussiéreur 
+    st.markdown(f"#### {translations[lang]['sous_titre_depoussiereur']}")
+    columns_dep = [
+        "Nom",
+        translations[lang]['label_puissance_dep_hp'],
+        translations[lang]['label_vfd_dep'],
+        translations[lang]['label_marque_dep'],
+    ]
+    df_dep = st.data_editor(
+        pd.DataFrame(columns=columns_dep),
+        num_rows="dynamic",
+        key="depoussieur",
+        column_config={
+            "Nom": st.column_config.TextColumn(),
+            translations[lang]['label_puissance_dep_hp']: st.column_config.NumberColumn(step=0.5, min_value=0.0),
+            translations[lang]['label_vfd_dep']: st.column_config.CheckboxColumn(default=False),
+            translations[lang]['label_marque_dep']: st.column_config.TextColumn(),
+        },
+    )
+    st.write("Aperçu des données des dépoussiéreurs :")
+    st.dataframe(df_dep)
+
+    # 🚰 Pompes industrielles
+    st.markdown(f"#### {translations[lang]['sous_titre_pompes']}")
+    columns_pompes = [
+        "Nom",
+        translations[lang]['label_type_pompe'],
+        translations[lang]['label_puissance_pompe'],
+        translations[lang]['label_rendement_pompe'],
+        translations[lang]['label_vitesse_variable_pompe'],
+    ]
+    df_pompes = st.data_editor(
+        pd.DataFrame(columns=columns_pompes),
+        num_rows="dynamic",
+        key="pompes",
+    )
+    st.write("Aperçu des données des pompes industrielles :")
+    st.dataframe(df_pompes)
+
+    # 🌬️ Ventilation / HVAC
+    st.markdown(f"#### {translations[lang]['sous_titre_ventilation']}")
+    columns_ventilation = [
+        "Nom",
+        translations[lang]['label_type_ventilation'],
+        translations[lang]['label_puissance_ventilation'],
+    ]
+    df_ventilation = st.data_editor(
+        pd.DataFrame(columns=columns_ventilation),
+        num_rows="dynamic",
+        key="ventilation",
+    )
+    st.write("Aperçu des données des systèmes de ventilation :")
+    st.dataframe(df_ventilation)
+
+    # 🛠️ Autres machines de production
+    st.markdown(f"#### {translations[lang]['sous_titre_machines']}")
+    columns_machines = [
+        "Nom",
+        translations[lang]['label_nom_machine'],
+        translations[lang]['label_puissance_machine'],
+        translations[lang]['label_taux_utilisation'],
+        translations[lang]['label_rendement_machine'],
+        translations[lang]['label_source_energie_machine'],
+    ]
+    df_machines = st.data_editor(
+        pd.DataFrame(columns=columns_machines),
+        num_rows="dynamic",
+        key="machines",
+    )
+    st.write("Aperçu des données des autres machines de production :")
+    st.dataframe(df_machines)
+
+    # 💡 Éclairage
+    st.markdown(f"#### {translations[lang]['sous_titre_eclairage']}")
+    columns_eclairage = [
+        "Nom",
+        translations[lang]['label_type_eclairage'],
+        translations[lang]['label_puissance_totale_eclairage'],
+        translations[lang]['label_heures_utilisation'],
+    ]
+    df_eclairage = st.data_editor(
+        pd.DataFrame(columns=columns_eclairage),
+        num_rows="dynamic",
+        key="eclairage",
+    )
+    st.write("Aperçu des données des systèmes d’éclairage :")
+    st.dataframe(df_eclairage)
+
+# --- Helpers génériques (globaux) ---
 def _one_line(s: str) -> str:
+    import re
     return re.sub(r'[\r\n]+', ' ', (s or '').strip())
 
 def _slug(x: str) -> str:
+    import re
     return re.sub(r'[^A-Za-z0-9_-]+', '_', (x or '').strip())
 
 def _val(x, suffix: str = "") -> str:
+    import pandas as pd
     if isinstance(x, (int, float)) and not pd.isna(x):
         return f"{x:g}{suffix}"
     s = (str(x) if x is not None else "").strip()
@@ -902,106 +826,147 @@ def _yn(x) -> str:
     if s in {"non","no","n","false","faux","0"}: return "Non"
     return "n/d"
 
+# --- Raccourci pour récupérer les libellés “Équipements” (FR/EN) ---
 def _EQ():
-    return st.session_state.get("_EQ", {})
+    """Retourne le dict de libellés de la section Équipements stocké dans session_state."""
+    import streamlit as st
+    return st.session_state.get("_EQ", {})  # dict vide si pas encore défini
 
-def _df_depuis_editor(key: str) -> pd.DataFrame:
-    val = st.session_state.get(key, None)
-    if isinstance(val, pd.DataFrame):
-        return val.copy()
-    if isinstance(val, dict):
-        rows = []
-        if isinstance(val.get("added_rows"), list):
-            rows.extend(val["added_rows"])
-        if isinstance(val.get("edited_rows"), dict):
-            rows.extend(val["edited_rows"].values())
-        return pd.DataFrame(rows)
-    if isinstance(val, list) and all(isinstance(x, dict) for x in val):
-        return pd.DataFrame(val)
-    return pd.DataFrame()
-
+# --- Détails par catégorie (s’appuie sur _EQ() pour les noms de colonnes) ---
 def _chaudieres_detaille() -> list[str]:
+    import streamlit as st
     df = _df_depuis_editor("chaudieres")
     if df.empty: return []
+    t = _EQ()
+    c_type   = t.get("label_type_chaudiere", "Type de chaudière")
+    c_rend   = t.get("label_rendement_chaudiere", "Rendement chaudière (%)")
+    c_taille = t.get("label_taille_chaudiere", "Taille de la chaudière (BHP ou BTU)")
+    c_app    = t.get("label_appoint_eau", "Appoint d’eau (volume)")
+    c_micro  = t.get("label_micro_modulation", "Chaudière équipée de micro modulation ?")
+    c_eco    = t.get("label_economiseur_chaudiere", "Économiseur installé ?")
     L=[]
     for _, r in df.iterrows():
         nom = str(r.get("Nom","")).strip() or "Sans nom"
-        L.append(f"{nom} – Type: {_val(r.get('Type'))} – Rend: {_val(r.get('Rendement (%)'), '%')}")
+        L.append(
+            f"{nom} – { _val(r.get(c_type)) } – {c_rend}: { _val(r.get(c_rend),'%') } – "
+            f"{c_taille}: { _val(r.get(c_taille)) } – {c_app}: { _val(r.get(c_app)) } – "
+            f"{c_micro}: { _yn(r.get(c_micro)) } – {c_eco}: { _yn(r.get(c_eco)) }"
+        )
     return L
 
 def _frigo_detaille() -> list[str]:
     df = _df_depuis_editor("frigo")
     if df.empty: return []
+    t = _EQ()
+    c_cap = t.get("label_capacite_frigo", "Capacité frigorifique")
+    c_ref = t.get("label_nom_frigorigenes", "Nom du frigorigène")
     L=[]
     for _, r in df.iterrows():
         nom = str(r.get("Nom","")).strip() or "Sans nom"
-        L.append(f"{nom} – Capacité: {_val(r.get('Capacité'))} – Frigorigène: {_val(r.get('Frigorigène'))}")
+        L.append(f"{nom} – {c_cap}: { _val(r.get(c_cap)) } – {c_ref}: { _val(r.get(c_ref)) }")
     return L
 
 def _compresseurs_detaille() -> list[str]:
     df = _df_depuis_editor("compresseur")
     if df.empty: return []
+    t = _EQ()
+    c_hp  = t.get("label_puissance_comp", "Puissance compresseur (HP)")
+    c_vfd = t.get("label_variation_vitesse", "Variation de vitesse compresseur")
     L=[]
     for _, r in df.iterrows():
         nom = str(r.get("Nom","")).strip() or "Sans nom"
-        L.append(f"{nom} – {_val(r.get('Puissance (HP)'))} HP – VFD: {_yn(r.get('Variation vitesse'))}")
+        L.append(f"{nom} – { _val(r.get(c_hp),' HP') } – {c_vfd}: { _yn(r.get(c_vfd)) }")
     return L
 
 def _depoussieurs_detaille(lang=None) -> list[str]:
     df = _df_depuis_editor("depoussieur")
-    if df.empty: return []
-    L=[]
+    if df.empty:
+        return []
+    t = _EQ()
+    hp_label     = t.get("label_puissance_dep_hp", "Puissance (HP)")
+    vfd_label    = t.get("label_vfd_dep", "Variateur de vitesse (VFD)")
+    marque_label = t.get("label_marque_dep", "Marque")
+
+    lignes = []
     for _, r in df.iterrows():
-        nom = str(r.get("Nom","")).strip()
-        if not nom: continue
-        hp = _val(r.get("Puissance (HP)"))
-        vfd = _yn(r.get("VFD"))
-        marque = r.get("Marque", "")
-        L.append(f"{nom} – {hp} HP – VFD: {vfd} – {marque}")
-    return L
+        nom = str(r.get("Nom", "")).strip()
+        if not nom:
+            continue
+        hp     = r.get(hp_label)
+        vfd    = r.get(vfd_label)
+        marque = r.get(marque_label)
+
+        hp_txt     = f"{_val(hp)} HP" if _val(hp) != "n/d" else "HP n/d"
+        vfd_txt    = "Oui" if _yn(vfd) == "Oui" else "Non"
+        marque_txt = f" – {marque}" if isinstance(marque, str) and marque.strip() else ""
+        lignes.append(f"{nom} – {hp_txt} – VFD: {vfd_txt}{marque_txt}")
+    return lignes
 
 def _pompes_detaille() -> list[str]:
     df = _df_depuis_editor("pompes")
     if df.empty: return []
+    t = _EQ()
+    c_type = t.get("label_type_pompe", "Type de pompe (centrifuge, volumétrique, etc.)")
+    c_pow  = t.get("label_puissance_pompe", "Puissance pompe (kW ou HP)")
+    c_rend = t.get("label_rendement_pompe", "Rendement pompe (%)")
+    c_vfd  = t.get("label_vitesse_variable_pompe", "Variateur de vitesse pompe")
     L=[]
     for _, r in df.iterrows():
         nom = str(r.get("Nom","")).strip() or "Sans nom"
-        L.append(f"{nom} – Type: {_val(r.get('Type'))} – {_val(r.get('Puissance'))} – VFD: {_yn(r.get('VFD'))}")
+        L.append(f"{nom} – { _val(r.get(c_type)) } – { _val(r.get(c_pow)) } – {c_rend}: { _val(r.get(c_rend),'%') } – VFD: { _yn(r.get(c_vfd)) }")
     return L
 
 def _ventilation_detaille() -> list[str]:
     df = _df_depuis_editor("ventilation")
     if df.empty: return []
+    t = _EQ()
+    c_type = t.get("label_type_ventilation", "Type de ventilation (naturelle, mécanique, etc.)")
+    c_pow  = t.get("label_puissance_ventilation", "Puissance ventilation (kWh)")
     L=[]
     for _, r in df.iterrows():
         nom = str(r.get("Nom","")).strip() or "Sans nom"
-        L.append(f"{nom} – Type: {_val(r.get('Type'))} – {_val(r.get('Puissance (kWh)'))}")
+        L.append(f"{nom} – {c_type}: { _val(r.get(c_type)) } – {c_pow}: { _val(r.get(c_pow)) }")
     return L
 
 def _machines_detaille() -> list[str]:
     df = _df_depuis_editor("machines")
     if df.empty: return []
+    t = _EQ()
+    c_nom2 = t.get("label_nom_machine", "Nom de la machine")
+    c_pow  = t.get("label_puissance_machine", "Puissance machine (kW)")
+    c_tu   = t.get("label_taux_utilisation", "Taux d’utilisation machine (%)")
+    c_rend = t.get("label_rendement_machine", "Rendement machine (%)")
+    c_src  = t.get("label_source_energie_machine", "Source d’énergie (fossile, électricité, etc.)")
     L=[]
     for _, r in df.iterrows():
-        nom = str(r.get("Nom","")).strip() or "Sans nom"
-        L.append(f"{nom} – {_val(r.get('Puissance (kW)'))} kW – Util: {_val(r.get('Utilisation (%)'), '%')}")
+        nom = str(r.get("Nom","")).strip() or str(r.get(c_nom2,"")).strip() or "Sans nom"
+        L.append(f"{nom} – {c_pow}: { _val(r.get(c_pow)) } – {c_tu}: { _val(r.get(c_tu),'%') } – {c_rend}: { _val(r.get(c_rend),'%') } – {c_src}: { _val(r.get(c_src)) }")
     return L
 
 def _eclairage_detaille() -> list[str]:
     df = _df_depuis_editor("eclairage")
     if df.empty: return []
+    t = _EQ()
+    c_type = t.get("label_type_eclairage", "Type d’éclairage (LED, fluorescent, etc.)")
+    c_pow  = t.get("label_puissance_totale_eclairage", "Puissance totale installée (kW)")
+    c_h    = t.get("label_heures_utilisation", "Nombre d’heures d’utilisation par jour")
     L=[]
     for _, r in df.iterrows():
         nom = str(r.get("Nom","")).strip() or "Sans nom"
-        L.append(f"{nom} – Type: {_val(r.get('Type'))} – {_val(r.get('Puissance (kW)'))} kW")
+        L.append(f"{nom} – {c_type}: { _val(r.get(c_type)) } – {c_pow}: { _val(r.get(c_pow)) } – {c_h}: { _val(r.get(c_h)) }")
     return L
 
 def _safe_details(fn_or_val):
+    """Retourne une liste de détails que le paramètre soit:
+    - une fonction sans argument,
+    - une fonction qui prend (lang),
+    - ou déjà une liste."""
     try:
         if callable(fn_or_val):
             return fn_or_val()
         return fn_or_val
     except TypeError:
+        # Si la fonction attend encore (lang), on réessaie proprement
         try:
             return fn_or_val(lang)
         except Exception:
@@ -1010,262 +975,761 @@ def _safe_details(fn_or_val):
 # ==========================
 # 6. VOS PRIORITÉS STRATÉGIQUES
 # ==========================
-translations_prio = {
+
+translations = {
     "fr": {
         "titre_priorites": "🎯 6. Vos priorités stratégiques",
         "texte_expander_priorites": "Cliquez ici pour remplir cette section",
-        "intro_priorites": "Indiquez vos priorités de 0 à 10",
-        "label_priorite_energie": "Réduction consommation énergétique",
+        "intro_priorites": "Indiquez vos priorités stratégiques en attribuant une note de 0 (pas important) à 10 (très important).",
+        "label_priorite_energie": "Réduction de la consommation énergétique",
+        "help_priorite_energie": "Économies d’énergie globales pour votre site.",
         "label_priorite_roi": "Retour sur investissement",
-        "label_priorite_ges": "Réduction émissions GES",
+        "help_priorite_roi": "Nombre d'années pour le retour sur investissement (1 an = retour rapide, 10 ans = retour lent).",
+        "label_priorite_ges": "Réduction des émissions de GES",
+        "help_priorite_ges": "Conformité réglementaire et impact environnemental.",
         "label_priorite_prod": "Productivité et fiabilité",
-        "label_priorite_maintenance": "Maintenance et fiabilité"
+        "help_priorite_prod": "Optimisation des performances et disponibilité des équipements.",
+        "label_priorite_maintenance": "Maintenance et fiabilité",
+        "help_priorite_maintenance": "Facilité d’entretien et durabilité des équipements.",
+        "analyse_priorites": "### 📊 Analyse de vos priorités stratégiques",
+        "resultat_priorite_energie": "Réduction de la consommation énergétique",
+        "resultat_priorite_roi": "Retour sur investissement",
+        "resultat_priorite_ges": "Réduction des émissions de GES",
+        "resultat_priorite_prod": "Productivité et fiabilité",
+        "resultat_priorite_maintenance": "Maintenance et fiabilité",
+        "warning_priorites": "⚠️ Veuillez indiquer vos priorités pour générer l'analyse."
     },
     "en": {
         "titre_priorites": "🎯 6. Your Strategic Priorities",
         "texte_expander_priorites": "Click here to fill out this section",
-        "intro_priorites": "Indicate your priorities from 0 to 10",
+        "intro_priorites": "Indicate your strategic priorities by assigning a score from 0 (not important) to 10 (very important).",
         "label_priorite_energie": "Energy consumption reduction",
+        "help_priorite_energie": "Overall energy savings for your site.",
         "label_priorite_roi": "Return on investment",
+        "help_priorite_roi": "Number of years for ROI (1 year = fast payback, 10 years = slow payback).",
         "label_priorite_ges": "GHG emissions reduction",
+        "help_priorite_ges": "Regulatory compliance and environmental impact.",
         "label_priorite_prod": "Productivity and reliability",
-        "label_priorite_maintenance": "Maintenance and reliability"
+        "help_priorite_prod": "Performance optimization and equipment availability.",
+        "label_priorite_maintenance": "Maintenance and reliability",
+        "help_priorite_maintenance": "Ease of maintenance and equipment longevity.",
+        "analyse_priorites": "### 📊 Analysis of your strategic priorities",
+        "resultat_priorite_energie": "Energy consumption reduction",
+        "resultat_priorite_roi": "Return on investment",
+        "resultat_priorite_ges": "GHG emissions reduction",
+        "resultat_priorite_prod": "Productivity and reliability",
+        "resultat_priorite_maintenance": "Maintenance and reliability",
+        "warning_priorites": "⚠️ Please indicate your priorities to generate the analysis."
     }
 }
 
+
 st.markdown("<div id='priorites'></div>", unsafe_allow_html=True)
+
 st.markdown(f"""
 <div class='section-title'>
-    {translations_prio[lang]['titre_priorites']}
+    {translations[lang]['titre_priorites']}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander(translations_prio[lang]['texte_expander_priorites']):
-    st.markdown(translations_prio[lang]['intro_priorites'])
-    
-    priorite_energie = st.slider(translations_prio[lang]['label_priorite_energie'], 0, 10, 5, key="priorite_energie", on_change=sauvegarder_auto)
-    priorite_roi = st.slider(translations_prio[lang]['label_priorite_roi'], 1, 10, 5, key="priorite_roi", on_change=sauvegarder_auto)
-    priorite_ges = st.slider(translations_prio[lang]['label_priorite_ges'], 0, 10, 5, key="priorite_ges", on_change=sauvegarder_auto)
-    priorite_prod = st.slider(translations_prio[lang]['label_priorite_prod'], 0, 10, 5, key="priorite_prod", on_change=sauvegarder_auto)
-    priorite_maintenance = st.slider(translations_prio[lang]['label_priorite_maintenance'], 0, 10, 5, key="priorite_maintenance", on_change=sauvegarder_auto)
+with st.expander(translations[lang]['texte_expander_priorites']):
+    st.markdown(translations[lang]['intro_priorites'])
 
-    total_priorites = priorite_energie + priorite_roi + priorite_ges + priorite_prod + priorite_maintenance
-    
+    priorite_energie = st.slider(
+        translations[lang]['label_priorite_energie'],
+        0, 10, 5,
+        help=translations[lang]['help_priorite_energie']
+    )
+    priorite_roi = st.slider(
+        translations[lang]['label_priorite_roi'],
+        1, 10, 5,
+        help=translations[lang]['help_priorite_roi']
+    )
+    priorite_ges = st.slider(
+        translations[lang]['label_priorite_ges'],
+        0, 10, 5,
+        help=translations[lang]['help_priorite_ges']
+    )
+    priorite_prod = st.slider(
+        translations[lang]['label_priorite_prod'],
+        0, 10, 5,
+        help=translations[lang]['help_priorite_prod']
+    )
+    priorite_maintenance = st.slider(
+        translations[lang]['label_priorite_maintenance'],
+        0, 10, 5,
+        help=translations[lang]['help_priorite_maintenance']
+    )
+
+    total_priorites = (
+        priorite_energie +
+        priorite_roi +
+        priorite_ges +
+        priorite_prod +
+        priorite_maintenance
+    )
+
     if total_priorites > 0:
         poids_energie = priorite_energie / total_priorites
         poids_roi = priorite_roi / total_priorites
         poids_ges = priorite_ges / total_priorites
         poids_prod = priorite_prod / total_priorites
         poids_maintenance = priorite_maintenance / total_priorites
-        
-        st.session_state["poids_energie"] = poids_energie
-        st.session_state["poids_roi"] = poids_roi
-        st.session_state["poids_ges"] = poids_ges
-        st.session_state["poids_prod"] = poids_prod
-        st.session_state["poids_maintenance"] = poids_maintenance
+
+        st.markdown(translations[lang]['analyse_priorites'])
+
+        col1, col2 = st.columns([1, 2])  # Ajuste les proportions
+
+        with col1:
+            st.markdown(f"- {translations[lang]['resultat_priorite_energie']}: **{poids_energie:.0%}**")
+            st.markdown(f"- {translations[lang]['resultat_priorite_roi']}: **{poids_roi:.0%}**")
+            st.markdown(f"- {translations[lang]['resultat_priorite_ges']}: **{poids_ges:.0%}**")
+            st.markdown(f"- {translations[lang]['resultat_priorite_prod']}: **{poids_prod:.0%}**")
+            st.markdown(f"- {translations[lang]['resultat_priorite_maintenance']}: **{poids_maintenance:.0%}**")
+
+        with col2:
+            labels = [
+                translations[lang]['resultat_priorite_energie'],
+                translations[lang]['resultat_priorite_roi'],
+                translations[lang]['resultat_priorite_ges'],
+                translations[lang]['resultat_priorite_prod'],
+                translations[lang]['resultat_priorite_maintenance']
+            ]
+            values = [
+                poids_energie * 100,
+                poids_roi * 100,
+                poids_ges * 100,
+                poids_prod * 100,
+                poids_maintenance * 100
+            ]
+
+            fig, ax = plt.subplots(figsize=(4, 2.5))  # Taille modérée et compacte
+            ax.barh(labels, values, color='#4682B4', edgecolor='black', height=0.5)
+            ax.set_xlabel("Poids (%)", fontsize=8)
+            ax.set_xlim(0, 100)
+            ax.tick_params(axis='both', labelsize=7)
+            ax.set_title(translations[lang]['titre_priorites'], fontsize=9)
+            plt.tight_layout()
+            st.pyplot(fig)
+    else:
+        st.warning(translations[lang]['warning_priorites'])
+
 
 # ==========================
 # 7. SERVICES COMPLÉMENTAIRES
 # ==========================
-translations_serv = {
+translations = {
     "fr": {
+        # ... (tes autres clés)
         "titre_services": "🛠️ 7. Services complémentaires",
         "texte_expander_services": "Cliquez ici pour remplir cette section",
         "label_controle": "Contrôle et automatisation",
         "label_maintenance": "Maintenance préventive et corrective",
-        "label_ventilation": "Ventilation industrielle",
-        "label_autres_services": "Autres services"
+        "label_ventilation": "Ventilation industrielle et gestion de l’air",
+        "label_autres_services": "Autres services souhaités (précisez)"
     },
     "en": {
+        # ... (tes autres clés)
         "titre_services": "🛠️ 7. Additional Services",
         "texte_expander_services": "Click here to fill out this section",
         "label_controle": "Control and automation",
         "label_maintenance": "Preventive and corrective maintenance",
-        "label_ventilation": "Industrial ventilation",
-        "label_autres_services": "Other services"
+        "label_ventilation": "Industrial ventilation and air management",
+        "label_autres_services": "Other desired services (please specify)"
     }
 }
 
 st.markdown("<div id='services'></div>", unsafe_allow_html=True)
 st.markdown(f"""
 <div class='section-title'>
-    {translations_serv[lang]['titre_services']}
+    {translations[lang]['titre_services']}
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander(translations_serv[lang]['texte_expander_services']):
-    controle = st.checkbox(translations_serv[lang]['label_controle'], key="controle", on_change=sauvegarder_auto)
-    maintenance = st.checkbox(translations_serv[lang]['label_maintenance'], key="maintenance", on_change=sauvegarder_auto)
-    ventilation = st.checkbox(translations_serv[lang]['label_ventilation'], key="ventilation", on_change=sauvegarder_auto)
-    autres_services = st.text_area(translations_serv[lang]['label_autres_services'], key="autres_services", on_change=sauvegarder_auto)
+with st.expander(translations[lang]['texte_expander_services']):
+    controle = st.checkbox(translations[lang]['label_controle'])
+    maintenance = st.checkbox(translations[lang]['label_maintenance'])
+    ventilation = st.checkbox(translations[lang]['label_ventilation'])
+    autres_services = st.text_area(translations[lang]['label_autres_services'])
+
 
 # ==========================
-# 8. PDF - Génération
+# 8-PDF – génération pro & complète
 # ==========================
-def generer_pdf(**kwargs) -> bytes:
-    """Génère le PDF (code inchangé de votre version originale)"""
+from fpdf import FPDF
+import io, re
+from datetime import date
+import pandas as pd
+
+TXT = {
+    "fr": {
+        "titre_pdf": "📝 8. Récapitulatif et génération PDF",
+        "info": ("ℹ️ Note : Cette version d’essai ne conserve pas vos données après fermeture de la page. "
+                 "La version finale permettra d’enregistrer et de reprendre vos réponses."),
+        "btn_generate": "📥 Générer le PDF",
+        "btn_download": "📥 Télécharger le PDF",
+        "err_missing": "Veuillez remplir ou corriger les champs suivants :",
+        "ok_pdf": "✅ PDF généré avec succès !",
+        "label_client": "Nom du client",
+        "label_site": "Nom du site",
+        "label_mail": "Courriel de contact EE",
+        "objectifs": "Objectifs du client :",
+        "services": "Services complémentaires souhaités :",
+        "priorites": "Priorités stratégiques du client :",
+        "equipements": "Équipements identifiés lors de l’audit :",
+        "aucun_eq": "Aucun équipement saisi",
+        "control": "Contrôle et automatisation",
+        "maint": "Maintenance",
+        "vent": "Ventilation",
+    },
+    "en": {
+        "titre_pdf": "📝 8. Summary and PDF Generation",
+        "info": ("ℹ️ Note: This trial version does not retain your data after closing the page. "
+                 "A final version will allow you to save and resume later."),
+        "btn_generate": "📥 Generate PDF",
+        "btn_download": "📥 Download PDF",
+        "err_missing": "Please fill or correct the following fields:",
+        "ok_pdf": "✅ PDF successfully generated!",
+        "label_client": "Client Name",
+        "label_site": "Site Name",
+        "label_mail": "EE Contact Email",
+        "objectifs": "Client objectives:",
+        "services": "Additional desired services:",
+        "priorites": "Client strategic priorities:",
+        "equipements": "Equipment identified during the audit:",
+        "aucun_eq": "No equipment provided",
+        "control": "Control & automation",
+        "maint": "Maintenance",
+        "vent": "Ventilation",
+    }
+}[lang]
+
+st.info(TXT["info"])
+st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
+st.markdown(f"<div class='section-title'>{TXT['titre_pdf']}</div>", unsafe_allow_html=True)
+
+# ====== OUTILS : lecture fiable des data_editor ======
+def _df_depuis_editor(key: str) -> pd.DataFrame:
+    """
+    Récupère proprement le contenu d'un st.data_editor(key=...).
+    Retourne toujours un DataFrame (éventuellement vide).
+    """
+    val = st.session_state.get(key, None)
+
+    # Déjà un DataFrame
+    if isinstance(val, pd.DataFrame):
+        return val.copy()
+
+    # Dict 'edited_rows' / 'added_rows'
+    if isinstance(val, dict):
+        rows = []
+        if isinstance(val.get("added_rows"), list):
+            rows.extend(val["added_rows"])
+        if isinstance(val.get("edited_rows"), dict):
+            rows.extend(val["edited_rows"].values())
+        return pd.DataFrame(rows)
+
+    # Liste de dicts
+    if isinstance(val, list) and all(isinstance(x, dict) for x in val):
+        return pd.DataFrame(val)
+
+    return pd.DataFrame()  # vide par défaut
+
+
+def _noms_depuis_editor(key: str, col_nom: str = "Nom") -> list[str]:
+    """Renvoie la liste des 'Nom' saisis dans l'éditeur `key`."""
+    df = _df_depuis_editor(key)
+    if df.empty or col_nom not in df.columns:
+        return []
+    noms = (
+        df[col_nom]
+        .astype(str)
+        .map(lambda s: s.strip())
+        .loc[lambda s: s.str.len() > 0]
+        .tolist()
+    )
+    return noms
+
+
+def _depoussieurs_detaille(lang: str) -> list[str]:
+    """
+    Construit des lignes détaillées pour les dépoussiéreurs :
+    'Nom – 12 HP – VFD: Oui/Non – Marque'
+    """
+    df = _df_depuis_editor("depoussieur")
+    if df.empty:
+        return []
+
+    hp_label = translations[lang].get("label_puissance_dep_hp", "Puissance (HP)")
+    vfd_label = translations[lang].get("label_vfd_dep", "Variateur de vitesse (VFD)")
+    marque_label = translations[lang].get("label_marque_dep", "Marque")
+
+    # colonnes manquantes -> colonnes vides
+    for c in ["Nom", hp_label, vfd_label, marque_label]:
+        if c not in df.columns:
+            df[c] = ""
+
+    lignes = []
+    for _, r in df.iterrows():
+        nom = str(r["Nom"]).strip()
+        if not nom:
+            continue
+        hp = r[hp_label]
+        vfd = r[vfd_label]
+        marque = r[marque_label]
+
+        hp_txt = f"{hp} HP" if (pd.notna(hp) and str(hp).strip() != "") else "HP n/d"
+        vfd_txt = "Oui" if bool(vfd) else "Non"
+        marque_txt = f" – {marque}" if isinstance(marque, str) and marque.strip() else ""
+        lignes.append(f"{nom} – {hp_txt} – VFD: {vfd_txt}{marque_txt}")
+
+    return lignes
+
+# ====== Génération du PDF ======
+def generer_pdf(
+    *,
+    client_nom: str,
+    site_nom: str,
+    sauver_ges: str,
+    economie_energie: bool,
+    gain_productivite: bool,
+    roi_vise: str,
+    investissement_prevu: str,
+    autres_objectifs: str,
+    priorites: dict,
+    equipements: dict,
+) -> bytes:
+    """Construit le PDF et renvoie les bytes."""
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-    
+
+    # Polices (fallback sur Arial si non disponibles)
     try:
         pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
         pdf.add_font('DejaVu', 'B', 'fonts/DejaVuSans-Bold.ttf', uni=True)
         FONT_REG, FONT_B = 'DejaVu', 'DejaVu'
     except Exception:
         FONT_REG = FONT_B = 'Arial'
-    
+
+    # Choix de la puce selon la police dispo
     BULLET = "•" if FONT_REG == "DejaVu" else "-"
-    
+
+    # Logo optionnel
     try:
         pdf.image("Image/Logo Soteck.jpg", x=170, y=10, w=30)
     except Exception:
         pass
-    
+
+    # Titre + infos
     pdf.set_font(FONT_B, 'B', 16)
     pdf.cell(0, 10, "Résumé - Audit Flash", ln=True, align="C")
     pdf.ln(5)
     pdf.set_font(FONT_REG, '', 12)
-    pdf.cell(0, 8, f"Client : {kwargs.get('client_nom', 'N/A')}", ln=True)
-    pdf.cell(0, 8, f"Site   : {kwargs.get('site_nom', 'N/A')}", ln=True)
+    pdf.cell(0, 8, f"Client : {client_nom}", ln=True)
+    pdf.cell(0, 8, f"Site   : {site_nom}", ln=True)
     pdf.cell(0, 8, f"Date   : {date.today().strftime('%d/%m/%Y')}", ln=True)
-    
+
+    # Objectifs
     pdf.ln(4)
     pdf.set_font(FONT_B, 'B', 12)
-    pdf.cell(0, 8, "Objectifs:", ln=True)
+    pdf.cell(0, 8, TXT["objectifs"], ln=True)
     pdf.set_font(FONT_REG, '', 12)
-    pdf.cell(0, 8, f"Réduction GES : {kwargs.get('sauver_ges', 'N/A')}%", ln=True)
-    
+    pdf.cell(0, 8, f"Réduction GES : {sauver_ges}%", ln=True)
+    pdf.cell(0, 8, f"Économie d’énergie : {'Oui' if economie_energie else 'Non'}", ln=True)
+    pdf.cell(0, 8, f"Productivité accrue : {'Oui' if gain_productivite else 'Non'}", ln=True)
+    pdf.cell(0, 8, f"ROI visé : {roi_vise}", ln=True)
+    pdf.cell(0, 8, f"Investissement prévu : {investissement_prevu}", ln=True)
+    if autres_objectifs:
+        pdf.multi_cell(0, 8, f"Autres objectifs : {autres_objectifs}")
+
+    # Services
+    pdf.ln(3)
+    pdf.set_font(FONT_B, 'B', 12)
+    pdf.cell(0, 8, TXT["services"], ln=True)
+    pdf.set_font(FONT_REG, '', 12)
+    pdf.cell(0, 8, f"- {TXT['control']} : {'Oui' if st.session_state.get('controle') else 'Non'}", ln=True)
+    pdf.cell(0, 8, f"- {TXT['maint']}   : {'Oui' if st.session_state.get('maintenance') else 'Non'}", ln=True)
+    pdf.cell(0, 8, f"- {TXT['vent']}    : {'Oui' if st.session_state.get('ventilation') else 'Non'}", ln=True)
+
+    # Priorités
+    pdf.ln(3)
+    pdf.set_font(FONT_B, 'B', 12)
+    pdf.cell(0, 8, TXT["priorites"], ln=True)
+    pdf.set_font(FONT_REG, '', 12)
+    if priorites:
+        for k, v in priorites.items():
+            try:
+                pdf.cell(0, 8, f"{k} : {float(v):.0%}", ln=True)
+            except Exception:
+                pdf.cell(0, 8, f"{k} : {v}", ln=True)
+    else:
+        pdf.cell(0, 8, "Non renseignées", ln=True)
+
+    # Équipements (format détaillé pour TOUTES les familles)
+    pdf.ln(3)
+    pdf.set_font(FONT_B, 'B', 12)
+    pdf.cell(0, 8, TXT["equipements"], ln=True)
+    pdf.set_font(FONT_REG, '', 12)
+
+    for bloc, items in equipements.items():
+        if isinstance(items, list) and len(items) > 0:
+            pdf.cell(0, 8, f"- {bloc} :", ln=True)
+            for it in items:
+                pdf.multi_cell(0, 8, f"    {BULLET} {it}")
+        else:
+            pdf.cell(0, 8, f"- {bloc} : {TXT['aucun_eq']}", ln=True)
+
+    # Bandeau bas (optionnel)
+    try:
+        pdf.image("Image/sous-page.jpg", x=10, y=265, w=190)
+    except Exception:
+        pass
+
+    # Bytes PDF (fpdf2 -> 'S' renvoie str à encoder en latin-1 ; si bytes, on garde)
     out = pdf.output(dest="S")
     pdf_bytes = out if isinstance(out, (bytes, bytearray)) else out.encode("latin-1")
     return pdf_bytes
 
-TXT_PDF = {
-    "fr": {
-        "titre_pdf": "📝 8. Récapitulatif et génération PDF",
-        "btn_generate": "📥 Générer le PDF",
-        "btn_download": "📥 Télécharger le PDF",
-        "ok_pdf": "✅ PDF généré avec succès !"
-    },
-    "en": {
-        "titre_pdf": "📝 8. Summary and PDF Generation",
-        "btn_generate": "📥 Generate PDF",
-        "btn_download": "📥 Download PDF",
-        "ok_pdf": "✅ PDF successfully generated!"
-    }
-}[lang]
 
-st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
-st.markdown(f"<div class='section-title'>{TXT_PDF['titre_pdf']}</div>", unsafe_allow_html=True)
+# ---- Vérification + Génération ----
+st.divider()
+email_regex = r"[^@]+@[^@]+\.[^@]+"
 
-if st.button(TXT_PDF["btn_generate"]):
-    # Sauvegarder avant de générer
-    sauvegarder_auto()
-    
-    equipements = {
-        "Chaudières": _chaudieres_detaille(),
-        "Systèmes frigorifiques": _frigo_detaille(),
-        "Compresseurs": _compresseurs_detaille(),
-        "Pompes": _pompes_detaille(),
-        "Ventilation": _ventilation_detaille(),
-        "Machines de production": _machines_detaille(),
-        "Éclairage": _eclairage_detaille(),
-        "Dépoussiéreurs": _depoussieurs_detaille(lang),
-    }
-    
-    priorites = {}
-    total = (priorite_energie + priorite_roi + priorite_ges + priorite_prod + priorite_maintenance)
-    if total > 0:
-        priorites = {
-            "Réduction conso énergétique": priorite_energie / total,
-            "ROI": priorite_roi / total,
-            "Réduction GES": priorite_ges / total,
-            "Productivité": priorite_prod / total,
-            "Maintenance": priorite_maintenance / total,
+if st.button(TXT["btn_generate"]):
+    missing = []
+    if not client_nom: missing.append(TXT["label_client"])
+    if not site_nom:   missing.append(TXT["label_site"])
+    if contact_ee_mail and not re.match(email_regex, contact_ee_mail):
+        missing.append(TXT["label_mail"])
+
+    if missing:
+        st.error(f"{TXT['err_missing']} {', '.join(missing)}")
+    else:
+        # ⚙️ Listes d’équipements (version DÉTAILLÉE)
+        equipements = {
+            "Chaudières":              _chaudieres_detaille(),
+            "Systèmes frigorifiques":  _frigo_detaille(),
+            "Compresseurs":            _compresseurs_detaille(),
+            "Pompes":                  _pompes_detaille(),
+            "Ventilation":             _ventilation_detaille(),
+            "Machines de production":  _machines_detaille(),
+            "Éclairage":               _eclairage_detaille(),
+            "Dépoussiéreurs":          _depoussieurs_detaille(lang),
         }
-    
-    pdf_bytes = generer_pdf(
-        client_nom=client_nom,
-        site_nom=site_nom,
-        sauver_ges=sauver_ges,
-        economie_energie=economie_energie,
-        gain_productivite=gain_productivite,
-        roi_vise=roi_vise,
-        investissement_prevu=investissement_prevu,
-        autres_objectifs=autres_objectifs,
-        priorites=priorites,
-        equipements=equipements,
-    )
-    
-    st.session_state["pdf_bytes"] = pdf_bytes
-    st.success(TXT_PDF["ok_pdf"])
 
+        # Priorités (depuis session_state si dispo)
+        poids_energie      = st.session_state.get("poids_energie", 0)
+        poids_roi          = st.session_state.get("poids_roi", 0)
+        poids_ges          = st.session_state.get("poids_ges", 0)
+        poids_prod         = st.session_state.get("poids_prod", st.session_state.get("poids_productivite", 0))
+        poids_maintenance  = st.session_state.get("poids_maintenance", 0)
+
+        priorites = {}
+        total = (poids_energie + poids_roi + poids_ges + poids_prod + poids_maintenance)
+        if total > 0:
+            priorites = {
+                "Réduction conso énergétique": poids_energie,
+                "Retour sur investissement":   poids_roi,
+                "Réduction émissions GES":     poids_ges,
+                "Productivité & fiabilité":    poids_prod,
+                "Maintenance & fiabilité":     poids_maintenance,
+            }
+
+        pdf_bytes = generer_pdf(
+            client_nom=str(client_nom),
+            site_nom=str(site_nom),
+            sauver_ges=str(sauver_ges),
+            economie_energie=bool(economie_energie),
+            gain_productivite=bool(gain_productivite),
+            roi_vise=str(roi_vise),
+            investissement_prevu=str(investissement_prevu),
+            autres_objectifs=str(autres_objectifs),
+            priorites=priorites,
+            equipements=equipements,
+        )
+
+        # On garde en mémoire pour l’étape e-mail
+        st.session_state["pdf_bytes"] = pdf_bytes
+        st.success(TXT["ok_pdf"])
+
+# ---- Bouton de téléchargement (après génération) ----
 if "pdf_bytes" in st.session_state:
     st.download_button(
-        label=TXT_PDF["btn_download"],
+        label=TXT["btn_download"],
         data=st.session_state["pdf_bytes"],
-        file_name=f"audit_flash_{_slug(site_nom)}_{_slug(client_nom)}.pdf",
+        file_name=f"audit_flash_{(site_nom or 'site').replace(' ', '_')}_{(client_nom or 'client').replace(' ', '_')}.pdf",
         mime="application/pdf",
     )
 
-# ==========================
-# SOUMISSION FINALE
-# ==========================
-if st.button("📧 Soumettre le formulaire"):
+
+# ===========================
+# 🔁 Récupération des données
+# ===========================
+
+# Champs saisis (avec valeurs par défaut sûres)
+client_nom          = st.session_state.get("client_nom", "").strip()
+site_nom            = st.session_state.get("site_nom", "").strip()
+contact_ee_nom      = st.session_state.get("contact_ee_nom", "").strip()
+contact_ee_mail     = st.session_state.get("contact_ee_mail", "").strip()
+sauver_ges          = st.session_state.get("sauver_ges", "")
+roi_vise            = st.session_state.get("roi_vise", "")
+controle            = bool(st.session_state.get("controle", False))
+maintenance         = bool(st.session_state.get("maintenance", False))
+ventilation         = bool(st.session_state.get("ventilation", False))
+
+poids_energie       = float(st.session_state.get("poids_energie", 0))
+poids_roi           = float(st.session_state.get("poids_roi", 0))
+poids_ges           = float(st.session_state.get("poids_ges", 0))
+poids_productivite  = float(st.session_state.get("poids_productivite", 0))
+poids_maintenance   = float(st.session_state.get("poids_maintenance", 0))
+
+# Sécuriser l’existence des clés d’éditeurs
+for key in ["chaudieres", "frigo", "compresseur", "pompes", "ventilation", "machines", "eclairage", "depoussieur"]:
+    if key not in st.session_state or st.session_state[key] is None:
+        st.session_state[key] = []
+
+# ===========================
+# 📤 EXPORT EXCEL
+# ===========================
+
+translations_excel = {
+    "fr": {
+        "label_client_nom": "Nom du client",
+        "msg_checkbox_excel": "Exporter les données au format Excel",
+        "bouton_export_excel": "📥 Télécharger Excel",
+    },
+    "en": {
+        "label_client_nom": "Client Name",
+        "msg_checkbox_excel": "Export data to Excel",
+        "bouton_export_excel": "📥 Download Excel",
+    }
+}
+
+if 'lang' not in locals() or lang not in translations_excel:
+    lang = "fr"
+
+if st.checkbox(translations_excel[lang]['msg_checkbox_excel']):
+    data = {
+        translations_excel[lang]['label_client_nom']: [client_nom or "N/A"],
+        "Site": [site_nom or "N/A"],
+        "GES (%)": [sauver_ges if sauver_ges != "" else "N/A"],
+        "ROI visé": [roi_vise if roi_vise != "" else "N/A"],
+        "Contrôle": ['Oui' if controle else 'Non'],
+        "Maintenance": ['Oui' if maintenance else 'Non'],
+        "Ventilation": ['Oui' if ventilation else 'Non'],
+        "Poids énergie": [f"{poids_energie:.0%}"],
+        "Poids ROI": [f"{poids_roi:.0%}"],
+        "Poids GES": [f"{poids_ges:.0%}"],
+        "Poids Productivité": [f"{poids_productivite:.0%}"],
+        "Poids Maintenance": [f"{poids_maintenance:.0%}"],
+    }
+
+    df_export = pd.DataFrame(data)
+
+    excel_buffer = io.BytesIO()
+    with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
+        df_export.to_excel(writer, index=False, sheet_name="Audit Flash")
+
+    excel_buffer.seek(0)
+    st.download_button(
+        label=translations_excel[lang]['bouton_export_excel'],
+        data=excel_buffer,
+        file_name="audit_flash.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+
+# ===========================
+# 📧 Soumission (avec PDF déjà généré)
+# ===========================
+if st.button("Soumettre le formulaire"):
+    # 1) Vérifier que le PDF existe (créé via le bouton 'Générer le PDF')
     pdf_bytes = st.session_state.get("pdf_bytes")
     if not pdf_bytes:
-        st.error("⚠️ Veuillez d'abord générer le PDF")
+        st.error("⚠️ Veuillez d’abord cliquer sur « Générer le PDF » dans la section précédente.")
     else:
-        # Marquer comme soumis dans la DB
+        # --- Récup fichiers téléversés : variables locales, puis session_state si besoin
+        facture_elec         = locals().get("facture_elec", []) or st.session_state.get("facture_elec_files", [])
+        facture_combustibles = locals().get("facture_combustibles", []) or st.session_state.get("facture_combustibles_files", [])
+        facture_autres       = locals().get("facture_autres", []) or st.session_state.get("facture_autres_files", [])
+        plans_pid            = locals().get("plans_pid", []) or st.session_state.get("plans_pid_files", [])
+
+        # --- Résumé texte pour l’e-mail (COMPLET)
+        def _pct(x):
+            try:
+                return f"{float(x):g}%"
+            except Exception:
+                return f"{x if x not in [None, ''] else 'N/A'}"
+
+        resume_lignes = [
+            "Bonjour,\n",
+            "Ci-joint le résumé de l'Audit Flash (PDF), ainsi que les documents fournis.\n",
+            "——— INFORMATIONS GÉNÉRALES ———",
+            f"- Client : {client_nom or 'N/A'}",
+            f"- Site : {site_nom or 'N/A'}",
+            f"- Adresse : {adresse or 'N/A'}, {ville or 'N/A'}, {province or 'N/A'} {code_postal or ''}".strip(),
+            "",
+            "——— CONTACTS ———",
+            f"- Contact EE : {contact_ee_nom or 'N/A'} – {contact_ee_mail or 'N/A'} – {contact_ee_tel or 'N/A'} ext {contact_ee_ext or ''}".rstrip(),
+            f"- Maintenance (ext.) : {contact_maint_nom or 'N/A'} – {contact_maint_mail or 'N/A'} – {contact_maint_tel or 'N/A'} ext {contact_maint_ext or ''}".rstrip(),
+            f"- Formulaire rempli par : {rempli_nom or 'N/A'} – {rempli_mail or 'N/A'} – {rempli_tel or 'N/A'} (le {str(rempli_date) if rempli_date else 'N/A'})",
+            "",
+            "——— OBJECTIFS ———",
+            f"- Cible de réduction GES : {_pct(sauver_ges)}",
+            f"- Économie d’énergie : {'Oui' if economie_energie else 'Non'}",
+            f"- Productivité accrue : {'Oui' if gain_productivite else 'Non'}",
+            f"- ROI visé : {roi_vise or 'N/A'}",
+            f"- Investissement prévu : {investissement_prevu or 'N/A'}",
+            f"- Autres objectifs : {autres_objectifs or '—'}",
+            "",
+            "——— LISTE D’ÉQUIPEMENTS (aperçu détaillé) ———",
+        ]
+
+        # --- Garde-fou pour appeler les helpers (tolère anciennes signatures/lang & valeurs déjà listées)
+        def _safe_details(fn_or_val):
+            try:
+                if callable(fn_or_val):
+                    return fn_or_val()
+                return fn_or_val
+            except TypeError:
+                try:
+                    return fn_or_val(lang)  # si une vieille version attend lang
+                except Exception:
+                    return []
+            except Exception:
+                return []
+
+        # --- Détails par catégorie
+        def _dump_lines(titre, L):
+            if L:
+                resume_lignes.append(f"- {titre} :")
+                for s in L:
+                    resume_lignes.append(f"    • {s}")
+            else:
+                resume_lignes.append(f"- {titre} : —")
+
+        _dump_lines("Chaudières",              _safe_details(_chaudieres_detaille))
+        _dump_lines("Systèmes frigorifiques",  _safe_details(_frigo_detaille))
+        _dump_lines("Compresseurs d’air",      _safe_details(_compresseurs_detaille))
+        _dump_lines("Pompes",                  _safe_details(_pompes_detaille))
+        _dump_lines("Ventilation",             _safe_details(_ventilation_detaille))
+        _dump_lines("Machines de production",  _safe_details(_machines_detaille))
+        _dump_lines("Éclairage",               _safe_details(_eclairage_detaille))
+        _dump_lines("Dépoussiéreurs",          _safe_details(_depoussieurs_detaille))
+
+        # --- Pièces jointes listées
+        def _names(lst):
+            return ", ".join([f.name for f in (lst or [])]) or "—"
+
+        resume_lignes += [
+            "",
+            "——— PIÈCES JOINTES FOURNIES ———",
+            f"- Factures électricité : {_names(facture_elec)}",
+            f"- Factures combustibles : {_names(facture_combustibles)}",
+            f"- Autres consommables : {_names(facture_autres)}",
+            f"- Plans & P&ID : {_names(plans_pid)}",
+            "",
+            "Le PDF récapitulatif est joint.",
+            "Cordialement,",
+            "Soteck",
+        ]
+        resume = "\n".join(resume_lignes)
+
+        # 2) Nom du PDF (inclure le site pour mieux classer)
+        pdf_filename = f"Resume_AuditFlash_{_slug(site_nom or 'site')}_{_slug(client_nom or 'client')}.pdf"
+
+        # 3) ENVOI PAR EMAIL (destinataires fixes + remplisseur/contact EE en CC)
         try:
-            conn = sqlite3.connect('audit_flash.db', check_same_thread=False)
-            cursor = conn.cursor()
-            cursor.execute("UPDATE formulaires SET statut = 'soumis' WHERE form_id = ?", (form_id,))
-            conn.commit()
-            conn.close()
-        except Exception:
-            pass
-        
-        # Envoyer l'email (code inchangé)
-        try:
-            SMTP_SERVER = "smtp.gmail.com"
-            SMTP_PORT = 587
-            EMAIL_SENDER = "elmehdi.bencharif@gmail.com"
-            EMAIL_PASSWORD = str(st.secrets["email_password"]).strip()
+            import re, smtplib
+            from email.message import EmailMessage
+
+            SMTP_SERVER   = "smtp.gmail.com"
+            SMTP_PORT     = 587
+            EMAIL_SENDER  = "elmehdi.bencharif@gmail.com"
+            EMAIL_PASSWORD = str(st.secrets["email_password"]).strip()  # mot de passe d'application
+
+            # ✅ Destinataires fixes
             EMAIL_DESTINATAIRES = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
-            
+
+            # ✅ Objet : inclure le nom du site (et du client), FR/EN selon l’UI
+            subject_label  = "Audit Flash" if lang == "fr" else "Flash Audit"
+            subject_site   = _one_line(st.session_state.get("site_nom")   or site_nom   or "N/A")
+            subject_client = _one_line(st.session_state.get("client_nom") or client_nom or "N/A")
+            msg_subject    = f"{subject_label} – {subject_site} – {subject_client}"
+
             msg = EmailMessage()
-            msg["Subject"] = f"Audit Flash – {site_nom} – {client_nom}"
-            msg["From"] = EMAIL_SENDER
-            msg["To"] = ", ".join(EMAIL_DESTINATAIRES)
-            msg.set_content(f"Formulaire soumis pour {client_nom} - {site_nom}\n\nForm ID: {form_id}")
-            msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", 
-                             filename=f"audit_flash_{_slug(site_nom)}.pdf")
-            
+            msg["Subject"] = msg_subject
+            msg["From"]    = EMAIL_SENDER
+            msg.set_content(resume)
+            msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename=pdf_filename)
+
+            # Attache tous les fichiers uploadés
+            def _attach_uploaded(group):
+                for file in (group or []):
+                    try:
+                        try:
+                            blob = file.getvalue()
+                        except Exception:
+                            file.seek(0)
+                            blob = file.read()
+                        msg.add_attachment(blob, maintype="application",
+                                           subtype="octet-stream", filename=file.name)
+                    except Exception as e:
+                        st.warning(f"⚠️ Fichier {getattr(file,'name','inconnu')} non attaché : {e}")
+
+            _attach_uploaded(facture_elec)
+            _attach_uploaded(facture_combustibles)
+            _attach_uploaded(facture_autres)
+            _attach_uploaded(plans_pid)
+
+            # === CC auto (remplisseur + contact EE si mails valides)
+            EMAIL_RGX = r"[^@]+@[^@]+\.[^@]+"
+            def _is_mail(x: str) -> bool:
+                return isinstance(x, str) and re.match(EMAIL_RGX, x.strip())
+
+            to_list = EMAIL_DESTINATAIRES[:]  # To : liste fixe
+            remplisseur_email = (rempli_mail or st.session_state.get("rempli_mail", "")).strip()
+            contact_ee_email  = (contact_ee_mail or st.session_state.get("contact_ee_mail", "")).strip()
+
+            cc_list = []
+            if _is_mail(remplisseur_email) and remplisseur_email not in to_list:
+                cc_list.append(remplisseur_email)
+            if _is_mail(contact_ee_email) and contact_ee_email not in to_list and contact_ee_email not in cc_list:
+                cc_list.append(contact_ee_email)
+
+            msg["To"] = ", ".join(to_list)
+            if cc_list:
+                msg["Cc"] = ", ".join(cc_list)
+            if _is_mail(remplisseur_email):
+                msg["Reply-To"] = remplisseur_email
+
+            # Envoi (STARTTLS)
             with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+                server.ehlo()
                 server.starttls()
+                server.ehlo()
                 server.login(EMAIL_SENDER, EMAIL_PASSWORD)
                 server.send_message(msg)
-            
-            st.success("✅ Formulaire soumis avec succès!")
-            
+
+            st.success("✅ Soumission envoyée : résumé complet + PDF + pièces jointes (copie auto au remplisseur).")
+
+        except smtplib.SMTPAuthenticationError as e:
+            st.error(
+                f"⛔ Auth SMTP refusée ({e.smtp_code}): {e.smtp_error}. "
+                "Utiliser un MOT DE PASSE D’APPLICATION Gmail (et From = même compte)."
+            )
         except Exception as e:
-            st.error(f"⛔ Erreur lors de l'envoi : {e}")
+            st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
 
-# ==========================
-# SAUVEGARDE AUTO PÉRIODIQUE
-# ==========================
-import time
-if "last_autosave" not in st.session_state:
-    st.session_state["last_autosave"] = time.time()
 
-# Sauvegarder toutes les 30 secondes
-if time.time() - st.session_state["last_autosave"] > 30:
-    sauvegarder_auto()
-    st.session_state["last_autosave"] = time.time()
 
-st.markdown("---")
-st.caption(f"🔒 Session sauvegardée | Form ID: {form_id[:8]}... | Dernière sauvegarde: {datetime.now().strftime('%H:%M:%S')}")
+
+
+
+
+
+
 
 
 
