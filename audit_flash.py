@@ -1266,7 +1266,6 @@ if time.time() - st.session_state["last_autosave"] > 30:
 
 st.markdown("---")
 st.caption(f"🔒 Session sauvegardée | Form ID: {form_id[:8]}... | Dernière sauvegarde: {datetime.now().strftime('%H:%M:%S')}")
-```
 
----
+
 
