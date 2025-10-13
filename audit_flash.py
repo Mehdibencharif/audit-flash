@@ -115,38 +115,34 @@ def repondre_a_question(question: str, langue: str = "fr") -> str:
 # ================================
 # Interface Streamlit (UI Chatbot) Sidebar mise en valeur
 # ================================
-# ================================
-# Interface Streamlit (UI Chatbot) Sidebar – compatible clair/sombre
-# ================================
-# Fallback si les couleurs globales n'existent pas encore (sécurisé)
-if "BG" not in locals():
-    BG = "#ffffff"
-if "TEXT" not in locals():
-    TEXT = "#37474f"
-if "PRIMARY" not in locals():
-    PRIMARY = "#cddc39"
-if "PRIMARY_HOVER" not in locals():
-    PRIMARY_HOVER = "#afb42b"
-if "CARD" not in locals():
-    CARD = "#f6f8fa"
-if "BORDER" not in locals():
-    BORDER = "#e3e7ea"
+# Fallback si les couleurs globales n'existent pas encore
+BG = locals().get("BG", "#ffffff")
+TEXT = locals().get("TEXT", "#37474f")
+PRIMARY = locals().get("PRIMARY", "#cddc39")
+PRIMARY_HOVER = locals().get("PRIMARY_HOVER", "#afb42b")
+CARD = locals().get("CARD", "#f6f8fa")
+BORDER = locals().get("BORDER", "#e3e7ea")
+
+# Couleurs d'inputs selon le thème
+INPUT_BG = "#0f1b3d" if BG.lower() in ("#0b1530", "#0b1530ff") else "#ffffff"
+PLACEHOLDER = "rgba(255,255,255,.7)" if INPUT_BG == "#0f1b3d" else "#6b7280"
 
 st.markdown(f"""
 <style>
-/* élargit la barre latérale */
-section[data-testid="stSidebar"] {{ 
-  width: 420px !important; 
+/* === SIDEBAR LAYOUT === */
+section[data-testid="stSidebar"] {{
+  width: 420px !important;
+  background: {BG} !important;
   color: {TEXT} !important;
 }}
-@media (max-width: 1200px){{
+@media (max-width: 1200px) {{
   section[data-testid="stSidebar"] {{ width: 360px !important; }}
 }}
 
-/* Bandeau titre dans la sidebar */
+/* === HEADER (hero) === */
 .chat-hero {{
   background: {PRIMARY};
-  color: #1f2937;                 /* lisible sur fond lime */
+  color: #1f2937;                 /* texte foncé lisible sur lime */
   padding: 12px 14px;
   border-radius: 10px;
   font-weight: 700;
@@ -155,55 +151,73 @@ section[data-testid="stSidebar"] {{
   box-shadow: 0 2px 8px rgba(0,0,0,.08);
 }}
 
-/* Carte contenant question/réponse */
+/* === CARD DU CHATBOT === */
 .chat-card {{
   background: {CARD};
   border: 1px solid {BORDER};
   border-radius: 10px;
   padding: 10px;
-  color: {TEXT};
-}}
-
-/* Zone de texte + inputs (lisibles en sombre) */
-textarea, input, .stTextArea textarea {{
   color: {TEXT} !important;
 }}
-/* Certaines versions de Streamlit encapsulent l'input dans des divs */
-.stTextArea div[contenteditable="true"], .stTextInput input {{
+/* Forcer la couleur du texte dans la carte (titres, paragraphes, listes, captions) */
+.chat-card * {{
   color: {TEXT} !important;
+  opacity: 1 !important;
+}}
+/* Liens dans la carte */
+.chat-card a, .chat-card a:visited {{ color: {PRIMARY} !important; }}
+.chat-card a:hover {{ color: {PRIMARY_HOVER} !important; }}
+
+/* === ZONES DE TEXTE / INPUTS === */
+section[data-testid="stSidebar"] textarea,
+section[data-testid="stSidebar"] input[type="text"],
+.stTextArea textarea,
+.stTextInput input {{
+  background: {INPUT_BG} !important;
+  color: {TEXT} !important;
+  border: 1px solid {BORDER} !important;
+  border-radius: 8px !important;
+}}
+/* Placeholder lisible en sombre */
+section[data-testid="stSidebar"] textarea::placeholder,
+section[data-testid="stSidebar"] input[type="text"]::placeholder {{
+  color: {PLACEHOLDER} !important;
 }}
 
-/* Boutons */
-div.stButton > button {{
-  background-color: {PRIMARY};
-  color: white;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-weight: bold;
-  border: 0;
+/* === BOUTONS === */
+section[data-testid="stSidebar"] div.stButton > button {{
+  background-color: {PRIMARY} !important;
+  color: white !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  font-weight: bold !important;
+  border: 0 !important;
 }}
-div.stButton > button:hover {{
-  background-color: {PRIMARY_HOVER};
-  color: #0b0f1a;
+section[data-testid="stSidebar"] div.stButton > button:hover {{
+  background-color: {PRIMARY_HOVER} !important;
+  color: #0b0f1a !important;
 }}
 
-/* Lien dans la sidebar */
-section[data-testid="stSidebar"] a, 
-section[data-testid="stSidebar"] a:visited {{
-  color: {PRIMARY} !important;
-}}
-section[data-testid="stSidebar"] a:hover {{
-  color: {PRIMARY_HOVER} !important;
+/* === TITRES / TEXTES DANS LA SIDEBAR === */
+section[data-testid="stSidebar"] h1, 
+section[data-testid="stSidebar"] h2, 
+section[data-testid="stSidebar"] h3, 
+section[data-testid="stSidebar"] h4, 
+section[data-testid="stSidebar"] p, 
+section[data-testid="stSidebar"] li, 
+section[data-testid="stSidebar"] span, 
+section[data-testid="stSidebar"] label, 
+section[data-testid="stSidebar"] .stCaption, 
+section[data-testid="stSidebar"] .stMarkdown {{
+  color: {TEXT} !important;
+  opacity: 1 !important;
 }}
 </style>
 """, unsafe_allow_html=True)
 
 with st.sidebar:
-    # Bandeau très visible
     st.markdown("<div class='chat-hero'>🤖 Assistant Audit Flash</div>", unsafe_allow_html=True)
 
-    # Carte du chatbot
-    # (border=False peut ne pas exister selon ta version; on peut l'omettre si besoin)
     with st.container():
         st.markdown("<div class='chat-card'>", unsafe_allow_html=True)
 
@@ -227,12 +241,10 @@ with st.sidebar:
                         user_question,
                         langue="en" if langue == "English" else "fr"
                     )
-
                 if reponse.startswith("⚠️"):
                     st.error(reponse)
                 else:
                     st.markdown("#### ✅ Réponse")
-                    # 👉 la boîte de réponse s’adapte au thème (CARD/BORDER/TEXT)
                     st.markdown(
                         f"<div style='background:{CARD};padding:10px;border-radius:8px;"
                         f"border:1px solid {BORDER}; color:{TEXT};'>🤖 {reponse}</div>",
@@ -242,7 +254,8 @@ with st.sidebar:
                 st.warning("❗ Veuillez écrire une question avant d’envoyer.")
 
         st.markdown("</div>", unsafe_allow_html=True)  # /chat-card
-        
+
+
 # ==========================
 # APPARENCE : clair / sombre (toggle)
 # ==========================
@@ -1822,6 +1835,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
