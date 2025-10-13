@@ -47,48 +47,45 @@ lang = "fr" if langue == "Français" else "en"
 # ================================
 import requests
 
-if envoyer:
-    if user_question.strip():
-        with st.spinner("💬 L’assistant réfléchit..."):
-            reponse = groq_answer(
-                user_question,
-                langue="en" if langue == "English" else "fr"
-            )
-        if reponse.startswith("⚠️"):
-            st.error(reponse)
-        else:
-            st.markdown("#### ✅ Réponse")
-            st.markdown(
-                f"<div style='background:#ffffff;padding:10px;border-radius:8px;border:1px solid #e3e7ea;'>🤖 {reponse}</div>",
-                unsafe_allow_html=True
-            )
-    else:
-        st.warning("❗ Veuillez écrire une question avant d’envoyer.")
-        
-def _get_groq_key() -> str:
+def _get_groq_key() -> str | None:
+    """Récupère la clé GROQ_API_KEY depuis l'environnement ou st.secrets,
+    en tolérant GROQ_APIKEY et en nettoyant les guillemets/espaces."""
     key = os.getenv("GROQ_API_KEY") or os.getenv("GROQ_APIKEY")
     try:
+        import streamlit as st
         key = key or st.secrets.get("GROQ_API_KEY") or st.secrets.get("GROQ_APIKEY")
     except Exception:
         pass
-    return (str(key).strip().strip('"').strip("'")) if key else ""
+    if not key:
+        return None
+    # Nettoyage simple (au cas où la clé aurait été collée avec des guillemets)
+    return str(key).strip().strip('"').strip("'")
 
-def groq_answer(question: str, langue: str = "fr") -> str:
+def repondre_a_question(question: str, langue: str = "fr") -> str:
+    """
+    Répond via l'API gratuite Groq (modèle Llama 3.1 8B Instant).
+    Remplace totalement l'usage d'OpenAI.
+    """
     q = (question or "").strip()
     if not q:
         return "⚠️ Aucune question fournie."
+
     api_key = _get_groq_key()
     if not api_key:
-        return "⚠️ Clé GROQ_API_KEY manquante. Ajoute-la dans Settings → Secrets (ou variable d’environnement)."
+        return ("⚠️ Clé GROQ_API_KEY manquante. Ajoute-la dans Settings → Secrets "
+                "ou comme variable d’environnement.")
 
     system_msg = (
         "Tu es un assistant concis en efficacité énergétique. "
-        f"Réponds en {'français' if langue.lower().startswith('fr') else 'anglais'} "
-        "avec définitions claires, formules simples, règles de pouce et un mini-exemple si utile."
-    )
+        "Réponds en {langue} avec définitions claires, formules simples, "
+        "règles de pouce et un mini-exemple si utile."
+    ).format(langue="fr" if langue.lower().startswith("fr") else "en")
 
     url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
     payload = {
         "model": "llama-3.1-8b-instant",
         "messages": [
@@ -101,18 +98,20 @@ def groq_answer(question: str, langue: str = "fr") -> str:
 
     try:
         r = requests.post(url, headers=headers, json=payload, timeout=45)
-        ct = r.headers.get("content-type", "")
-        data = r.json() if "application/json" in ct.lower() else {}
         if r.status_code != 200:
-            # Important : message explicite pour éviter la confusion avec OpenAI
-            msg = data or r.text
-            return f"⚠️ Erreur Groq ({r.status_code}) – endpoint: {url} : {msg}"
-        return (data.get("choices", [{}])[0].get("message", {}).get("content", "") or "").strip()
+            # Renvoyer une erreur lisible
+            try:
+                info = r.json()
+            except Exception:
+                info = {"error": r.text}
+            return f"⚠️ Erreur Groq ({r.status_code}) : {info}"
+        data = r.json()
+        return (data["choices"][0]["message"]["content"] or "").strip()
     except requests.exceptions.RequestException as e:
         return f"⚠️ Erreur réseau Groq : {e}"
     except Exception as e:
         return f"⚠️ Erreur inattendue : {e}"
-        
+
 # ================================
 # Interface Streamlit (UI Chatbot) Sidebar mise en valeur
 # ================================
@@ -1721,6 +1720,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
