@@ -45,69 +45,36 @@ lang = "fr" if langue == "Français" else "en"
 # ================================
 # Assistant IA gratuit via Groq
 # ================================
-import os
-import requests
-
-def _get_groq_key() -> str | None:
-    """Récupère la clé GROQ_API_KEY depuis l'environnement ou st.secrets,
-    en tolérant GROQ_APIKEY et en nettoyant les guillemets/espaces."""
+# --- GROQ ---
+def _get_groq_key() -> str:
     key = os.getenv("GROQ_API_KEY") or os.getenv("GROQ_APIKEY")
     try:
-        import streamlit as st
         key = key or st.secrets.get("GROQ_API_KEY") or st.secrets.get("GROQ_APIKEY")
     except Exception:
         pass
-    if not key:
-        return None
-    # Nettoyage simple (au cas où la clé aurait été collée avec des guillemets)
-    return str(key).strip().strip('"').strip("'")
+    return (str(key).strip().strip('"').strip("'")) if key else ""
 
-def repondre_a_question(question: str, langue: str = "fr") -> str:
-    """
-    Répond via l'API gratuite Groq (modèle Llama 3.1 8B Instant).
-    Remplace totalement l'usage d'OpenAI.
-    """
+def groq_answer(question: str, langue: str = "fr") -> str:
     q = (question or "").strip()
     if not q:
         return "⚠️ Aucune question fournie."
-
     api_key = _get_groq_key()
     if not api_key:
         return ("⚠️ Clé GROQ_API_KEY manquante. Ajoute-la dans Settings → Secrets "
                 "ou comme variable d’environnement.")
-
-    system_msg = (
-        "Tu es un assistant concis en efficacité énergétique. "
-        "Réponds en {langue} avec définitions claires, formules simples, "
-        "règles de pouce et un mini-exemple si utile."
-    ).format(langue="fr" if langue.lower().startswith("fr") else "en")
-
+    system_msg = f"Tu es un assistant concis en efficacité énergétique. Réponds en {'français' if langue.startswith('fr') else 'anglais'} avec définitions claires, formules simples, règles de pouce et un mini-exemple si utile."
     url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "model": "llama-3.1-8b-instant",
-        "messages": [
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": q},
-        ],
-        "temperature": 0.2,
-        "max_tokens": 400,
-    }
-
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    payload = {"model": "llama-3.1-8b-instant",
+               "messages": [{"role":"system","content":system_msg},
+                            {"role":"user","content":q}],
+               "temperature": 0.2, "max_tokens": 400}
     try:
         r = requests.post(url, headers=headers, json=payload, timeout=45)
+        data = r.json() if r.headers.get("content-type","").startswith("application/json") else {}
         if r.status_code != 200:
-            # Renvoyer une erreur lisible
-            try:
-                info = r.json()
-            except Exception:
-                info = {"error": r.text}
-            return f"⚠️ Erreur Groq ({r.status_code}) : {info}"
-        data = r.json()
-        return (data["choices"][0]["message"]["content"] or "").strip()
+            return f"⚠️ Erreur Groq ({r.status_code}) : {data or r.text}"
+        return (data.get("choices",[{}])[0].get("message",{}).get("content","") or "").strip()
     except requests.exceptions.RequestException as e:
         return f"⚠️ Erreur réseau Groq : {e}"
     except Exception as e:
@@ -1721,6 +1688,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
