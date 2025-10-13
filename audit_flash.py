@@ -115,33 +115,86 @@ def repondre_a_question(question: str, langue: str = "fr") -> str:
 # ================================
 # Interface Streamlit (UI Chatbot) Sidebar mise en valeur
 # ================================
-st.markdown("""
+# ================================
+# Interface Streamlit (UI Chatbot) Sidebar – compatible clair/sombre
+# ================================
+# Fallback si les couleurs globales n'existent pas encore (sécurisé)
+if "BG" not in locals():
+    BG = "#ffffff"
+if "TEXT" not in locals():
+    TEXT = "#37474f"
+if "PRIMARY" not in locals():
+    PRIMARY = "#cddc39"
+if "PRIMARY_HOVER" not in locals():
+    PRIMARY_HOVER = "#afb42b"
+if "CARD" not in locals():
+    CARD = "#f6f8fa"
+if "BORDER" not in locals():
+    BORDER = "#e3e7ea"
+
+st.markdown(f"""
 <style>
 /* élargit la barre latérale */
-section[data-testid="stSidebar"] { 
+section[data-testid="stSidebar"] {{ 
   width: 420px !important; 
-}
-@media (max-width: 1200px){
-  section[data-testid="stSidebar"] { width: 360px !important; }
-}
-/* bandeau titre dans la sidebar */
-.chat-hero {
-  background: #cddc39;            /* ta couleur primaire */
-  color: #37474f;
+  color: {TEXT} !important;
+}}
+@media (max-width: 1200px){{
+  section[data-testid="stSidebar"] {{ width: 360px !important; }}
+}}
+
+/* Bandeau titre dans la sidebar */
+.chat-hero {{
+  background: {PRIMARY};
+  color: #1f2937;                 /* lisible sur fond lime */
   padding: 12px 14px;
   border-radius: 10px;
   font-weight: 700;
   font-size: 18px;
   margin-bottom: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,.08);
-}
-/* carte contenant question/réponse */
-.chat-card {
-  background: #f6f8fa;
-  border: 1px solid #e3e7ea;
+}}
+
+/* Carte contenant question/réponse */
+.chat-card {{
+  background: {CARD};
+  border: 1px solid {BORDER};
   border-radius: 10px;
   padding: 10px;
-}
+  color: {TEXT};
+}}
+
+/* Zone de texte + inputs (lisibles en sombre) */
+textarea, input, .stTextArea textarea {{
+  color: {TEXT} !important;
+}}
+/* Certaines versions de Streamlit encapsulent l'input dans des divs */
+.stTextArea div[contenteditable="true"], .stTextInput input {{
+  color: {TEXT} !important;
+}}
+
+/* Boutons */
+div.stButton > button {{
+  background-color: {PRIMARY};
+  color: white;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: bold;
+  border: 0;
+}}
+div.stButton > button:hover {{
+  background-color: {PRIMARY_HOVER};
+  color: #0b0f1a;
+}}
+
+/* Lien dans la sidebar */
+section[data-testid="stSidebar"] a, 
+section[data-testid="stSidebar"] a:visited {{
+  color: {PRIMARY} !important;
+}}
+section[data-testid="stSidebar"] a:hover {{
+  color: {PRIMARY_HOVER} !important;
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -150,7 +203,8 @@ with st.sidebar:
     st.markdown("<div class='chat-hero'>🤖 Assistant Audit Flash</div>", unsafe_allow_html=True)
 
     # Carte du chatbot
-    with st.container(border=False):
+    # (border=False peut ne pas exister selon ta version; on peut l'omettre si besoin)
+    with st.container():
         st.markdown("<div class='chat-card'>", unsafe_allow_html=True)
 
         user_question = st.text_area(
@@ -178,18 +232,17 @@ with st.sidebar:
                     st.error(reponse)
                 else:
                     st.markdown("#### ✅ Réponse")
+                    # 👉 la boîte de réponse s’adapte au thème (CARD/BORDER/TEXT)
                     st.markdown(
-                        f"<div style='background:#ffffff;padding:10px;border-radius:8px;"
-                        f"border:1px solid #e3e7ea;'>🤖 {reponse}</div>",
+                        f"<div style='background:{CARD};padding:10px;border-radius:8px;"
+                        f"border:1px solid {BORDER}; color:{TEXT};'>🤖 {reponse}</div>",
                         unsafe_allow_html=True
                     )
             else:
                 st.warning("❗ Veuillez écrire une question avant d’envoyer.")
 
         st.markdown("</div>", unsafe_allow_html=True)  # /chat-card
-# ==========================
-# COULEURS ET STYLE PERSONNALISÉ
-# ==========================
+        
 # ==========================
 # APPARENCE : clair / sombre (toggle)
 # ==========================
@@ -1769,6 +1822,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
