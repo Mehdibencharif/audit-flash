@@ -46,6 +46,25 @@ lang = "fr" if langue == "Français" else "en"
 # Assistant IA gratuit via Groq
 # ================================
 import requests
+
+if envoyer:
+    if user_question.strip():
+        with st.spinner("💬 L’assistant réfléchit..."):
+            reponse = groq_answer(
+                user_question,
+                langue="en" if langue == "English" else "fr"
+            )
+        if reponse.startswith("⚠️"):
+            st.error(reponse)
+        else:
+            st.markdown("#### ✅ Réponse")
+            st.markdown(
+                f"<div style='background:#ffffff;padding:10px;border-radius:8px;border:1px solid #e3e7ea;'>🤖 {reponse}</div>",
+                unsafe_allow_html=True
+            )
+    else:
+        st.warning("❗ Veuillez écrire une question avant d’envoyer.")
+        
 def _get_groq_key() -> str:
     key = os.getenv("GROQ_API_KEY") or os.getenv("GROQ_APIKEY")
     try:
@@ -1702,6 +1721,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
