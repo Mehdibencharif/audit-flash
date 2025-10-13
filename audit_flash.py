@@ -115,79 +115,78 @@ def repondre_a_question(question: str, langue: str = "fr") -> str:
 # ================================
 # Interface Streamlit (UI Chatbot) Sidebar mise en valeur
 # ================================
-st.markdown(f"""
+st.markdown("""
 <style>
-/* === Sidebar (Streamlit >= 1.30) === */
-aside[data-testid="stSidebar"] {{
-  background: {BG} !important;
-}}
-aside[data-testid="stSidebar"] * {{
-  color: {TEXT} !important;
-  opacity: 1 !important;
-}}
-aside[data-testid="stSidebar"] div[data-testid="stSidebarContent"] {{
-  background: {BG} !important;
-}}
-
-/* largeur responsive */
-aside[data-testid="stSidebar"] {{ width: 420px !important; }}
-@media (max-width: 1200px) {{
-  aside[data-testid="stSidebar"] {{ width: 360px !important; }}
-}}
-
-/* bandeau titre */
-.chat-hero {{
-  background: {PRIMARY};
-  color: #1f2937 !important;
+/* élargit la barre latérale */
+section[data-testid="stSidebar"] { 
+  width: 420px !important; 
+}
+@media (max-width: 1200px){
+  section[data-testid="stSidebar"] { width: 360px !important; }
+}
+/* bandeau titre dans la sidebar */
+.chat-hero {
+  background: #cddc39;            /* ta couleur primaire */
+  color: #37474f;
   padding: 12px 14px;
   border-radius: 10px;
   font-weight: 700;
   font-size: 18px;
   margin-bottom: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,.08);
-}}
-
-/* carte */
-.chat-card {{
-  background: {CARD} !important;
-  border: 1px solid {BORDER} !important;
+}
+/* carte contenant question/réponse */
+.chat-card {
+  background: #f6f8fa;
+  border: 1px solid #e3e7ea;
   border-radius: 10px;
   padding: 10px;
-}}
-.chat-card * {{
-  color: {TEXT} !important;
-}}
-
-/* inputs */
-aside[data-testid="stSidebar"] textarea,
-aside[data-testid="stSidebar"] input[type="text"],
-aside[data-testid="stSidebar"] .stTextArea textarea,
-aside[data-testid="stSidebar"] .stTextInput input {{
-  background: {"#0f1b3d" if BG.lower() in ("#0b1530", "#0b1530ff") else "#ffffff"} !important;
-  color: {TEXT} !important;
-  border: 1px solid {BORDER} !important;
-  border-radius: 8px !important;
-}}
-aside[data-testid="stSidebar"] textarea::placeholder,
-aside[data-testid="stSidebar"] input[type="text"]::placeholder {{
-  color: {"rgba(255,255,255,.7)" if BG.lower() in ("#0b1530", "#0b1530ff") else "#6b7280"} !important;
-}}
-
-/* boutons */
-aside[data-testid="stSidebar"] div.stButton > button {{
-  background-color: {PRIMARY} !important;
-  color: white !important;
-  border-radius: 8px !important;
-  padding: 8px 16px !important;
-  font-weight: bold !important;
-  border: 0 !important;
-}}
-aside[data-testid="stSidebar"] div.stButton > button:hover {{
-  background-color: {PRIMARY_HOVER} !important;
-  color: #0b0f1a !important;
-}}
+}
 </style>
 """, unsafe_allow_html=True)
+
+with st.sidebar:
+    # Bandeau très visible
+    st.markdown("<div class='chat-hero'>🤖 Assistant Audit Flash</div>", unsafe_allow_html=True)
+
+    # Carte du chatbot
+    with st.container(border=False):
+        st.markdown("<div class='chat-card'>", unsafe_allow_html=True)
+
+        user_question = st.text_area(
+            "💬 Posez votre question ici :",
+            key="chatbot_input",
+            placeholder="Ex : C’est quoi un VFD ? Comment calculer le ROI ?",
+            height=90
+        )
+
+        col_send, col_lang = st.columns([1, 1])
+        with col_send:
+            envoyer = st.button("📤 Envoyer", key="chatbot_button")
+        with col_lang:
+            st.caption("Langue : " + ("Français" if langue == "Français" else "English"))
+
+        if envoyer:
+            if user_question.strip():
+                with st.spinner("💬 L’assistant réfléchit..."):
+                    reponse = repondre_a_question(
+                        user_question,
+                        langue="en" if langue == "English" else "fr"
+                    )
+
+                if reponse.startswith("⚠️"):
+                    st.error(reponse)
+                else:
+                    st.markdown("#### ✅ Réponse")
+                    st.markdown(
+                        f"<div style='background:#ffffff;padding:10px;border-radius:8px;"
+                        f"border:1px solid #e3e7ea;'>🤖 {reponse}</div>",
+                        unsafe_allow_html=True
+                    )
+            else:
+                st.warning("❗ Veuillez écrire une question avant d’envoyer.")
+
+        st.markdown("</div>", unsafe_allow_html=True)  # /chat-card
 
 # ==========================
 # APPARENCE : clair / sombre (toggle)
@@ -1768,6 +1767,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
