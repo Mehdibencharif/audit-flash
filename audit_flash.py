@@ -1,6 +1,3 @@
-Voici le code complet modifié avec le système de sauvegarde intégré :
-
-```python
 import streamlit as st
 from datetime import date
 from fpdf import FPDF
@@ -1272,3 +1269,4 @@ st.caption(f"🔒 Session sauvegardée | Form ID: {form_id[:8]}... | Dernière s
 ```
 
 ---
+
