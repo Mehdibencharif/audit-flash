@@ -115,20 +115,9 @@ def repondre_a_question(question: str, langue: str = "fr") -> str:
 # ================================
 # Interface Streamlit (UI Chatbot) Sidebar mise en valeur
 # ================================
-BG   = locals().get("BG",   "#0b1530")     # bleu nuit si sombre
-TEXT = locals().get("TEXT", "#ffffff")     # texte blanc en sombre
-CARD = locals().get("CARD", "#121e3f")
-BORDER = locals().get("BORDER", "#233055")
-PRIMARY = locals().get("PRIMARY", "#cddc39")
-PRIMARY_HOVER = locals().get("PRIMARY_HOVER", "#afb42b")
-
-# Couleur de fond des champs (sombre vs clair)
-INPUT_BG = "#0f1b3d" if BG.lower() in ("#0b1530", "#0b1530ff") else "#ffffff"
-PLACEHOLDER = "rgba(255,255,255,.7)" if INPUT_BG == "#0f1b3d" else "#6b7280"
-
 st.markdown(f"""
 <style>
-/* --- Cibler la sidebar avec les bons sélecteurs (Streamlit >= 1.30) --- */
+/* === Sidebar (Streamlit >= 1.30) === */
 aside[data-testid="stSidebar"] {{
   background: {BG} !important;
 }}
@@ -136,18 +125,17 @@ aside[data-testid="stSidebar"] * {{
   color: {TEXT} !important;
   opacity: 1 !important;
 }}
-/* conteneur interne de la sidebar */
 aside[data-testid="stSidebar"] div[data-testid="stSidebarContent"] {{
   background: {BG} !important;
 }}
 
-/* largeur sidebar */
+/* largeur responsive */
 aside[data-testid="stSidebar"] {{ width: 420px !important; }}
 @media (max-width: 1200px) {{
   aside[data-testid="stSidebar"] {{ width: 360px !important; }}
 }}
 
-/* bandeau titre (héros) */
+/* bandeau titre */
 .chat-hero {{
   background: {PRIMARY};
   color: #1f2937 !important;
@@ -159,7 +147,7 @@ aside[data-testid="stSidebar"] {{ width: 420px !important; }}
   box-shadow: 0 2px 8px rgba(0,0,0,.08);
 }}
 
-/* carte chatbot */
+/* carte */
 .chat-card {{
   background: {CARD} !important;
   border: 1px solid {BORDER} !important;
@@ -170,34 +158,19 @@ aside[data-testid="stSidebar"] {{ width: 420px !important; }}
   color: {TEXT} !important;
 }}
 
-/* zones de saisie (textarea / input) – plusieurs couches à cibler */
+/* inputs */
 aside[data-testid="stSidebar"] textarea,
 aside[data-testid="stSidebar"] input[type="text"],
 aside[data-testid="stSidebar"] .stTextArea textarea,
 aside[data-testid="stSidebar"] .stTextInput input {{
-  background: {INPUT_BG} !important;
+  background: {"#0f1b3d" if BG.lower() in ("#0b1530", "#0b1530ff") else "#ffffff"} !important;
   color: {TEXT} !important;
   border: 1px solid {BORDER} !important;
   border-radius: 8px !important;
 }}
-/* placeholders lisibles */
 aside[data-testid="stSidebar"] textarea::placeholder,
 aside[data-testid="stSidebar"] input[type="text"]::placeholder {{
-  color: {PLACEHOLDER} !important;
-}}
-
-/* en-têtes/labels/captions */
-aside[data-testid="stSidebar"] h1, 
-aside[data-testid="stSidebar"] h2, 
-aside[data-testid="stSidebar"] h3, 
-aside[data-testid="stSidebar"] h4, 
-aside[data-testid="stSidebar"] p, 
-aside[data-testid="stSidebar"] li, 
-aside[data-testid="stSidebar"] span, 
-aside[data-testid="stSidebar"] label, 
-aside[data-testid="stSidebar"] .stCaption, 
-aside[data-testid="stSidebar"] .stMarkdown {{
-  color: {TEXT} !important;
+  color: {"rgba(255,255,255,.7)" if BG.lower() in ("#0b1530", "#0b1530ff") else "#6b7280"} !important;
 }}
 
 /* boutons */
@@ -214,6 +187,7 @@ aside[data-testid="stSidebar"] div.stButton > button:hover {{
   color: #0b0f1a !important;
 }}
 </style>
+""", unsafe_allow_html=True)
 
 # ==========================
 # APPARENCE : clair / sombre (toggle)
@@ -1794,6 +1768,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
