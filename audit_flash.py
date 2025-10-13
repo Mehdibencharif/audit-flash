@@ -353,7 +353,9 @@ translations = {
         "label_adresse": "Adresse",
         "label_ville": "Ville",
         "label_province": "Province",
-        "label_code_postal": "Code postal"
+        "label_code_postal": "Code postal",
+        "label_neq": "Numéro d’entreprise du Québec (NEQ)",
+        "help_neq": "NEQ à 10 chiffres, ex : 1140007365"
     },
     "en": {
         "titre_infos": "📄 1. General Information",
@@ -364,32 +366,34 @@ translations = {
         "label_adresse": "Address",
         "label_ville": "City",
         "label_province": "Province",
-        "label_code_postal": "Postal code"
+        "label_code_postal": "Postal code",
+        "label_neq": "Québec Enterprise Number (NEQ)",
+        "help_neq": "10-digit NEQ, e.g., 1140007365"
     }
 }
 
 
-st.markdown("<div id='infos'></div>", unsafe_allow_html=True)  # ancre cliquable
-st.markdown(f"""
-<div class='section-title'>
-    {translations[lang]['titre_infos']}
-</div>
-""", unsafe_allow_html=True)
-
 with st.expander(translations[lang]['texte_expander_infos']):
-    client_nom = st.text_input(
-        translations[lang]['label_client_nom'],
-        help=translations[lang]['aide_client_nom'],
-        key="client_nom"   # ✅ mémorise
-    )
-    site_nom = st.text_input(
-        translations[lang]['label_site_nom'],
-        key="site_nom"     # ✅ mémorise
-    )
-    adresse = st.text_input(translations[lang]['label_adresse'], key="adresse")
-    ville = st.text_input(translations[lang]['label_ville'], key="ville")
-    province = st.text_input(translations[lang]['label_province'], key="province")
+    client_nom = st.text_input(translations[lang]['label_client_nom'],
+                               help=translations[lang]['aide_client_nom'], key="client_nom")
+    site_nom   = st.text_input(translations[lang]['label_site_nom'], key="site_nom")
+    adresse    = st.text_input(translations[lang]['label_adresse'], key="adresse")
+    ville      = st.text_input(translations[lang]['label_ville'], key="ville")
+    province   = st.text_input(translations[lang]['label_province'], key="province")
     code_postal = st.text_input(translations[lang]['label_code_postal'], key="code_postal")
+
+    # Nouveau champ NEQ
+    neq = st.text_input(translations[lang]['label_neq'],
+                        key="neq",
+                        help=translations[lang]['help_neq'])
+
+    # Validation (10 chiffres) + normalisation (retire espaces/traits)
+    import re
+    neq_clean = re.sub(r"\D", "", neq or "")
+    st.session_state["neq_clean"] = neq_clean  # utile pour PDF/export
+
+    if neq and not re.fullmatch(r"\d{10}", neq_clean):
+        st.warning("Format NEQ invalide : attendre exactement 10 chiffres.")
     
 
 # ==========================
@@ -1767,6 +1771,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
