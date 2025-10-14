@@ -7,3 +7,4 @@ xlsxwriter
 matplotlib
 openai==0.28
 python-dotenv
+supabase>=2.4.0
