@@ -426,7 +426,11 @@ translations = {
         "label_rempli_date": "Date de remplissage",
         "label_rempli_mail": "Courriel du remplisseur",
         "label_rempli_tel": "Téléphone du remplisseur",
-        "label_rempli_ext": "Extension du remplisseur"
+        "label_rempli_ext": "Extension du remplisseur",
+        "sous_titre_signataire": "✍️ Signataire autorisé",
+        "label_sign_nom": "Nom et prénom (signataire autorisé)",
+        "label_sign_mail": "Courriel (signataire autorisé)",
+        "help_sign_mail": "Format : exemple@domaine.com",
     },
     "en": {
         "titre_contacts_remplisseur": "👥 2. Contact Person and Form Filler",
@@ -448,10 +452,13 @@ translations = {
         "label_rempli_date": "Date of completion",
         "label_rempli_mail": "Email of the person who filled out the form",
         "label_rempli_tel": "Phone number of the person who filled out the form",
-        "label_rempli_ext": "Extension of the person who filled out the form"
+        "label_rempli_ext": "Extension of the person who filled out the form",
+        "sous_titre_signataire": "✍️ Authorized signatory",
+        "label_sign_nom": "Full name (authorized signatory)",
+        "label_sign_mail": "Email (authorized signatory)",
+        "help_sign_mail": "Format: example@domain.com",
     }
 }
-
 st.markdown("<div id='contacts_remplisseur'></div>", unsafe_allow_html=True)  # ancre cliquable
 st.markdown(f"""
 <div class='section-title'>
@@ -487,6 +494,20 @@ with st.expander(translations[lang]['texte_expander_contacts_remplisseur']):
     rempli_mail = st.text_input(translations[lang]['label_rempli_mail'])
     rempli_tel = st.text_input(translations[lang]['label_rempli_tel'])
     rempli_ext = st.text_input(translations[lang]['label_rempli_ext'])
+
+# --- Signataire autorisé (facultatif) ---
+st.markdown(f"#### {translations[lang]['sous_titre_signataire']}")
+sign_nom = st.text_input(translations[lang]['label_sign_nom'], key="sign_nom")
+sign_mail = st.text_input(
+    translations[lang]['label_sign_mail'],
+    key="sign_mail",
+    help=translations[lang]['help_sign_mail']
+)
+
+# Validation simple du courriel (sans bloquer la soumission)
+import re
+if sign_mail and not re.fullmatch(r"[^@]+@[^@]+\.[^@]+", sign_mail.strip()):
+    st.warning("Courriel du signataire : format invalide.")
 
 # ==========================
 # 3. DOCUMENTS À FOURNIR
@@ -1777,6 +1798,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
