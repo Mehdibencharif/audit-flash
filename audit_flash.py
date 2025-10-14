@@ -13,6 +13,16 @@ import openai
 # ✅ Import du chatbot
 from chatbot import repondre_a_question
 
+from supabase import create_client, Client
+import streamlit as st, json, hashlib, uuid
+import pandas as pd
+
+@st.cache_resource
+def supabase_client() -> Client:
+    return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_SERVICE_KEY"])
+
+sb = supabase_client()
+
 # CONFIGURATION GLOBALE
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
 
@@ -1798,6 +1808,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
