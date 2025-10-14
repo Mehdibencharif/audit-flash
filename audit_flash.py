@@ -23,8 +23,137 @@ def supabase_client() -> Client:
 
 sb = supabase_client()
 
+
 # CONFIGURATION GLOBALE
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
+
+# ==========================
+# Helpers # ==== SUPABASE: client & helpers (placer ici, une seule fois) ====
+# ==========================
+
+from supabase import create_client, Client
+import json, hashlib, uuid
+
+@st.cache_resource
+def supabase_client() -> Client:
+    return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_SERVICE_KEY"])
+
+sb = supabase_client()
+
+def _df_to_dict(key: str):
+    """Convertit proprement le contenu d'un st.data_editor en liste de dicts."""
+    val = st.session_state.get(key)
+    if isinstance(val, pd.DataFrame):
+        return val.to_dict("records")
+    if isinstance(val, dict):
+        rows = []
+        rows.extend(val.get("added_rows", []) or [])
+        if isinstance(val.get("edited_rows"), dict):
+            rows.extend(val["edited_rows"].values())
+        return rows
+    if isinstance(val, list):
+        return val
+    return []
+
+def collecter_donnees_formulaire():
+    """Rassemble TOUTES les valeurs que tu veux persister."""
+    return {
+        # --- Infos générales
+        "client_nom": st.session_state.get("client_nom",""),
+        "site_nom": st.session_state.get("site_nom",""),
+        "adresse": st.session_state.get("adresse",""),
+        "ville": st.session_state.get("ville",""),
+        "province": st.session_state.get("province",""),
+        "code_postal": st.session_state.get("code_postal",""),
+        "neq": st.session_state.get("neq_clean",""),
+        # --- Contacts
+        "contact_ee_nom": st.session_state.get("contact_ee_nom",""),
+        "contact_ee_mail": st.session_state.get("contact_ee_mail",""),
+        "contact_ee_tel": st.session_state.get("contact_ee_tel",""),
+        "contact_ee_ext": st.session_state.get("contact_ee_ext",""),
+        "contact_maint_nom": st.session_state.get("contact_maint_nom",""),
+        "contact_maint_mail": st.session_state.get("contact_maint_mail",""),
+        "contact_maint_tel": st.session_state.get("contact_maint_tel",""),
+        "contact_maint_ext": st.session_state.get("contact_maint_ext",""),
+        "rempli_nom": st.session_state.get("rempli_nom",""),
+        "rempli_date": str(st.session_state.get("rempli_date","")),
+        "rempli_mail": st.session_state.get("rempli_mail",""),
+        "rempli_tel": st.session_state.get("rempli_tel",""),
+        "rempli_ext": st.session_state.get("rempli_ext",""),
+        "sign_nom": st.session_state.get("sign_nom",""),
+        "sign_mail": st.session_state.get("sign_mail",""),
+        # --- Objectifs / priorités / services
+        "sauver_ges": st.session_state.get("sauver_ges",""),
+        "economie_energie": st.session_state.get("economie_energie", False),
+        "gain_productivite": st.session_state.get("gain_productivite", False),
+        "roi_vise": st.session_state.get("roi_vise",""),
+        "remplacement_equipement": st.session_state.get("remplacement_equipement", False),
+        "investissement_prevu": st.session_state.get("investissement_prevu",""),
+        "autres_objectifs": st.session_state.get("autres_objectifs",""),
+        "priorite_energie": st.session_state.get("priorite_energie",5),
+        "priorite_roi": st.session_state.get("priorite_roi",5),
+        "priorite_ges": st.session_state.get("priorite_ges",5),
+        "priorite_prod": st.session_state.get("priorite_prod",5),
+        "priorite_maintenance": st.session_state.get("priorite_maintenance",5),
+        "controle": st.session_state.get("controle", False),
+        "maintenance": st.session_state.get("maintenance", False),
+        "ventilation": st.session_state.get("ventilation", False),
+        "autres_services": st.session_state.get("autres_services",""),
+        "temps_fonctionnement": st.session_state.get("temps_fonctionnement",""),
+        # --- Éditeurs
+        "chaudieres": _df_to_dict("chaudieres"),
+        "frigo": _df_to_dict("frigo"),
+        "compresseur": _df_to_dict("compresseur"),
+        "pompes": _df_to_dict("pompes"),
+        "ventilation_eq": _df_to_dict("ventilation"),
+        "machines": _df_to_dict("machines"),
+        "eclairage": _df_to_dict("eclairage"),
+        "depoussieur": _df_to_dict("depoussieur"),
+    }
+
+def get_or_create_form_id():
+    """Récupère l'ID depuis l'URL sinon en crée un, puis charge les données si existantes."""
+    if "form_id" in st.session_state:
+        return st.session_state["form_id"]
+    fid = st.query_params.get("form_id")
+    if fid:
+        st.session_state["form_id"] = fid
+        res = sb.table("forms").select("data").eq("form_id", fid).execute()
+        if res.data:
+            for k, v in (res.data[0]["data"] or {}).items():
+                st.session_state[k] = v
+            st.session_state["formulaire_charge"] = True
+        return fid
+    new_id = str(uuid.uuid4())
+    st.session_state["form_id"] = new_id
+    st.query_params["form_id"] = new_id
+    sb.table("forms").upsert({"form_id": new_id, "data": {}, "email_contact": "", "status":"en_cours"}).execute()
+    return new_id
+
+def save_form(form_id: str):
+    data = collecter_donnees_formulaire()
+    email = data.get("contact_ee_mail","")
+    sb.table("forms").upsert({"form_id": form_id, "data": data, "email_contact": email, "status":"en_cours"}).execute()
+    return True
+
+def autosave_if_changed(form_id: str):
+    """Sauvegarde dès qu'un changement est détecté."""
+    payload = collecter_donnees_formulaire()
+    digest = hashlib.md5(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+    if st.session_state.get("_last_digest") != digest:
+        save_form(form_id)
+        st.session_state["_last_digest"] = digest
+
+def upload_file(file_obj, form_id: str):
+    """Envoie un fichier dans le bucket 'uploads/<form_id>/' et renvoie l'URL signée."""
+    path = f"{form_id}/{file_obj.name}"
+    blob = file_obj.getvalue()
+    sb.storage.from_("uploads").upload(path=path, file=blob, file_options={"content-type": file_obj.type})
+    signed = sb.storage.from_("uploads").create_signed_url(path, expires_in=60*60*24*7)  # 7 jours
+    return signed.get("signedURL")
+# ==== /SUPABASE ====
+
+
 
 # ==========================
 # Choix de la langue
@@ -1808,6 +1937,7 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
 
 
 
