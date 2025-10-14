@@ -139,7 +139,70 @@ def upload_file(file_obj, form_id: str):
 # ==== /SUPABASE ====
 
 form_id = get_or_create_form_id()
-st.caption(f"🔗 Lien de reprise : ?form_id={form_id}")
+# ====== LIEN DE REPRISE — UI améliorée ======
+import urllib.parse, base64
+from io import BytesIO
+
+def render_share_link(form_id: str):
+    # URL relative (marche partout) — si tu connais l’URL publique, remplace par elle
+    resume_url = f"?form_id={form_id}"
+    resume_url_encoded = urllib.parse.quote_plus(resume_url)
+
+    # 1) Badge visuel + bouton "Copier"
+    st.markdown(f"""
+        <style>
+        .share-card {{
+            background:#0b1b33; border:1px solid #1e3356; border-radius:12px;
+            padding:14px 16px; margin:8px 0;
+        }}
+        .share-pill {{
+            display:inline-block; background:#cddc39; color:#1a1a1a; 
+            font-weight:700; padding:6px 10px; border-radius:999px; margin-right:8px;
+        }}
+        .share-link {{
+            font-family:monospace; background:#122240; color:#e8f0ff; 
+            padding:6px 10px; border-radius:8px; border:1px solid #2a3d66;
+        }}
+        </style>
+        <div class="share-card">
+          <span class="share-pill">🔗 Lien de reprise</span>
+          <span class="share-link">{resume_url}</span>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Petit bouton "Copier" (JS simple)
+    st.components.v1.html(f"""
+        <button id="copyBtn" style="
+          background:#cddc39;border:none;border-radius:8px;padding:8px 12px;
+          font-weight:700;cursor:pointer;">Copier</button>
+        <script>
+          const t = `{resume_url}`;
+          document.getElementById('copyBtn').onclick = async () => {{
+            try {{ await navigator.clipboard.writeText(t); }}
+            catch (e) {{}}
+          }};
+        </script>
+    """, height=50)
+
+    # 2) QR code (nécessite `qrcode[pil]` dans requirements)
+    try:
+        import qrcode
+        img = qrcode.make(resume_url)          # si tu as l’URL complète publique, mets-la ici
+        buf = BytesIO(); img.save(buf, format="PNG"); buf.seek(0)
+        st.image(buf, caption="Scannez pour reprendre le formulaire", width=160)
+    except Exception:
+        st.caption("📌 (Ajoute `qrcode[pil]` à requirements.txt pour le QR code)")
+
+    # 3) Boutons de partage rapides
+    colA, colB, colC = st.columns(3)
+    with colA:
+        st.link_button("📧 Envoyer par e-mail", f"mailto:?subject=Reprendre%20le%20formulaire&body={resume_url_encoded}")
+    with colB:
+        st.link_button("💬 WhatsApp", f"https://wa.me/?text={resume_url_encoded}")
+    with colC:
+        st.link_button("🐦 X/Twitter", f"https://twitter.com/intent/tweet?text={resume_url_encoded}")
+
+
 
 # ==========================
 # Choix de la langue
@@ -1925,6 +1988,7 @@ if st.button("Soumettre le formulaire"):
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
             # ⬇️ ICI : totalement à gauche (aucune indentation)
 autosave_if_changed(form_id)
+
 
 
 
