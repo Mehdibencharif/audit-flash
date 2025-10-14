@@ -139,90 +139,7 @@ def upload_file(file_obj, form_id: str):
 # ==== /SUPABASE ====
 
 form_id = get_or_create_form_id()
-
-# ====== LIEN DE REPRISE — UI améliorée ======
-import urllib.parse
-from io import BytesIO
-import streamlit as st
-
-def render_share_link(form_id: str):
-    # (optionnel) URL publique de ton app dans .streamlit/secrets.toml
-    # PUBLIC_BASE_URL="https://ton-app.streamlit.app"
-    public_base = st.secrets.get("PUBLIC_BASE_URL", "").rstrip("/")
-
-    # URL de reprise (relative si base inconnue)
-    resume_url_rel = f"?form_id={form_id}"
-    resume_url = f"{public_base}{resume_url_rel}" if public_base else resume_url_rel
-    resume_url_encoded = urllib.parse.quote_plus(resume_url)
-
-    # Thème (si tu gères un toggle sombre/clair dans session_state)
-    is_dark = st.session_state.get("app_mode", "sombre") == "sombre"
-    card_bg   = "#0b1b33" if is_dark else "#f6f8fa"
-    card_bd   = "#1e3356" if is_dark else "#e3e7ea"
-    link_bg   = "#122240" if is_dark else "#ffffff"
-    link_fg   = "#e8f0ff" if is_dark else "#1a1a1a"
-
-    # 1) Badge visuel + lien cliquable + champ monospace
-    st.markdown(f"""
-        <style>
-        .share-card {{
-            background:{card_bg}; border:1px solid {card_bd}; border-radius:12px;
-            padding:14px 16px; margin:8px 0;
-        }}
-        .share-pill {{
-            display:inline-block; background:#cddc39; color:#1a1a1a; 
-            font-weight:700; padding:6px 10px; border-radius:999px; margin-right:8px;
-        }}
-        .share-link {{
-            font-family:monospace; background:{link_bg}; color:{link_fg}; 
-            padding:6px 10px; border-radius:8px; border:1px solid {card_bd};
-        }}
-        </style>
-        <div class="share-card">
-          <span class="share-pill">🔗 Lien de reprise</span>
-          <span class="share-link">{resume_url}</span>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Bouton "Ouvrir" (cliquable) + "Copier"
-    col1, col2 = st.columns([1,1])
-    with col1:
-        st.link_button("🟢 Ouvrir", resume_url)
-    with col2:
-        # ID unique pour éviter conflits si la page est multipliée
-        copy_id = f"copyBtn_{form_id.replace('-', '')}"
-        st.components.v1.html(f"""
-            <button id="{copy_id}" style="
-              background:#cddc39;border:none;border-radius:8px;padding:8px 12px;
-              font-weight:700;cursor:pointer;">Copier</button>
-            <script>
-              const t = `{resume_url}`;
-              document.getElementById('{copy_id}').onclick = async () => {{
-                try {{
-                  await navigator.clipboard.writeText(t);
-                }} catch (e) {{}}
-              }};
-            </script>
-        """, height=50)
-
-    # 2) QR code (ajoute `qrcode[pil]` à requirements.txt pour l’activer)
-    try:
-        import qrcode
-        img = qrcode.make(resume_url)
-        buf = BytesIO(); img.save(buf, format="PNG"); buf.seek(0)
-        st.image(buf, caption="Scannez pour reprendre le formulaire", width=160)
-    except Exception:
-        st.caption("📌 (Ajoute `qrcode[pil]` à requirements.txt pour afficher le QR code)")
-
-    # 3) Boutons de partage rapides
-    colA, colB, colC = st.columns(3)
-    with colA:
-        st.link_button("📧 E-mail", f"mailto:?subject=Reprendre%20le%20formulaire&body={resume_url_encoded}")
-    with colB:
-        st.link_button("💬 WhatsApp", f"https://wa.me/?text={resume_url_encoded}")
-    with colC:
-        st.link_button("🐦 X/Twitter", f"https://twitter.com/intent/tweet?text={resume_url_encoded}")
-
+st.caption(f"🔗 Lien de reprise : ?form_id={form_id}")
 
 
 # ==========================
@@ -2009,6 +1926,7 @@ if st.button("Soumettre le formulaire"):
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
             # ⬇️ ICI : totalement à gauche (aucune indentation)
 autosave_if_changed(form_id)
+
 
 
 
