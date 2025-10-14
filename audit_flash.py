@@ -1923,8 +1923,9 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+            # ⬇️ ICI : totalement à gauche (aucune indentation)
+autosave_if_changed(form_id)
 
-       autosave_if_changed(form_id)
 
 
 
