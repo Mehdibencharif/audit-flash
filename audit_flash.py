@@ -674,7 +674,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander(translations[lang]['texte_expander_contacts_remplisseur']):
+with st.expander(translations[lang]['texte_expander_contacts_remplisseur'], expanded=False):
     # Sous-titre efficacité énergétique
     st.markdown(f"#### {translations[lang]['sous_titre_ee']}")
     contact_ee_nom = st.text_input(translations[lang]['label_contact_ee_nom'])
@@ -695,7 +695,7 @@ with st.expander(translations[lang]['texte_expander_contacts_remplisseur']):
     contact_maint_tel = st.text_input(translations[lang]['label_contact_maint_tel'])
     contact_maint_ext = st.text_input(translations[lang]['label_contact_maint_ext'])
 
-    # Sous-titre personne ayant rempli le formulaire
+    # Personne ayant rempli le formulaire
     st.markdown(f"#### {translations[lang]['titre_remplisseur']}")
     rempli_nom = st.text_input(translations[lang]['label_rempli_nom'])
     rempli_date = st.date_input(translations[lang]['label_rempli_date'], value=date.today())
@@ -703,19 +703,19 @@ with st.expander(translations[lang]['texte_expander_contacts_remplisseur']):
     rempli_tel = st.text_input(translations[lang]['label_rempli_tel'])
     rempli_ext = st.text_input(translations[lang]['label_rempli_ext'])
 
-# --- Signataire autorisé (facultatif) ---
-st.markdown(f"#### {translations[lang]['sous_titre_signataire']}")
-sign_nom = st.text_input(translations[lang]['label_sign_nom'], key="sign_nom")
-sign_mail = st.text_input(
-    translations[lang]['label_sign_mail'],
-    key="sign_mail",
-    help=translations[lang]['help_sign_mail']
-)
+    # --- Signataire autorisé (facultatif) ---
+    st.markdown(f"#### {translations[lang]['sous_titre_signataire']}")
+    sign_nom = st.text_input(translations[lang]['label_sign_nom'], key="sign_nom")
+    sign_mail = st.text_input(
+        translations[lang]['label_sign_mail'],
+        key="sign_mail",
+        help=translations[lang]['help_sign_mail']
+    )
 
-# Validation simple du courriel (sans bloquer la soumission)
-import re
-if sign_mail and not re.fullmatch(r"[^@]+@[^@]+\.[^@]+", sign_mail.strip()):
-    st.warning("Courriel du signataire : format invalide.")
+    # Validation simple du courriel (sans bloquer la soumission)
+    import re
+    if sign_mail and not re.fullmatch(r"[^@]+@[^@]+\.[^@]+", sign_mail.strip()):
+        st.warning("Courriel du signataire : format invalide.")
 
 # ==========================
 # 3. DOCUMENTS À FOURNIR
@@ -2008,6 +2008,7 @@ if st.button("Soumettre le formulaire"):
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
             # ⬇️ ICI : totalement à gauche (aucune indentation)
 autosave_if_changed(form_id)
+
 
 
 
