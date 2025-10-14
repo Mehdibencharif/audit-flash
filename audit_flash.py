@@ -1,39 +1,20 @@
+# ==== IMPORTS ====
 import streamlit as st
 from datetime import date
 from fpdf import FPDF
-import io
-import re
+import io, re, os, json, hashlib, uuid, smtplib
 import pandas as pd
-import os
-import smtplib
 from email.message import EmailMessage
 import matplotlib.pyplot as plt
-import openai
+from supabase import create_client, Client
 
-# ✅ Import du chatbot
+# ✅ Import du chatbot (ton module existant)
 from chatbot import repondre_a_question
 
-from supabase import create_client, Client
-import streamlit as st, json, hashlib, uuid
-import pandas as pd
-
-@st.cache_resource
-def supabase_client() -> Client:
-    return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_SERVICE_KEY"])
-
-sb = supabase_client()
-
-
-# CONFIGURATION GLOBALE
+# ==== CONFIG GLOBALE ====
 st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
 
-# ==========================
-# Helpers # ==== SUPABASE: client & helpers (placer ici, une seule fois) ====
-# ==========================
-
-from supabase import create_client, Client
-import json, hashlib, uuid
-
+# ==== SUPABASE: client & helpers (une seule fois) ====
 @st.cache_resource
 def supabase_client() -> Client:
     return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_SERVICE_KEY"])
@@ -56,7 +37,7 @@ def _df_to_dict(key: str):
     return []
 
 def collecter_donnees_formulaire():
-    """Rassemble TOUTES les valeurs que tu veux persister."""
+    """Rassemble TOUTES les valeurs à persister."""
     return {
         # --- Infos générales
         "client_nom": st.session_state.get("client_nom",""),
@@ -112,9 +93,11 @@ def collecter_donnees_formulaire():
     }
 
 def get_or_create_form_id():
-    """Récupère l'ID depuis l'URL sinon en crée un, puis charge les données si existantes."""
+    """Récupère l'ID depuis l'URL sinon crée un nouvel ID et insère une ligne vide."""
     if "form_id" in st.session_state:
         return st.session_state["form_id"]
+
+    # NB: selon ta version de Streamlit, st.query_params existe (>=1.31).
     fid = st.query_params.get("form_id")
     if fid:
         st.session_state["form_id"] = fid
@@ -124,6 +107,7 @@ def get_or_create_form_id():
                 st.session_state[k] = v
             st.session_state["formulaire_charge"] = True
         return fid
+
     new_id = str(uuid.uuid4())
     st.session_state["form_id"] = new_id
     st.query_params["form_id"] = new_id
@@ -137,7 +121,7 @@ def save_form(form_id: str):
     return True
 
 def autosave_if_changed(form_id: str):
-    """Sauvegarde dès qu'un changement est détecté."""
+    """Sauvegarde dès qu'un changement est détecté (hash du payload)."""
     payload = collecter_donnees_formulaire()
     digest = hashlib.md5(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
     if st.session_state.get("_last_digest") != digest:
@@ -145,15 +129,17 @@ def autosave_if_changed(form_id: str):
         st.session_state["_last_digest"] = digest
 
 def upload_file(file_obj, form_id: str):
-    """Envoie un fichier dans le bucket 'uploads/<form_id>/' et renvoie l'URL signée."""
+    """Upload dans 'uploads/<form_id>/' et renvoie une URL signée (7 jours).”
+    """
     path = f"{form_id}/{file_obj.name}"
     blob = file_obj.getvalue()
     sb.storage.from_("uploads").upload(path=path, file=blob, file_options={"content-type": file_obj.type})
-    signed = sb.storage.from_("uploads").create_signed_url(path, expires_in=60*60*24*7)  # 7 jours
+    signed = sb.storage.from_("uploads").create_signed_url(path, expires_in=60*60*24*7)
     return signed.get("signedURL")
 # ==== /SUPABASE ====
 
-
+form_id = get_or_create_form_id()
+st.caption(f"🔗 Lien de reprise : ?form_id={form_id}")
 
 # ==========================
 # Choix de la langue
@@ -1937,6 +1923,8 @@ if st.button("Soumettre le formulaire"):
             )
         except Exception as e:
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
+
+       autosave_if_changed(form_id)
 
 
 
