@@ -17,23 +17,30 @@ st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
 # ==== SUPABASE: client & helpers (une seule fois) ====
 @st.cache_resource
 def supabase_client() -> Client:
-    return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_SERVICE_KEY"])
+    # Utilise les clés présentes dans Streamlit Secrets : SUPABASE_URL et SUPABASE_KEY
+    return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
 sb = supabase_client()
+
 
 def _df_to_dict(key: str):
     """Convertit proprement le contenu d'un st.data_editor en liste de dicts."""
     val = st.session_state.get(key)
+
     if isinstance(val, pd.DataFrame):
         return val.to_dict("records")
+
     if isinstance(val, dict):
         rows = []
         rows.extend(val.get("added_rows", []) or [])
-        if isinstance(val.get("edited_rows"), dict):
-            rows.extend(val["edited_rows"].values())
+        edited = val.get("edited_rows")
+        if isinstance(edited, dict):
+            rows.extend(edited.values())
         return rows
+
     if isinstance(val, list):
         return val
+
     return []
 
 def collecter_donnees_formulaire():
@@ -2008,6 +2015,7 @@ if st.button("Soumettre le formulaire"):
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
             # ⬇️ ICI : totalement à gauche (aucune indentation)
 autosave_if_changed(form_id)
+
 
 
 
