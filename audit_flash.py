@@ -100,50 +100,93 @@ def collecter_donnees_formulaire():
     }
 
 def get_or_create_form_id():
-    """Récupère l'ID depuis l'URL sinon crée un nouvel ID et insère une ligne vide."""
+    """Récupère l'ID depuis l'URL sinon crée un nouvel ID.
+    Ne fait PAS planter l'app si Supabase est indisponible.
+    """
     if "form_id" in st.session_state:
         return st.session_state["form_id"]
 
-    # NB: selon ta version de Streamlit, st.query_params existe (>=1.31).
     fid = st.query_params.get("form_id")
     if fid:
         st.session_state["form_id"] = fid
-        res = sb.table("forms").select("data").eq("form_id", fid).execute()
-        if res.data:
-            for k, v in (res.data[0]["data"] or {}).items():
-                st.session_state[k] = v
-            st.session_state["formulaire_charge"] = True
+        try:
+            res = sb.table("forms").select("data").eq("form_id", fid).execute()
+            if res.data:
+                for k, v in (res.data[0].get("data") or {}).items():
+                    st.session_state[k] = v
+                st.session_state["formulaire_charge"] = True
+        except Exception as e:
+            st.warning("⚠️ Supabase indisponible (chargement ignoré).")
+            st.session_state["supabase_error"] = str(e)
         return fid
 
     new_id = str(uuid.uuid4())
     st.session_state["form_id"] = new_id
     st.query_params["form_id"] = new_id
-    sb.table("forms").upsert({"form_id": new_id, "data": {}, "email_contact": "", "status":"en_cours"}).execute()
+
+    try:
+        sb.table("forms").upsert(
+            {"form_id": new_id, "data": {}, "email_contact": "", "status": "en_cours"}
+        ).execute()
+    except Exception as e:
+        st.warning("⚠️ Supabase indisponible (création ignorée).")
+        st.session_state["supabase_error"] = str(e)
+
     return new_id
 
+
 def save_form(form_id: str):
+    """Sauvegarde dans Supabase si possible. Ne plante pas sinon."""
     data = collecter_donnees_formulaire()
-    email = data.get("contact_ee_mail","")
-    sb.table("forms").upsert({"form_id": form_id, "data": data, "email_contact": email, "status":"en_cours"}).execute()
-    return True
+    email = data.get("contact_ee_mail", "")
+    try:
+        sb.table("forms").upsert(
+            {"form_id": form_id, "data": data, "email_contact": email, "status": "en_cours"}
+        ).execute()
+        return True
+    except Exception as e:
+        # On ne bloque pas l'app
+        st.session_state["supabase_error"] = str(e)
+        return False
+
 
 def autosave_if_changed(form_id: str):
     """Sauvegarde dès qu'un changement est détecté (hash du payload)."""
     payload = collecter_donnees_formulaire()
     digest = hashlib.md5(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
     if st.session_state.get("_last_digest") != digest:
-        save_form(form_id)
-        st.session_state["_last_digest"] = digest
+        ok = save_form(form_id)
+        if ok:
+            st.session_state["_last_digest"] = digest
+        else:
+            # Ne pas spammer: on met quand même le digest pour éviter de re-tenter 50 fois
+            st.session_state["_last_digest"] = digest
+
 
 def upload_file(file_obj, form_id: str):
-    """Upload dans 'uploads/<form_id>/' et renvoie une URL signée (7 jours).”
+    """Upload dans 'uploads/<form_id>/' et renvoie une URL signée (7 jours).
+    Ne plante pas si Supabase indisponible.
     """
-    path = f"{form_id}/{file_obj.name}"
-    blob = file_obj.getvalue()
-    sb.storage.from_("uploads").upload(path=path, file=blob, file_options={"content-type": file_obj.type})
-    signed = sb.storage.from_("uploads").create_signed_url(path, expires_in=60*60*24*7)
-    return signed.get("signedURL")
+    try:
+        path = f"{form_id}/{file_obj.name}"
+        blob = file_obj.getvalue()
+        sb.storage.from_("uploads").upload(
+            path=path,
+            file=blob,
+            file_options={"content-type": file_obj.type},
+        )
+        signed = sb.storage.from_("uploads").create_signed_url(
+            path, expires_in=60 * 60 * 24 * 7
+        )
+        return signed.get("signedURL")
+    except Exception as e:
+        st.warning(f"⚠️ Upload impossible (Supabase indisponible) : {e}")
+        st.session_state["supabase_error"] = str(e)
+        return None
+
 # ==== /SUPABASE ====
+
 
 form_id = get_or_create_form_id()
 # ====== LIEN DE REPRISE — UI améliorée ======
@@ -2022,6 +2065,7 @@ if st.button("Soumettre le formulaire"):
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
             # ⬇️ ICI : totalement à gauche (aucune indentation)
 autosave_if_changed(form_id)
+
 
 
 
