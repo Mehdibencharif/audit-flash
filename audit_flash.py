@@ -19,7 +19,8 @@ st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
 def supabase_client() -> Client:
     # Utilise les clés présentes dans Streamlit Secrets : SUPABASE_URL et SUPABASE_KEY
     return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
-
+st.write("Secrets visibles:", list(st.secrets.keys()))
+st.stop()
 sb = supabase_client()
 
 
@@ -489,17 +490,24 @@ st.markdown(f"""
 logo_path = "Image/Logo Soteck.jpg"
 logo_image = logo_path if os.path.exists(logo_path) else None
 
-# LOGO + TITRE alignés (titre suit la couleur du thème)
-col1, col2 = st.columns([6, 1])
+# LOGO + TITRE alignés
+# -> on donne plus de place au logo (col2)
+col1, col2 = st.columns([7, 3], vertical_alignment="center")
+
 with col1:
-    st.markdown(f"""
-    <div style='font-size:24px; font-weight:bold; color:{texte_couleur};'>
-    📋 Formulaire de prise de besoin - Audit Flash
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <div style="font-size:24px; font-weight:bold; color:{texte_couleur};">
+            📋 Formulaire de prise de besoin - Audit Flash
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 with col2:
     if logo_image:
-        st.image(logo_image, width=180)  # 350 peut déborder selon la mise en page
+        # Le logo prend toute la largeur de la colonne (donc il grandit vraiment)
+        st.image(logo_image, use_container_width=True)
     else:
         st.warning("⚠️ Logo non trouvé.")
 
@@ -2015,6 +2023,7 @@ if st.button("Soumettre le formulaire"):
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
             # ⬇️ ICI : totalement à gauche (aucune indentation)
 autosave_if_changed(form_id)
+
 
 
 
