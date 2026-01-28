@@ -19,8 +19,7 @@ st.set_page_config(page_title="Formulaire Audit Flash", layout="wide")
 def supabase_client() -> Client:
     # Utilise les clés présentes dans Streamlit Secrets : SUPABASE_URL et SUPABASE_KEY
     return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
-st.write("Secrets visibles:", list(st.secrets.keys()))
-st.stop()
+
 sb = supabase_client()
 
 
@@ -2023,6 +2022,7 @@ if st.button("Soumettre le formulaire"):
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
             # ⬇️ ICI : totalement à gauche (aucune indentation)
 autosave_if_changed(form_id)
+
 
 
 
