@@ -490,14 +490,14 @@ st.markdown(f"""
 logo_path = "Image/Logo Soteck.jpg"
 logo_image = logo_path if os.path.exists(logo_path) else None
 
-# LOGO + TITRE alignés
-# -> on donne plus de place au logo (col2)
-col1, col2 = st.columns([7, 3], vertical_alignment="center")
+# LOGO + TITRE alignés (titre suit la couleur du thème)
+# ⬇️ on élargit la colonne du logo
+col1, col2 = st.columns([5, 3])
 
 with col1:
     st.markdown(
         f"""
-        <div style="font-size:24px; font-weight:bold; color:{texte_couleur};">
+        <div style='font-size:24px; font-weight:bold; color:{texte_couleur};'>
             📋 Formulaire de prise de besoin - Audit Flash
         </div>
         """,
@@ -506,7 +506,7 @@ with col1:
 
 with col2:
     if logo_image:
-        # Le logo prend toute la largeur de la colonne (donc il grandit vraiment)
+        # ⬇️ le logo prend toute la largeur de sa colonne
         st.image(logo_image, use_container_width=True)
     else:
         st.warning("⚠️ Logo non trouvé.")
@@ -2023,6 +2023,7 @@ if st.button("Soumettre le formulaire"):
             st.error(f"⛔ Erreur lors de l'envoi de l'e-mail : {e}")
             # ⬇️ ICI : totalement à gauche (aucune indentation)
 autosave_if_changed(form_id)
+
 
 
 
