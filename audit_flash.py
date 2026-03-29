@@ -134,11 +134,39 @@ div.stButton > button {{
 div.stButton > button:hover {{
     background: {P_DARK} !important;
 }}
-/* Boutons secondaires (sidebar langue/thème non actifs) */
-div.stButton > button[kind="secondary"] {{
+/* Boutons secondaires */
+div.stButton > button[kind="secondary"],
+div.stButton > button[data-testid="baseButton-secondary"] {{
     background: {SURFACE} !important;
     color: {TEXT2} !important;
     border: 0.5px solid {BORDER} !important;
+}}
+/* Bouton ✕ effacer (petit bouton sidebar) */
+section[data-testid="stSidebar"] div.stButton > button {{
+    background: {SURFACE} !important;
+    color: {TEXT} !important;
+    border: 0.5px solid {BORDER} !important;
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+}}
+section[data-testid="stSidebar"] div.stButton > button[type="primary"],
+section[data-testid="stSidebar"] div.stButton > button[kind="primary"] {{
+    background: {P} !important;
+    color: #1a1a1a !important;
+    border: none !important;
+}}
+/* Link buttons sidebar */
+section[data-testid="stSidebar"] a[data-testid="stLinkButton"] {{
+    background: {SURFACE} !important;
+    color: {TEXT} !important;
+    border: 0.5px solid {BORDER} !important;
+    border-radius: 7px !important;
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }}
 div.stDownloadButton > button {{
     background: {SURFACE} !important;
@@ -156,42 +184,33 @@ div.stDownloadButton > button:hover {{
 /* Expanders — flèche à gauche, zéro chevauchement */
 .stExpander {{
     background: {SURFACE} !important;
-    border: 0.5px solid {BORDER} !important;
+    border: 1px solid {BORDER} !important;
     border-radius: 10px !important;
     overflow: hidden !important;
-    margin-bottom: 10px !important;
-    box-shadow: none !important;
+    margin-bottom: 4px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
 }}
-/* Masquer tous les SVG/icônes natifs Streamlit dans le summary */
-.stExpander [data-testid="stExpanderToggleIcon"],
-.stExpander summary svg {{
-    display: none !important;
-}}
-/* Remplacer par notre flèche à gauche */
+/* Expander summary — flèche native Streamlit stylée, positionnée à gauche */
 .stExpander summary {{
     display: flex !important;
-    flex-direction: row !important;
+    flex-direction: row-reverse !important;
+    justify-content: flex-end !important;
     align-items: center !important;
-    gap: 0 !important;
+    gap: 8px !important;
     padding: 11px 16px !important;
     font-size: 13px !important;
     font-weight: 500 !important;
     color: {TEXT} !important;
-    list-style: none !important;
     cursor: pointer !important;
 }}
-.stExpander summary::before {{
-    content: "▶";
-    font-size: 9px;
-    color: {P};
-    margin-right: 10px;
-    flex-shrink: 0;
-    transition: transform 0.2s ease;
-    display: inline-block;
-}}
-.stExpander details[open] summary::before,
-details[open].stExpander summary::before {{
-    transform: rotate(90deg);
+/* Icône SVG native — on la garde fonctionnelle, on la colore */
+.stExpander summary svg {{
+    color: {P} !important;
+    fill: {P} !important;
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0 !important;
+    order: -1 !important;
 }}
 .stExpander summary p,
 .stExpander summary span {{
@@ -718,6 +737,11 @@ T = {
     label_nom="Prénom et Nom", label_mail="Courriel", label_tel="Téléphone",
     label_ext="Extension", label_date="Date de remplissage",
     help_mail="Format : exemple@domaine.com", help_tel="10 chiffres recommandés",
+    sous_ee="Contact Efficacité Énergétique",
+    sous_maint="Contact Maintenance (externe)",
+    titre_rempli="Personne ayant rempli le formulaire",
+    sous_sign="Signataire autorisé",
+    aucun_eq="Aucun équipement saisi",
     label_felec="Factures électricité (1 à 3 ans)",
     label_fcomb="Factures Gaz / Mazout / Propane / Bois",
     label_fautres="Autres consommables (azote, eau, CO2…)",
@@ -778,6 +802,11 @@ T = {
     label_nom="First and Last Name", label_mail="Email", label_tel="Phone",
     label_ext="Extension", label_date="Date of completion",
     help_mail="Format: example@domain.com", help_tel="10 digits recommended",
+    sous_ee="Energy Efficiency Contact",
+    sous_maint="Maintenance Contact (external)",
+    titre_rempli="Person who filled out this form",
+    sous_sign="Authorized signatory",
+    aucun_eq="No equipment entered",
     label_felec="Electricity bills (1 to 3 years)",
     label_fcomb="Gas / Fuel Oil / Propane / Wood bills",
     label_fautres="Other consumables (nitrogen, water, CO2…)",
@@ -834,24 +863,36 @@ st.session_state["_EQ"] = {k: v for k, v in t.items() if k.startswith("label_")}
 # HEADER PRINCIPAL
 # ─────────────────────────────────────────────
 logo_path = "Image/Logo Soteck.jpg"
-col_h, col_logo = st.columns([5, 1])
-with col_h:
-    sub = ("Formulaire de prise de besoin — Audit énergétique industriel" if lang=="fr"
-           else "Needs Assessment Form — Industrial Energy Audit")
-    st.markdown(f"""
-    <div class="page-header">
-      <div>
-        <div class="page-title">
-          <span class="page-dot"></span>Audit Flash
-        </div>
-        <div class="page-sub">{sub}</div>
-      </div>
-    </div>""", unsafe_allow_html=True)
-with col_logo:
-    if os.path.exists(logo_path):
-        st.image(logo_path, use_container_width=True)
-    else:
-        st.markdown(f'<div class="logo-box">Soteck Clauger</div>', unsafe_allow_html=True)
+# Header avec logo intégré dans un flex row
+sub = ("Formulaire de prise de besoin — Audit énergétique industriel" if lang=="fr"
+       else "Needs Assessment Form — Industrial Energy Audit")
+
+logo_b64 = ""
+if os.path.exists(logo_path):
+    import base64
+    with open(logo_path, "rb") as _f:
+        logo_b64 = base64.b64encode(_f.read()).decode()
+
+logo_html = (
+    f'<img src="data:image/jpeg;base64,{logo_b64}" '
+    f'style="height:52px;width:auto;object-fit:contain;display:block;" />'
+    if logo_b64 else
+    '<span style="font-size:12px;color:#9aaabb">Soteck Clauger</span>'
+)
+
+st.markdown(f"""
+<div style="display:flex;align-items:center;justify-content:space-between;
+            padding-bottom:14px;border-bottom:0.5px solid {BORDER};margin-bottom:14px">
+  <div>
+    <div style="font-size:18px;font-weight:600;color:{TEXT};
+                display:flex;align-items:center;gap:9px">
+      <span style="width:10px;height:10px;background:{P};border-radius:50%;
+                   display:inline-block;flex-shrink:0"></span>Audit Flash
+    </div>
+    <div style="font-size:12px;color:{TEXT3};margin-top:3px">{sub}</div>
+  </div>
+  <div style="flex-shrink:0">{logo_html}</div>
+</div>""", unsafe_allow_html=True)
 
 # Bienvenue
 welcome = ("Remplissez toutes les sections ci-dessous. Vos données sont sauvegardées automatiquement."
