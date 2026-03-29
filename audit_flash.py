@@ -19,20 +19,24 @@ st.set_page_config(
 )
 
 # ─────────────────────────────────────────────
-# SUPABASE
+# SUPABASE (optionnel — désactivé si clés absentes)
 # ─────────────────────────────────────────────
+SUPABASE_OK = False
+sb = None
 try:
-    from supabase import create_client, Client
+    _url = st.secrets.get("SUPABASE_URL", "")
+    _key = st.secrets.get("SUPABASE_KEY", "")
+    if _url and _key:
+        from supabase import create_client, Client
 
-    @st.cache_resource
-    def supabase_client() -> Client:
-        return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
+        @st.cache_resource
+        def supabase_client() -> Client:
+            return create_client(_url, _key)
 
-    sb = supabase_client()
-    SUPABASE_OK = True
+        sb = supabase_client()
+        SUPABASE_OK = True
 except Exception:
-    SUPABASE_OK = False
-    sb = None
+    pass
 
 
 def _df_to_dict(key: str):
@@ -506,15 +510,36 @@ section[data-testid="stSidebar"] {{
 
 /* ── Titres de section ── */
 .section-title {{
-    background: linear-gradient(90deg, {couleur_primaire}22 0%, {couleur_primaire}08 100%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(90deg, {couleur_primaire}28 0%, {couleur_primaire}05 100%);
     border-left: 4px solid {couleur_primaire};
     color: {texte_couleur} !important;
-    padding: 10px 16px;
+    padding: 9px 16px;
     border-radius: 0 8px 8px 0;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 600;
-    font-size: 16px;
-    margin: 20px 0 12px 0;
+    font-size: 14px;
+    margin: 20px 0 10px 0;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}}
+.section-num {{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    background: {couleur_primaire};
+    color: #1a1a1a;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 50%;
+    flex-shrink: 0;
 }}
 
 /* ── Badges de section ── */
@@ -531,15 +556,33 @@ section[data-testid="stSidebar"] {{
 }}
 
 /* ── Expander ── */
-details summary {{
+details > summary {{
     font-weight: 500 !important;
     color: {texte_couleur} !important;
+    padding: 10px 14px !important;
+    border-radius: 8px;
+    list-style: none;
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
 }}
+details > summary::-webkit-details-marker {{ display: none; }}
+details > summary::marker {{ display: none; content: ''; }}
+details > summary::before {{
+    content: '▸';
+    font-size: 13px;
+    color: {couleur_primaire};
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}}
+details[open] > summary::before {{ transform: rotate(90deg); }}
 .stExpander {{
     border: 1px solid {bordure} !important;
     border-radius: 10px !important;
     background: {carte_fond} !important;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
 }}
 
 /* ── Inputs ── */
@@ -1162,7 +1205,7 @@ st.session_state["_EQ"] = {k: v for k, v in t.items() if k.startswith("label_")}
 # SECTION 1 — INFORMATIONS GÉNÉRALES
 # ═══════════════════════════════════════════════
 st.markdown("<div id='infos'></div>", unsafe_allow_html=True)
-st.markdown(f"<div class='section-title'>{t['titre_infos']}</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='section-title'><span class='section-num'>1</span>{'Informations générales' if lang=='fr' else 'General Information'}</div>", unsafe_allow_html=True)
 
 with st.expander(t["exp_infos"], expanded=False):
     c1, c2 = st.columns(2)
@@ -1185,7 +1228,7 @@ with st.expander(t["exp_infos"], expanded=False):
 # SECTION 2 — CONTACTS
 # ═══════════════════════════════════════════════
 st.markdown("<div id='contacts'></div>", unsafe_allow_html=True)
-st.markdown(f"<div class='section-title'>{t['titre_contacts']}</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='section-title'><span class='section-num'>2</span>{'Personnes contacts' if lang=='fr' else 'Contact Persons'}</div>", unsafe_allow_html=True)
 
 with st.expander(t["exp_contacts"], expanded=False):
     # Contact EE
@@ -1246,7 +1289,7 @@ with st.expander(t["exp_contacts"], expanded=False):
 # SECTION 3 — DOCUMENTS
 # ═══════════════════════════════════════════════
 st.markdown("<div id='docs'></div>", unsafe_allow_html=True)
-st.markdown(f"<div class='section-title'>{t['titre_docs']}</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='section-title'><span class='section-num'>3</span>{'Documents à fournir' if lang=='fr' else 'Documents to Provide'}</div>", unsafe_allow_html=True)
 
 with st.expander(t["exp_docs"], expanded=False):
     c1, c2 = st.columns(2)
@@ -1284,7 +1327,7 @@ st.session_state["plans_pid_files"] = plans_pid or []
 # SECTION 4 — OBJECTIFS
 # ═══════════════════════════════════════════════
 st.markdown("<div id='objectifs'></div>", unsafe_allow_html=True)
-st.markdown(f"<div class='section-title'>{t['titre_obj']}</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='section-title'><span class='section-num'>4</span>{'Objectifs du client' if lang=='fr' else 'Client Objectives'}</div>", unsafe_allow_html=True)
 
 with st.expander(t["exp_obj"], expanded=False):
     c1, c2 = st.columns(2)
@@ -1303,7 +1346,7 @@ with st.expander(t["exp_obj"], expanded=False):
 # SECTION 5 — ÉQUIPEMENTS
 # ═══════════════════════════════════════════════
 st.markdown("<div id='equipements'></div>", unsafe_allow_html=True)
-st.markdown(f"<div class='section-title'>{t['titre_eq']}</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='section-title'><span class='section-num'>5</span>{'Liste des équipements' if lang=='fr' else 'Equipment List'}</div>", unsafe_allow_html=True)
 
 
 def _make_editor(key, columns, column_config=None):
@@ -1411,7 +1454,7 @@ with st.expander(t["exp_eq"], expanded=False):
 # SECTION 6 — PRIORITÉS
 # ═══════════════════════════════════════════════
 st.markdown("<div id='priorites'></div>", unsafe_allow_html=True)
-st.markdown(f"<div class='section-title'>{t['titre_prio']}</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='section-title'><span class='section-num'>6</span>{'Priorités stratégiques' if lang=='fr' else 'Strategic Priorities'}</div>", unsafe_allow_html=True)
 
 with st.expander(t["exp_prio"], expanded=False):
     st.caption(t["intro_prio"])
@@ -1468,7 +1511,7 @@ with st.expander(t["exp_prio"], expanded=False):
 # SECTION 7 — SERVICES
 # ═══════════════════════════════════════════════
 st.markdown("<div id='services'></div>", unsafe_allow_html=True)
-st.markdown(f"<div class='section-title'>{t['titre_services']}</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='section-title'><span class='section-num'>7</span>{'Services complémentaires' if lang=='fr' else 'Additional Services'}</div>", unsafe_allow_html=True)
 
 with st.expander(t["exp_services"], expanded=False):
     c1, c2, c3 = st.columns(3)
@@ -1485,7 +1528,7 @@ with st.expander(t["exp_services"], expanded=False):
 # SECTION 8 — PDF + EXPORT + SOUMISSION
 # ═══════════════════════════════════════════════
 st.markdown("<div id='pdf'></div>", unsafe_allow_html=True)
-st.markdown(f"<div class='section-title'>{t['titre_pdf']}</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='section-title'><span class='section-num'>8</span>{'Récapitulatif et PDF' if lang=='fr' else 'Summary and PDF'}</div>", unsafe_allow_html=True)
 st.info(t["info_note"])
 
 
