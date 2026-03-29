@@ -20,6 +20,19 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Forcer la sidebar toujours visible via CSS (empêche de la fermer)
+st.markdown("""
+<style>
+/* Masquer le bouton de fermeture de la sidebar */
+button[data-testid="collapsedControl"] { display: none !important; }
+section[data-testid="stSidebar"] { 
+    transform: none !important; 
+    visibility: visible !important;
+    min-width: 280px !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ── Supabase (optionnel) ──────────────────────
 SUPABASE_OK = False
 sb = None
@@ -853,6 +866,20 @@ st.session_state["_EQ"] = {k: v for k, v in t.items() if k.startswith("label_")}
 # HEADER PRINCIPAL
 # ─────────────────────────────────────────────
 logo_path = "Image/Logo Soteck.jpg"
+# ── Bandeau langue + thème en haut du main (toujours accessible) ──
+_col_l, _col_t, _col_sp = st.columns([2, 2, 6])
+with _col_l:
+    if st.button("🌐 Français" if lang=="en" else "🌐 English",
+                 key="main_lang_toggle", help="Changer la langue"):
+        st.session_state["langue"] = "English" if lang=="fr" else "Français"
+        st.rerun()
+with _col_t:
+    _next_theme = "Sombre" if st.session_state["ui_theme"]=="Clair" else "Clair"
+    _icon = "🌙" if st.session_state["ui_theme"]=="Clair" else "☀️"
+    if st.button(f"{_icon} Mode {_next_theme}", key="main_theme_toggle"):
+        st.session_state["ui_theme"] = _next_theme
+        st.rerun()
+
 # Header avec logo intégré dans un flex row
 sub = ("Formulaire de prise de besoin — Audit énergétique industriel" if lang=="fr"
        else "Needs Assessment Form — Industrial Energy Audit")
@@ -865,7 +892,7 @@ if os.path.exists(logo_path):
 
 logo_html = (
     f'<img src="data:image/jpeg;base64,{logo_b64}" '
-    f'style="height:52px;width:auto;object-fit:contain;display:block;" />'
+    f'style="height:72px;width:auto;max-width:200px;object-fit:contain;display:block;" />'
     if logo_b64 else
     '<span style="font-size:12px;color:#9aaabb">Soteck Clauger</span>'
 )
