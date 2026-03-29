@@ -20,18 +20,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Forcer la sidebar toujours visible via CSS (empêche de la fermer)
-st.markdown("""
-<style>
-/* Masquer le bouton de fermeture de la sidebar */
-button[data-testid="collapsedControl"] { display: none !important; }
-section[data-testid="stSidebar"] { 
-    transform: none !important; 
-    visibility: visible !important;
-    min-width: 280px !important;
-}
-</style>
-""", unsafe_allow_html=True)
+
 
 # ── Supabase (optionnel) ──────────────────────
 SUPABASE_OK = False
@@ -275,6 +264,15 @@ hr {{ border-color: {BORDER} !important; }}
 a {{ color: {P} !important; }}
 a:hover {{ color: {P_DARK} !important; }}
 #MainMenu, footer, header {{ visibility: hidden; }}
+
+/* Sidebar — toujours ouverte, bouton fermeture masqué */
+button[data-testid="collapsedControl"] {{ display: none !important; }}
+section[data-testid="stSidebar"] {{
+    transform: translateX(0) !important;
+    visibility: visible !important;
+    min-width: 280px !important;
+    max-width: 300px !important;
+}}
 
 /* Composants custom */
 .info-banner {{
@@ -892,7 +890,7 @@ if os.path.exists(logo_path):
 
 logo_html = (
     f'<img src="data:image/jpeg;base64,{logo_b64}" '
-    f'style="height:72px;width:auto;max-width:200px;object-fit:contain;display:block;" />'
+    f'style="height:90px;width:auto;max-width:220px;object-fit:contain;display:block;" />'
     if logo_b64 else
     '<span style="font-size:12px;color:#9aaabb">Soteck Clauger</span>'
 )
