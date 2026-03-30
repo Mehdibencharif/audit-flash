@@ -705,32 +705,67 @@ with st.sidebar:
     st.divider()
 
     # Lien de reprise
-    base = ""
-    try: base = st.secrets.get("PUBLIC_BASE_URL", "").rstrip("/")
-    except Exception: pass
-    resume_url = f"{base}?form_id={form_id}" if base else f"?form_id={form_id}"
-    enc = urllib.parse.quote_plus(resume_url)
-
-    st.markdown(f"""
-    <div class="sb-link">
-      <div class="sb-link-label">{"Lien de reprise" if lang=="fr" else "Resume link"}</div>
-      <div class="sb-link-url">{resume_url}</div>
-    </div>""", unsafe_allow_html=True)
-
-    c1, c2 = st.columns(2)
-    with c1:
-        st.link_button("Email", f"mailto:?subject=Formulaire&body={enc}", use_container_width=True)
-    with c2:
-        st.link_button("WhatsApp", f"https://wa.me/?text={enc}", use_container_width=True)
-
+    # URL réelle de l'app
     try:
-        import qrcode
-        img = qrcode.make(resume_url)
-        buf = BytesIO(); img.save(buf, "PNG"); buf.seek(0)
-        st.image(buf, width=110,
-                 caption="Scanner pour reprendre" if lang=="fr" else "Scan to resume")
+        _host  = st.context.headers.get("host", "")
+        _proto = "https" if "streamlit.app" in _host else "http"
+        _base  = f"{_proto}://{_host}".rstrip("/")
     except Exception:
-        pass
+        _base = ""
+    if not _base:
+        try: _base = st.secrets.get("PUBLIC_BASE_URL", "").rstrip("/")
+        except Exception: _base = ""
+
+    resume_url = f"{_base}?form_id={form_id}" if _base else f"?form_id={form_id}"
+    enc = urllib.parse.quote_plus(resume_url)
+    lbl_reprise = "Lien de reprise" if lang=="fr" else "Resume link"
+    lbl_copier  = "Copier le lien" if lang=="fr" else "Copy link"
+    lbl_copied  = "Copié !" if lang=="fr" else "Copied!"
+    lbl_email   = "Envoyer par courriel" if lang=="fr" else "Send by email"
+
+    st.markdown(
+        f'''<div class="sb-link">
+  <div class="sb-link-label">{lbl_reprise}</div>
+  <div class="sb-link-url">{resume_url}</div>
+</div>''', unsafe_allow_html=True)
+
+    # Bouton copier clipboard
+    st.components.v1.html(
+        f'''<button onclick="navigator.clipboard.writeText(\'{resume_url}\').then(()=>{{
+            this.textContent=\'{lbl_copied}\';
+            setTimeout(()=>{{this.textContent=\'{lbl_copier}\';}},2000);}});"
+            style="width:100%;padding:7px 10px;background:#cddc39;color:#1a1a1a;
+                   border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;">
+            {lbl_copier}
+        </button>''', height=46)
+
+    # Email professionnel uniquement (pas de WhatsApp)
+    _subj = urllib.parse.quote(
+        "Formulaire Audit Flash – Soteck Clauger" if lang=="fr"
+        else "Flash Audit Form – Soteck Clauger")
+    _body = urllib.parse.quote(
+        ("Bonjour,\n\nVoici le lien pour reprendre votre formulaire Audit Flash :\n\n"
+         + resume_url + "\n\nCordialement,\nSoteck Clauger") if lang=="fr"
+        else ("Hello,\n\nHere is the link to resume your Flash Audit form:\n\n"
+         + resume_url + "\n\nBest regards,\nSoteck Clauger"))
+    st.link_button(f"✉ {lbl_email}",
+                   f"mailto:?subject={_subj}&body={_body}",
+                   use_container_width=True)
+
+    # QR code seulement si URL complète disponible
+    if _base:
+        try:
+            import qrcode
+            _img = qrcode.make(resume_url)
+            _buf = BytesIO(); _img.save(_buf, "PNG"); _buf.seek(0)
+            _cap = "Scanner pour reprendre" if lang=="fr" else "Scan to resume"
+            st.image(_buf, width=110, caption=_cap)
+        except Exception:
+            pass
+    else:
+        st.caption(
+            "Ajoutez PUBLIC_BASE_URL dans Secrets pour activer le QR code." if lang=="fr"
+            else "Add PUBLIC_BASE_URL to Secrets to enable QR code.")
 
 # ─────────────────────────────────────────────
 # TRADUCTIONS
