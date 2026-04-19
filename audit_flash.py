@@ -2,6 +2,7 @@
 import streamlit as st
 from datetime import date
 from fpdf import FPDF
+from fpdf.enums import XPos, YPos
 import io, re, os, json, hashlib, uuid, smtplib
 import pandas as pd
 from email.message import EmailMessage
@@ -192,7 +193,6 @@ div.stDownloadButton > button:hover {{
     margin-bottom: 4px !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
 }}
-/* Expander summary — flèche native Streamlit stylée, positionnée à gauche */
 .stExpander summary {{
     display: flex !important;
     flex-direction: row-reverse !important;
@@ -205,7 +205,6 @@ div.stDownloadButton > button:hover {{
     color: {TEXT} !important;
     cursor: pointer !important;
 }}
-/* Icône SVG native — on la garde fonctionnelle, on la colore */
 .stExpander summary svg {{
     color: {P} !important;
     fill: {P} !important;
@@ -628,7 +627,6 @@ def groq_chat(question, lang_q="fr"):
 lang = "fr" if st.session_state["langue"] == "Français" else "en"
 
 with st.sidebar:
-    # Logo
     st.markdown(f"""
     <div style="display:flex;align-items:center;gap:10px;
                 padding-bottom:12px;border-bottom:0.5px solid {BORDER};margin-bottom:4px">
@@ -641,7 +639,6 @@ with st.sidebar:
       </div>
     </div>""", unsafe_allow_html=True)
 
-    # Langue
     st.markdown(f'<div class="sb-section-label">{"Langue" if lang=="fr" else "Language"}</div>',
                 unsafe_allow_html=True)
     c1, c2 = st.columns(2)
@@ -656,7 +653,6 @@ with st.sidebar:
                      use_container_width=True):
             st.session_state["langue"] = "English"; st.rerun()
 
-    # Thème
     st.markdown(f'<div class="sb-section-label" style="margin-top:8px">{"Apparence" if lang=="fr" else "Theme"}</div>',
                 unsafe_allow_html=True)
     c1, c2 = st.columns(2)
@@ -673,7 +669,6 @@ with st.sidebar:
 
     st.divider()
 
-    # Chatbot
     st.markdown('<div class="sb-chat">', unsafe_allow_html=True)
     st.markdown('<div class="sb-chat-header">Assistant Audit Flash</div>', unsafe_allow_html=True)
     q_text = st.text_area(
@@ -704,8 +699,6 @@ with st.sidebar:
 
     st.divider()
 
-    # Lien de reprise
-    # URL réelle de l'app
     try:
         _host  = st.context.headers.get("host", "")
         _proto = "https" if "streamlit.app" in _host else "http"
@@ -729,7 +722,6 @@ with st.sidebar:
   <div class="sb-link-url">{resume_url}</div>
 </div>''', unsafe_allow_html=True)
 
-    # Bouton copier clipboard
     st.components.v1.html(
         f'''<button onclick="navigator.clipboard.writeText(\'{resume_url}\').then(()=>{{
             this.textContent=\'{lbl_copied}\';
@@ -739,7 +731,6 @@ with st.sidebar:
             {lbl_copier}
         </button>''', height=46)
 
-    # Email professionnel uniquement (pas de WhatsApp)
     _subj = urllib.parse.quote(
         "Formulaire Audit Flash – Soteck Clauger" if lang=="fr"
         else "Flash Audit Form – Soteck Clauger")
@@ -752,7 +743,6 @@ with st.sidebar:
                    f"mailto:?subject={_subj}&body={_body}",
                    use_container_width=True)
 
-    # QR code seulement si URL complète disponible
     if _base:
         try:
             import qrcode
@@ -899,7 +889,6 @@ st.session_state["_EQ"] = {k: v for k, v in t.items() if k.startswith("label_")}
 # HEADER PRINCIPAL
 # ─────────────────────────────────────────────
 logo_path = "Image/Logo Soteck.jpg"
-# ── Bandeau langue + thème en haut du main (toujours accessible) ──
 _col_l, _col_t, _col_sp = st.columns([2, 2, 6])
 with _col_l:
     if st.button("🌐 Français" if lang=="en" else "🌐 English",
@@ -913,7 +902,6 @@ with _col_t:
         st.session_state["ui_theme"] = _next_theme
         st.rerun()
 
-# Header avec logo intégré dans un flex row
 sub = ("Formulaire de prise de besoin — Audit énergétique industriel" if lang=="fr"
        else "Needs Assessment Form — Industrial Energy Audit")
 
@@ -944,7 +932,6 @@ st.markdown(f"""
   <div style="flex-shrink:0">{logo_html}</div>
 </div>""", unsafe_allow_html=True)
 
-# Bienvenue
 welcome = ("Remplissez toutes les sections ci-dessous. Vos données sont sauvegardées automatiquement."
            if lang=="fr" else
            "Fill out all sections below. Your data is automatically saved.")
@@ -952,7 +939,6 @@ st.markdown(f'<div class="info-banner">{welcome}</div>', unsafe_allow_html=True)
 url_site = "https://www.soteck.com/fr" if lang=="fr" else "https://www.soteck.com/en"
 st.markdown(f'🔗 **[Soteck Clauger]({url_site})**')
 
-# Sommaire
 sects = (["Informations générales","Contacts","Documents","Objectifs",
           "Équipements","Priorités","Services","PDF"]
          if lang=="fr" else
@@ -1229,31 +1215,37 @@ with st.expander(f"8 — {'Récapitulatif et PDF' if lang=='fr' else 'Summary an
         pdf = FPDF()
         pdf.set_auto_page_break(auto=True, margin=15)
         pdf.add_page()
+
+        # ── Polices ── correction 1 : suppression de uni=True (déprécié fpdf2 >= 2.5.1)
         try:
-            pdf.add_font("DV","","fonts/DejaVuSans.ttf",uni=True)
-            pdf.add_font("DV","B","fonts/DejaVuSans-Bold.ttf",uni=True)
+            pdf.add_font("DV", "",  "fonts/DejaVuSans.ttf")
+            pdf.add_font("DV", "B", "fonts/DejaVuSans-Bold.ttf")
             FR = FB = "DV"
         except Exception:
             FR = FB = "Arial"
+
         BL = "-"
 
+        # ── correction 2 : ln=True → new_x/new_y (déprécié fpdf2 >= 2.5.2)
         def sec(txt):
             pdf.set_fill_color(205, 220, 57)
-            pdf.set_font(FB,"B",11)
-            pdf.cell(0, 8, txt, ln=True, fill=True)
+            pdf.set_font(FB, "B", 11)
+            pdf.cell(0, 8, txt, new_x=XPos.LMARGIN, new_y=YPos.NEXT, fill=True)
             pdf.ln(1)
 
         def row(lbl, val):
-            pdf.set_font(FR,"",10)
-            pdf.cell(0, 7, f"{lbl} : {val or 'N/A'}", ln=True)
+            pdf.set_font(FR, "", 10)
+            pdf.cell(0, 7, f"{lbl} : {val or 'N/A'}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
         try: pdf.image("Image/Logo Soteck.jpg", x=160, y=8, w=35)
         except Exception: pass
 
-        pdf.set_font(FB,"B",16)
-        pdf.cell(0, 10, "AUDIT FLASH - Résumé", ln=True, align="C")
-        pdf.set_font(FR,"",9)
-        pdf.cell(0, 6, f"Généré le {date.today().strftime('%d/%m/%Y')}", ln=True, align="C")
+        pdf.set_font(FB, "B", 16)
+        pdf.cell(0, 10, "AUDIT FLASH - Résumé",
+                 new_x=XPos.LMARGIN, new_y=YPos.NEXT, align="C")
+        pdf.set_font(FR, "", 9)
+        pdf.cell(0, 6, f"Généré le {date.today().strftime('%d/%m/%Y')}",
+                 new_x=XPos.LMARGIN, new_y=YPos.NEXT, align="C")
         pdf.ln(6)
 
         sec("1. Informations générales" if lang_pdf=="fr" else "1. General Information")
@@ -1278,7 +1270,8 @@ with st.expander(f"8 — {'Récapitulatif et PDF' if lang=='fr' else 'Summary an
         row("ROI visé", roi_vise)
         row("Investissement", investissement_prevu)
         if autres_objectifs:
-            pdf.set_font(FR,"",10)
+            pdf.set_font(FR, "", 10)
+            pdf.set_x(pdf.l_margin)
             pdf.multi_cell(0, 7, f"Autres : {autres_objectifs}")
         pdf.ln(2)
 
@@ -1287,34 +1280,43 @@ with st.expander(f"8 — {'Récapitulatif et PDF' if lang=='fr' else 'Summary an
         row("Maintenance", "Oui" if maintenance else "Non")
         row("Ventilation", "Oui" if ventilation_svc else "Non")
         if autres_services:
-            pdf.set_font(FR,"",10)
+            pdf.set_font(FR, "", 10)
+            pdf.set_x(pdf.l_margin)
             pdf.multi_cell(0, 7, f"Autres : {autres_services}")
         pdf.ln(2)
 
         sec("5. Priorités" if lang_pdf=="fr" else "5. Priorities")
-        pdf.set_font(FR,"",10)
+        pdf.set_font(FR, "", 10)
         if priorites:
             for k, v in priorites.items():
-                try: pdf.cell(0, 7, f"  {BL} {k} : {float(v):.0%}", ln=True)
-                except Exception: pdf.cell(0, 7, f"  {BL} {k} : {v}", ln=True)
+                try:
+                    pdf.cell(0, 7, f"  {BL} {k} : {float(v):.0%}",
+                             new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+                except Exception:
+                    pdf.cell(0, 7, f"  {BL} {k} : {v}",
+                             new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         else:
-            pdf.cell(0, 7, "  Non renseignées", ln=True)
+            pdf.cell(0, 7, "  Non renseignées", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.ln(2)
 
         sec("6. Équipements identifiés" if lang_pdf=="fr" else "6. Equipment Identified")
         for bloc, items in equipements.items():
-            pdf.set_font(FB,"B",10); pdf.cell(0, 7, f"{bloc} :", ln=True)
-            pdf.set_font(FR,"",10)
+            pdf.set_font(FB, "B", 10)
+            pdf.set_x(pdf.l_margin)
+            pdf.cell(0, 7, f"{bloc} :", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+            pdf.set_font(FR, "", 10)
             if items:
-                for it in items: pdf.multi_cell(0, 6, f"    {BL} {_one_line(str(it))}")
+                for it in items:
+                    pdf.set_x(pdf.l_margin)
+                    pdf.multi_cell(0, 6, f"  {BL} {_one_line(str(it))}")
             else:
-                pdf.cell(0, 7, f"    ({t['aucun_eq']})", ln=True)
-
+                pdf.set_x(pdf.l_margin)
+                pdf.cell(0, 7, f"    ({t['aucun_eq']})", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         try: pdf.image("Image/sous-page.jpg", x=10, y=265, w=190)
         except Exception: pass
 
-        out = pdf.output(dest="S")
-        return out if isinstance(out, (bytes, bytearray)) else out.encode("latin-1")
+        # ── correction 4 : output() sans dest="S" (déprécié fpdf2 >= 2.2.0)
+        return pdf.output()
 
     # Boutons génération + téléchargement
     col_g, col_d = st.columns(2)
