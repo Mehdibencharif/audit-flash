@@ -888,7 +888,6 @@ st.session_state["_EQ"] = {k: v for k, v in t.items() if k.startswith("label_")}
 # ─────────────────────────────────────────────
 # HEADER PRINCIPAL
 # ─────────────────────────────────────────────
-logo_path = "Image/Logo Soteck.jpg"
 _col_l, _col_t, _col_sp = st.columns([2, 2, 6])
 with _col_l:
     if st.button("🌐 Français" if lang=="en" else "🌐 English",
@@ -905,22 +904,9 @@ with _col_t:
 sub = ("Formulaire de prise de besoin — Audit énergétique industriel" if lang=="fr"
        else "Needs Assessment Form — Industrial Energy Audit")
 
-logo_b64 = ""
-if os.path.exists(logo_path):
-    import base64
-    with open(logo_path, "rb") as _f:
-        logo_b64 = base64.b64encode(_f.read()).decode()
-
-logo_html = (
-    f'<img src="data:image/jpeg;base64,{logo_b64}" '
-    f'style="height:90px;width:auto;max-width:220px;object-fit:contain;display:block;" />'
-    if logo_b64 else
-    '<span style="font-size:12px;color:#9aaabb">Soteck Clauger</span>'
-)
-
 st.markdown(f"""
 <div style="display:flex;align-items:center;justify-content:space-between;
-            padding-bottom:14px;border-bottom:0.5px solid {BORDER};margin-bottom:14px">
+            padding-bottom:16px;border-bottom:0.5px solid {BORDER};margin-bottom:14px">
   <div>
     <div style="font-size:18px;font-weight:600;color:{TEXT};
                 display:flex;align-items:center;gap:9px">
@@ -929,7 +915,23 @@ st.markdown(f"""
     </div>
     <div style="font-size:12px;color:{TEXT3};margin-top:3px">{sub}</div>
   </div>
-  <div style="flex-shrink:0">{logo_html}</div>
+  <div style="text-align:right;flex-shrink:0;line-height:1.15">
+    <div style="display:flex;align-items:baseline;gap:6px;justify-content:flex-end">
+      <span style="font-size:28px;font-weight:900;letter-spacing:-0.5px;color:{TEXT};
+                   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+        S<span style="color:{P}">Ø</span>TECK
+      </span>
+      <span style="font-size:14px;font-weight:600;color:{TEXT2};letter-spacing:0.04em;
+                   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+        clauger
+      </span>
+      <span style="font-size:18px;color:{P};font-weight:900;margin-left:2px">&#10132;</span>
+    </div>
+    <div style="font-size:9.5px;color:{TEXT3};letter-spacing:0.06em;text-transform:uppercase;
+                margin-top:2px;text-align:right">
+      Traitement d'air + Efficacité énergétique 4.0
+    </div>
+  </div>
 </div>""", unsafe_allow_html=True)
 
 welcome = ("Remplissez toutes les sections ci-dessous. Vos données sont sauvegardées automatiquement."
