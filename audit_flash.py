@@ -1318,7 +1318,7 @@ with st.expander(f"8 — {'Récapitulatif et PDF' if lang=='fr' else 'Summary an
         except Exception: pass
 
         # ── correction 4 : output() sans dest="S" (déprécié fpdf2 >= 2.2.0)
-        return pdf.output()
+        return bytes(pdf.output())
 
     # Boutons génération + téléchargement
     col_g, col_d = st.columns(2)
