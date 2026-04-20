@@ -1485,7 +1485,7 @@ with st.expander(f"8 — {'Récapitulatif et PDF' if lang=='fr' else 'Summary an
 
             try:
                 pwd  = str(st.secrets["email_password"]).strip()
-                dest = ["elmehdi.bencharif@gmail.com"]
+                dest = ["mbencharif@soteck.com","pdelorme@soteck.com"]
                 msg  = EmailMessage()
                 msg["Subject"] = (f"{'Audit Flash' if lang=='fr' else 'Flash Audit'} – "
                                   f"{_one_line(sn)} – {_one_line(cn)}")
