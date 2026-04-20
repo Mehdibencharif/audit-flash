@@ -917,17 +917,17 @@ st.markdown(f"""
   </div>
   <div style="text-align:right;flex-shrink:0;line-height:1.15">
     <div style="display:flex;align-items:baseline;gap:6px;justify-content:flex-end">
-      <span style="font-size:28px;font-weight:900;letter-spacing:-0.5px;color:{TEXT};
+     <span style="font-size:42px;font-weight:900;letter-spacing:-0.5px;color:{TEXT};
                    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
         S<span style="color:{P}">Ø</span>TECK
       </span>
-      <span style="font-size:14px;font-weight:600;color:{TEXT2};letter-spacing:0.04em;
+            <span style="font-size:21px;font-weight:600;color:{TEXT2};letter-spacing:0.04em;
                    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
         clauger
       </span>
-      <span style="font-size:18px;color:{P};font-weight:900;margin-left:2px">&#10132;</span>
+     <span style="font-size:27px;color:{P};font-weight:900;margin-left:2px">&#10132;</span>
     </div>
-    <div style="font-size:9.5px;color:{TEXT3};letter-spacing:0.06em;text-transform:uppercase;
+    <div style="font-size:14px;color:{TEXT3};letter-spacing:0.06em;text-transform:uppercase;
                 margin-top:2px;text-align:right">
       Traitement d'air + Efficacité énergétique 4.0
     </div>
