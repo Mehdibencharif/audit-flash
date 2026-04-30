@@ -1437,9 +1437,9 @@ with st.expander(f"8 — {'Récapitulatif et PDF' if lang=='fr' else 'Summary an
             facture_comb = st.session_state.get("facture_comb_files",[])
             facture_aut  = st.session_state.get("facture_aut_files",[])
             plans        = st.session_state.get("plans_pid_files",[])
-
+ 
             def _nm(lst): return ", ".join(f.name for f in (lst or [])) or "—"
-
+ 
             lines = [
                 "Bonjour,\n",
                 "Ci-joint le résumé de l'Audit Flash.\n",
@@ -1471,7 +1471,7 @@ with st.expander(f"8 — {'Récapitulatif et PDF' if lang=='fr' else 'Summary an
                 L = _safe_details(fn)
                 lines.append(f"- {lbl} :")
                 lines.extend([f"    • {s}" for s in L] if L else ["    —"])
-
+ 
             lines += [
                 "", "——— PIÈCES JOINTES ———",
                 f"Élec. : {_nm(facture_elec)}",
@@ -1482,14 +1482,15 @@ with st.expander(f"8 — {'Récapitulatif et PDF' if lang=='fr' else 'Summary an
             ]
             resume = "\n".join(lines)
             fname = f"AuditFlash_{_slug(sn)}_{_slug(cn)}.pdf"
-
+ 
             try:
                 pwd  = str(st.secrets["email_password"]).strip()
                 dest = ["mbencharif@soteck.com","pdelorme@soteck.com"]
                 msg  = EmailMessage()
                 msg["Subject"] = (f"{'Audit Flash' if lang=='fr' else 'Flash Audit'} – "
                                   f"{_one_line(sn)} – {_one_line(cn)}")
-                msg["From"]    = "elmehdi.bencharif@gmail.com"
+                msg["From"]    = "mbencharif@soteck.com"       # ← MODIFIÉ : adresse Soteck visible
+                msg["Sender"]  = "elmehdi.bencharif@gmail.com" # ← AJOUTÉ  : compte Gmail qui envoie
                 msg["To"]      = ", ".join(dest)
                 def _vm(x): return isinstance(x,str) and re.match(r"[^@]+@[^@]+\.[^@]+",x.strip())
                 cc = [a for a in [re_m, ee_m] if _vm(a) and a not in dest]
@@ -1506,13 +1507,14 @@ with st.expander(f"8 — {'Récapitulatif et PDF' if lang=='fr' else 'Summary an
                             pass
                 with smtplib.SMTP("smtp.gmail.com", 587) as srv:
                     srv.ehlo(); srv.starttls(); srv.ehlo()
-                    srv.login("elmehdi.bencharif@gmail.com", pwd)
+                    srv.login("elmehdi.bencharif@gmail.com", pwd) # ← INCHANGÉ : auth Gmail
                     srv.send_message(msg)
                 st.success(t["ok_envoi"])
             except smtplib.SMTPAuthenticationError as e:
                 st.error(f"Auth SMTP refusée ({e.smtp_code}) : {e.smtp_error}")
             except Exception as e:
                 st.error(f"Erreur envoi : {e}")
+ 
 
 # ─────────────────────────────────────────────
 # AUTOSAVE
