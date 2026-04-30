@@ -958,6 +958,59 @@ st.markdown(f"""
   <div class="sommaire-items">{badges}</div>
 </div>""", unsafe_allow_html=True)
 
+# ── Barre de progression ──────────────────────
+def calcul_progression():
+    score = 0
+    total = 8
+
+    if st.session_state.get("client_nom","").strip() and st.session_state.get("site_nom","").strip():
+        score += 1
+    if st.session_state.get("contact_ee_nom","").strip() and st.session_state.get("contact_ee_mail","").strip():
+        score += 1
+    if st.session_state.get("temps_fonctionnement","").strip():
+        score += 1
+    if st.session_state.get("sauver_ges","").strip() or st.session_state.get("roi_vise","").strip():
+        score += 1
+    for key in ["chaudieres","frigo","compresseur","pompes","ventilation_eq","machines","eclairage","depoussieur"]:
+        df = _df_depuis_editor(key)
+        if not df.empty:
+            score += 1
+            break
+    total_prio = sum([
+        st.session_state.get("priorite_energie", 0),
+        st.session_state.get("priorite_roi", 0),
+        st.session_state.get("priorite_ges", 0),
+        st.session_state.get("priorite_prod", 0),
+        st.session_state.get("priorite_maintenance", 0),
+    ])
+    if total_prio > 0:
+        score += 1
+    if any(st.session_state.get(k, False) for k in ["controle","maintenance","ventilation_service"]):
+        score += 1
+    if "pdf_bytes" in st.session_state:
+        score += 1
+
+    return score, total
+
+_prog_score, _prog_total = calcul_progression()
+_prog_pct = int(_prog_score / _prog_total * 100)
+_couleur_barre = "#4caf50" if _prog_pct == 100 else P
+
+st.markdown(f"""
+<div style="margin-bottom:14px">
+  <div style="display:flex;justify-content:space-between;
+              font-size:11px;color:{TEXT2};margin-bottom:4px">
+    <span>{"Progression du formulaire" if lang=="fr" else "Form completion"}</span>
+    <span style="font-weight:600;color:{TEXT}">{_prog_score}/{_prog_total} — {_prog_pct}%</span>
+  </div>
+  <div style="background:{BORDER};border-radius:999px;height:6px;overflow:hidden">
+    <div style="width:{_prog_pct}%;height:100%;background:{_couleur_barre};
+                border-radius:999px;transition:width 0.4s ease"></div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+
 # ─────────────────────────────────────────────
 # HELPER éditeur
 # ─────────────────────────────────────────────
