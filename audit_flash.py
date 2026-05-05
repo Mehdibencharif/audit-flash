@@ -1542,8 +1542,7 @@ with st.expander(f"8 — {'Récapitulatif et PDF' if lang=='fr' else 'Summary an
                 msg  = EmailMessage()
                 msg["Subject"] = (f"{'Audit Flash' if lang=='fr' else 'Flash Audit'} – "
                                   f"{_one_line(sn)} – {_one_line(cn)}")
-                msg["From"]    = "mbencharif@soteck.com"       # ← MODIFIÉ : adresse Soteck visible
-                msg["Sender"]  = "elmehdi.bencharif@gmail.com" # ← AJOUTÉ  : compte Gmail qui envoie
+                msg["From"] = "Audit Flash <auditflash@soteck.com>"
                 msg["To"]      = ", ".join(dest)
                 def _vm(x): return isinstance(x,str) and re.match(r"[^@]+@[^@]+\.[^@]+",x.strip())
                 cc = [a for a in [re_m, ee_m] if _vm(a) and a not in dest]
