@@ -1558,9 +1558,9 @@ with st.expander(f"8 — {'Récapitulatif et PDF' if lang=='fr' else 'Summary an
                                                subtype="octet-stream", filename=f.name)
                         except Exception:
                             pass
-                with smtplib.SMTP("smtp.gmail.com", 587) as srv:
+                with smtplib.SMTP("mail.smtp2go.com", 587) as srv:
                     srv.ehlo(); srv.starttls(); srv.ehlo()
-                    srv.login("elmehdi.bencharif@gmail.com", pwd) # ← INCHANGÉ : auth Gmail
+                    srv.login("auditflash", pwd) # ← INCHANGÉ : auth Gmail
                     srv.send_message(msg)
                 st.success(t["ok_envoi"])
             except smtplib.SMTPAuthenticationError as e:
