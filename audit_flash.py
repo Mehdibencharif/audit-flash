@@ -1475,97 +1475,157 @@ with st.expander(f"8 — {'Récapitulatif et PDF' if lang=='fr' else 'Summary an
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-    # ── Soumission email ──────────────────────
-    st.divider()
-    if st.button(t["btn_soumettre"], use_container_width=True):
-        pdf_b = st.session_state.get("pdf_bytes")
-        if not pdf_b:
-            st.error(t["err_pdf"])
-        else:
-            cn  = st.session_state.get("client_nom","")
-            sn  = st.session_state.get("site_nom","")
-            ee_m = st.session_state.get("contact_ee_mail","")
-            re_m = st.session_state.get("rempli_mail","")
-            facture_elec = st.session_state.get("facture_elec_files",[])
-            facture_comb = st.session_state.get("facture_comb_files",[])
-            facture_aut  = st.session_state.get("facture_aut_files",[])
-            plans        = st.session_state.get("plans_pid_files",[])
- 
-            def _nm(lst): return ", ".join(f.name for f in (lst or [])) or "—"
- 
-            lines = [
-                "Bonjour,\n",
-                "Ci-joint le résumé de l'Audit Flash.\n",
-                "——— INFOS GÉNÉRALES ———",
-                f"Client : {cn or 'N/A'}", f"Site : {sn or 'N/A'}",
-                f"Adresse : {st.session_state.get('adresse','')} "
-                f"{st.session_state.get('ville','')} {st.session_state.get('province','')}".strip(),
-                "", "——— CONTACTS ———",
-                f"EE : {st.session_state.get('contact_ee_nom','')} – {ee_m} – "
-                f"{st.session_state.get('contact_ee_tel','')}",
-                f"Maint. : {st.session_state.get('contact_maint_nom','')}",
-                f"Rempli : {st.session_state.get('rempli_nom','')} "
-                f"({st.session_state.get('rempli_date','')}) – {re_m}",
-                "", "——— OBJECTIFS ———",
-                f"GES : {st.session_state.get('sauver_ges','')}%",
-                f"ROI : {st.session_state.get('roi_vise','')}",
-                "", "——— ÉQUIPEMENTS ———",
-            ]
-            for lbl, fn in [
-                (t["tab_chaud"], _chaudieres_detaille),
-                (t["tab_frigo"], _frigo_detaille),
-                (t["tab_comp"],  _compresseurs_detaille),
-                (t["tab_dep"],   _depoussieurs_detaille),
-                (t["tab_pompes"],_pompes_detaille),
-                (t["tab_vent"],  _ventilation_detaille),
-                (t["tab_mach"],  _machines_detaille),
-                (t["tab_ecl"],   _eclairage_detaille),
-            ]:
-                L = _safe_details(fn)
-                lines.append(f"- {lbl} :")
-                lines.extend([f"    • {s}" for s in L] if L else ["    —"])
- 
-            lines += [
-                "", "——— PIÈCES JOINTES ———",
-                f"Élec. : {_nm(facture_elec)}",
-                f"Combust. : {_nm(facture_comb)}",
-                f"Autres : {_nm(facture_aut)}",
-                f"Plans : {_nm(plans)}",
-                "", "Cordialement,\nSoteck",
-            ]
-            resume = "\n".join(lines)
-            fname = f"AuditFlash_{_slug(sn)}_{_slug(cn)}.pdf"
- 
-            try:
-                pwd  = str(st.secrets["email_password"]).strip()
-                dest = ["mbencharif@soteck.com","pdelorme@soteck.com"]
-                msg  = EmailMessage()
-                msg["Subject"] = (f"{'Audit Flash' if lang=='fr' else 'Flash Audit'} – "
-                                  f"{_one_line(sn)} – {_one_line(cn)}")
-                msg["From"] = "Audit Flash <auditflash@soteck.com>"
-                msg["To"]      = ", ".join(dest)
-                def _vm(x): return isinstance(x,str) and re.match(r"[^@]+@[^@]+\.[^@]+",x.strip())
-                cc = [a for a in [re_m, ee_m] if _vm(a) and a not in dest]
-                if cc: msg["Cc"] = ", ".join(cc)
-                if _vm(re_m): msg["Reply-To"] = re_m
-                msg.set_content(resume)
-                msg.add_attachment(pdf_b, maintype="application", subtype="pdf", filename=fname)
-                for grp in [facture_elec, facture_comb, facture_aut, plans]:
-                    for f in (grp or []):
-                        try:
-                            msg.add_attachment(f.getvalue(), maintype="application",
-                                               subtype="octet-stream", filename=f.name)
-                        except Exception:
-                            pass
-                with smtplib.SMTP("mail.smtp2go.com", 587) as srv:
-                    srv.ehlo(); srv.starttls(); srv.ehlo()
-                    srv.login("auditflash", pwd) # ← INCHANGÉ : auth Gmail
-                    srv.send_message(msg)
-                st.success(t["ok_envoi"])
-            except smtplib.SMTPAuthenticationError as e:
-                st.error(f"Auth SMTP refusée ({e.smtp_code}) : {e.smtp_error}")
-            except Exception as e:
-                st.error(f"Erreur envoi : {e}")
+   # ── Soumission email ──────────────────────
+st.divider()
+
+if "email_en_cours" not in st.session_state:
+    st.session_state.email_en_cours = False
+
+if "email_deja_envoye" not in st.session_state:
+    st.session_state.email_deja_envoye = False
+
+if st.button(
+    t["btn_soumettre"],
+    use_container_width=True,
+    disabled=st.session_state.email_en_cours or st.session_state.email_deja_envoye
+):
+
+    if st.session_state.email_deja_envoye:
+        st.warning("Le courriel a déjà été envoyé.")
+        st.stop()
+
+    st.session_state.email_en_cours = True
+
+    pdf_b = st.session_state.get("pdf_bytes")
+
+    if not pdf_b:
+        st.session_state.email_en_cours = False
+        st.error(t["err_pdf"])
+
+    else:
+        cn  = st.session_state.get("client_nom","")
+        sn  = st.session_state.get("site_nom","")
+        ee_m = st.session_state.get("contact_ee_mail","")
+        re_m = st.session_state.get("rempli_mail","")
+        facture_elec = st.session_state.get("facture_elec_files",[])
+        facture_comb = st.session_state.get("facture_comb_files",[])
+        facture_aut  = st.session_state.get("facture_aut_files",[])
+        plans        = st.session_state.get("plans_pid_files",[])
+
+        def _nm(lst):
+            return ", ".join(f.name for f in (lst or [])) or "—"
+
+        lines = [
+            "Bonjour,\n",
+            "Ci-joint le résumé de l'Audit Flash.\n",
+            "——— INFOS GÉNÉRALES ———",
+            f"Client : {cn or 'N/A'}",
+            f"Site : {sn or 'N/A'}",
+            f"Adresse : {st.session_state.get('adresse','')} "
+            f"{st.session_state.get('ville','')} {st.session_state.get('province','')}".strip(),
+            "",
+            "——— CONTACTS ———",
+            f"EE : {st.session_state.get('contact_ee_nom','')} – {ee_m} – "
+            f"{st.session_state.get('contact_ee_tel','')}",
+            f"Maint. : {st.session_state.get('contact_maint_nom','')}",
+            f"Rempli : {st.session_state.get('rempli_nom','')} "
+            f"({st.session_state.get('rempli_date','')}) – {re_m}",
+            "",
+            "——— OBJECTIFS ———",
+            f"GES : {st.session_state.get('sauver_ges','')}%",
+            f"ROI : {st.session_state.get('roi_vise','')}",
+            "",
+            "——— ÉQUIPEMENTS ———",
+        ]
+
+        for lbl, fn in [
+            (t["tab_chaud"], _chaudieres_detaille),
+            (t["tab_frigo"], _frigo_detaille),
+            (t["tab_comp"],  _compresseurs_detaille),
+            (t["tab_dep"],   _depoussieurs_detaille),
+            (t["tab_pompes"],_pompes_detaille),
+            (t["tab_vent"],  _ventilation_detaille),
+            (t["tab_mach"],  _machines_detaille),
+            (t["tab_ecl"],   _eclairage_detaille),
+        ]:
+            L = _safe_details(fn)
+            lines.append(f"- {lbl} :")
+            lines.extend([f"    • {s}" for s in L] if L else ["    —"])
+
+        lines += [
+            "",
+            "——— PIÈCES JOINTES ———",
+            f"Élec. : {_nm(facture_elec)}",
+            f"Combust. : {_nm(facture_comb)}",
+            f"Autres : {_nm(facture_aut)}",
+            f"Plans : {_nm(plans)}",
+            "",
+            "Cordialement,\nSoteck",
+        ]
+
+        resume = "\n".join(lines)
+        fname = f"AuditFlash_{_slug(sn)}_{_slug(cn)}.pdf"
+
+        try:
+            pwd  = str(st.secrets["email_password"]).strip()
+            dest = ["mbencharif@soteck.com", "pdelorme@soteck.com"]
+
+            msg = EmailMessage()
+            msg["Subject"] = (
+                f"{'Audit Flash' if lang=='fr' else 'Flash Audit'} – "
+                f"{_one_line(sn)} – {_one_line(cn)}"
+            )
+            msg["From"] = "Audit Flash <auditflash@soteck.com>"
+            msg["To"] = ", ".join(dest)
+
+            def _vm(x):
+                return isinstance(x, str) and re.match(r"[^@]+@[^@]+\.[^@]+", x.strip())
+
+            cc = [a for a in [re_m, ee_m] if _vm(a) and a not in dest]
+            if cc:
+                msg["Cc"] = ", ".join(cc)
+
+            if _vm(re_m):
+                msg["Reply-To"] = re_m
+
+            msg.set_content(resume)
+            msg.add_attachment(
+                pdf_b,
+                maintype="application",
+                subtype="pdf",
+                filename=fname
+            )
+
+            for grp in [facture_elec, facture_comb, facture_aut, plans]:
+                for f in (grp or []):
+                    try:
+                        msg.add_attachment(
+                            f.getvalue(),
+                            maintype="application",
+                            subtype="octet-stream",
+                            filename=f.name
+                        )
+                    except Exception:
+                        pass
+
+            with smtplib.SMTP("mail.smtp2go.com", 587) as srv:
+                srv.ehlo()
+                srv.starttls()
+                srv.ehlo()
+                srv.login("auditflash", pwd)
+                srv.send_message(msg)
+
+            st.session_state.email_deja_envoye = True
+            st.success(t["ok_envoi"])
+
+        except smtplib.SMTPAuthenticationError as e:
+            st.error(f"Auth SMTP refusée ({e.smtp_code}) : {e.smtp_error}")
+
+        except Exception as e:
+            st.error(f"Erreur envoi : {e}")
+
+        finally:
+            st.session_state.email_en_cours = False
  
 
 # ─────────────────────────────────────────────
